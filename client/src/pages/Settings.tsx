@@ -5,8 +5,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@shared/schema";
-import { useTranslation, type Language } from "@/lib/i18n";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/lib/i18n";
+import { AppHeader } from "@/components/AppHeader";
 import { 
   Settings as SettingsIcon,
   User as UserIcon,
@@ -27,8 +27,7 @@ import {
 
 export default function Settings() {
   const { user } = useAuth();
-  const [language, setLanguage] = useState<Language>('en');
-  const { t } = useTranslation(language);
+  const { t } = useTranslation('en');
   
   // Settings state
   const [biometricEnabled, setBiometricEnabled] = useState(true);
@@ -156,18 +155,12 @@ export default function Settings() {
   ];
 
   return (
-    <div className="min-h-screen bg-background apple-blur-bg pb-20">
-      {/* Header */}
-      <header className="apple-glass border-b border-border/20 sticky top-0 z-40 backdrop-blur-md">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold apple-gradient-text">
-              {t('nav.settings')}
-            </h1>
-            <LanguageSwitcher currentLanguage={language} onLanguageChange={setLanguage} />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background apple-blur-bg" style={{ paddingBottom: '80px' }}>
+      <AppHeader 
+        title={t('nav.settings')}
+        type="root"
+        sticky
+      />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* User Profile Card */}

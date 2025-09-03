@@ -1,0 +1,160 @@
+{
+  "nav": {
+    "home": "Home",
+    "prove": "Prove",
+    "share": "Share",
+    "history": "History",
+    "settings": "Settings"
+  },
+  "stats": {
+    "proofsGenerated": "Proofs Generated",
+    "verifications": "Verifications",
+    "total": "Total",
+    "verified": "Verified"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "continue": "Continue",
+    "next": "Next",
+    "previous": "Previous",
+    "confirm": "Confirm",
+    "retry": "Retry",
+    "tryAgain": "Try again",
+    "close": "Close",
+    "done": "Done",
+    "yes": "Yes",
+    "no": "No",
+    "allow": "Allow",
+    "deny": "Deny",
+    "learnMore": "Learn more",
+    "view": "View",
+    "share": "Share",
+    "exportPDF": "Export PDF",
+    "copy": "Copy",
+    "copied": "Copied",
+    "id": "ID",
+    "status": "Status",
+    "search": "Search",
+    "loading": "Loading…"
+  },
+  "status": {
+    "verified": "verified",
+    "pending": "pending",
+    "failed": "failed",
+    "queued": "queued"
+  },
+  "home": {
+    "greeting": "Hello, {name}",
+    "howAreYou": "How are you today?",
+    "quickActions": "Quick Actions",
+    "ctaGenerate": "Generate Proof",
+    "ctaMyQR": "Show my QR",
+    "ctaScan": "Scan request QR",
+    "privacyTips": "Privacy Tips",
+    "tipLocal": "Your data stays on your device.",
+    "tipInstant": "Organizations can verify instantly."
+  },
+  "prove": {
+    "title": "Generate Proof",
+    "subtitle": "Create zero-knowledge proof",
+    "step1": "Select Type",
+    "step2": "Enter Data",
+    "step3": "Generate",
+    "types": {
+      "age18": "Age Verification (18+)",
+      "age21": "Age Verification (21+)",
+      "citizenship": "Citizenship Verification",
+      "education": "Education Verification",
+      "income": "Income Verification",
+      "address": "Address Verification (Beta)"
+    },
+    "typeSub": {
+      "age": "Prove you meet minimum age requirements",
+      "citizenship": "Prove Nepali citizenship status",
+      "education": "Prove educational qualifications",
+      "income": "Prove income level or range",
+      "address": "Prove residence in specific location"
+    },
+    "input": {
+      "dobYear": "Year of birth",
+      "citizenshipId": "Citizenship number",
+      "degree": "Degree level",
+      "institution": "Institution",
+      "income": "Monthly income",
+      "threshold": "Required threshold"
+    },
+    "generateProgress": "Creating a private proof on your device…",
+    "privacyNote": "This never uploads your personal data.",
+    "resultVerified": "You meet the requirement.",
+    "resultNotEligible": "This requirement isn’t met."
+  },
+  "share": {
+    "title": "Sharing Options",
+    "qr": "Show QR Code",
+    "qrDesc": "For offline verification",
+    "link": "Copy Link",
+    "linkDesc": "Expires in {time}",
+    "download": "Download PDF",
+    "downloadDesc": "Save as receipt",
+    "securityNoteTitle": "Security Note",
+    "securityNote": "Your personal data is never shared. Only the proof is transmitted.",
+    "linkExpired": "Link expired",
+    "linkCopied": "Secure link copied",
+    "openFullQR": "Open full-screen QR"
+  },
+  "history": {
+    "title": "Verification History",
+    "totalProofs": "Total Proofs",
+    "verified": "Verified",
+    "filters": {
+      "all": "All",
+      "verified": "Verified",
+      "pending": "Pending",
+      "failed": "Failed"
+    },
+    "searchPlaceholder": "Search proofs…",
+    "exportHistory": "Export History",
+    "emptyTitle": "No verifications yet",
+    "emptyDesc": "Your verifications will appear here after you share a proof."
+  },
+  "settings": {
+    "title": "Settings",
+    "helpCenter": "Help Center",
+    "helpSubtitle": "FAQs and guides",
+    "downloadData": "Download Data",
+    "downloadSubtitle": "Export all your data",
+    "security": "Security",
+    "changePin": "Change PIN",
+    "changePinDesc": "6-digit security PIN",
+    "biometricLock": "Biometric Lock",
+    "biometricLockDesc": "Fingerprint or Face ID",
+    "exportData": "Export Data",
+    "privacy": "Privacy",
+    "notifications": "Notifications",
+    "language": "Language",
+    "languageEnglish": "English",
+    "languageNepali": "Nepali",
+    "dangerZone": "Danger Zone",
+    "logout": "Log Out",
+    "logoutDesc": "Sign out from all devices",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDesc": "Permanently remove your data"
+  },
+  "errors": {
+    "invalidProof": "Invalid proof",
+    "unauthorized": "Unauthorized",
+    "nonceReplay": "This request has already been used",
+    "network": "No internet connection",
+    "tryLater": "Please try again later"
+  },
+  "toasts": {
+    "saved": "Saved successfully",
+    "deleted": "Deleted successfully",
+    "queued": "Submission queued; we’ll send it when you’re online."
+  }
+}

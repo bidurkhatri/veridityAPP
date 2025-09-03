@@ -1,9 +1,8 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useTranslation, type Language } from "@/lib/i18n";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/lib/i18n";
+import { AppHeader } from "@/components/AppHeader";
 import { 
   QrCode, 
   Share as ShareIcon, 
@@ -19,8 +18,7 @@ import { useLocation } from "wouter";
 
 export default function Share() {
   const [location, navigate] = useLocation();
-  const [language, setLanguage] = useState<Language>('en');
-  const { t } = useTranslation(language);
+  const { t } = useTranslation('en');
   const [activeTab, setActiveTab] = useState<'qr' | 'scan'>('qr');
 
   // Check if we should show scan tab first
@@ -35,22 +33,22 @@ export default function Share() {
 
   const shareOptions = [
     {
-      title: language === 'np' ? 'QR कोड देखाउनुहोस्' : 'Show QR Code',
-      description: language === 'np' ? 'अफलाइन प्रमाणीकरणको लागि' : 'For offline verification',
+      title: t('share.qr'),
+      description: t('share.qrDesc'),
       icon: QrCode,
       action: () => setActiveTab('qr'),
       testId: "option-show-qr"
     },
     {
-      title: language === 'np' ? 'लिंक कपी गर्नुहोस्' : 'Copy Link',
-      description: language === 'np' ? '१५ मिनेटमा म्याद समाप्त' : 'Expires in 15 minutes',
+      title: t('share.link'),
+      description: t('share.linkDesc', { time: '15 min' }),
       icon: Copy,
       action: () => navigator.clipboard.writeText(mockSharingLink),
       testId: "option-copy-link"
     },
     {
-      title: language === 'np' ? 'PDF डाउनलोड गर्नुहोस्' : 'Download PDF',
-      description: language === 'np' ? 'रसिद रूपमा सेभ गर्नुहोस्' : 'Save as receipt',
+      title: t('share.download'),
+      description: t('share.downloadDesc'),
       icon: Download,
       action: () => console.log('Download PDF'),
       testId: "option-download-pdf"
@@ -60,34 +58,28 @@ export default function Share() {
   const scanSteps = [
     {
       step: 1,
-      title: language === 'np' ? 'क्यामेरा पहुँच दिनुहोस्' : 'Allow camera access',
-      description: language === 'np' ? 'QR कोड स्क्यान गर्न आवश्यक' : 'Required to scan QR codes'
+      title: t('common.allow') + ' camera access',
+      description: 'Required to scan QR codes'
     },
     {
       step: 2,
-      title: language === 'np' ? 'QR कोड स्क्यान गर्नुहोस्' : 'Scan QR code',
-      description: language === 'np' ? 'संगठनको अनुरोध QR लाई लक्षित गर्नुहोस्' : 'Point at organization\'s request QR'
+      title: 'Scan QR code',
+      description: 'Point at organization\'s request QR'
     },
     {
       step: 3,
-      title: language === 'np' ? 'प्रमाण प्रदान गर्नुहोस्' : 'Provide proof',
-      description: language === 'np' ? 'तपाईंको प्रमाण स्वतः पठाइनेछ' : 'Your proof will be sent automatically'
+      title: 'Provide proof',
+      description: 'Your proof will be sent automatically'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-background apple-blur-bg pb-20">
-      {/* Header */}
-      <header className="apple-glass border-b border-border/20 sticky top-0 z-40 backdrop-blur-md">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold apple-gradient-text">
-              {t('nav.share')}
-            </h1>
-            <LanguageSwitcher currentLanguage={language} onLanguageChange={setLanguage} />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background apple-blur-bg" style={{ paddingBottom: '80px' }}>
+      <AppHeader 
+        title={t('nav.share')}
+        type="root"
+        sticky
+      />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Tab Navigation */}
@@ -99,7 +91,7 @@ export default function Share() {
             data-testid="tab-share"
           >
             <ShareIcon className="h-4 w-4 mr-2" />
-            {language === 'np' ? 'साझेदारी' : 'Share'}
+            {t('common.share')}
           </Button>
           <Button
             variant={activeTab === 'scan' ? 'default' : 'ghost'}
@@ -108,7 +100,7 @@ export default function Share() {
             data-testid="tab-scan"
           >
             <Camera className="h-4 w-4 mr-2" />
-            {language === 'np' ? 'स्क्यान' : 'Scan'}
+            Scan
           </Button>
         </div>
 

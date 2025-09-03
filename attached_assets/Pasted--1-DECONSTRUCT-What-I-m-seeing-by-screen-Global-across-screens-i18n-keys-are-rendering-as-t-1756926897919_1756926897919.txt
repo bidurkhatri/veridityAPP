@@ -1,0 +1,289 @@
+
+1) DECONSTRUCT — What I’m seeing (by screen)
+
+Global across screens
+	•	i18n keys are rendering as text (e.g., nav.home, nav.prove, nav.history, stats.proofsGenerated, message.data).
+	•	Top nav/header patterns vary (sometimes shows “Generate Proof” with extra icons; sometimes not).
+	•	Bottom tab bar has long labels, overlaps content on small screens, and uses untranslated keys.
+	•	Card density is a bit high; inconsistent paddings and icon sizes.
+	•	Proof catalog shows Address Verification in one step (wasn’t in the v1 PRD).
+	•	Share options are good, but need stronger affordance for QR vs link and an inline expiry countdown.
+	•	History list looks solid; add quick filters and empty state.
+	•	Settings is close; “Danger Zone” and security items good but need biometric toggle state.
+	•	One screen (“Rajesh Sharma… Wallet”) follows a credential wallet mental model that’s different from the rest. Decide: Proof-first v1 (current PRD) or Wallet-first (roadmap).
+
+⸻
+
+2) DIAGNOSE — Problems & priorities
+
+P0 (ship-stopper)
+	•	i18n not resolving → user-facing keys everywhere.
+	•	Bottom tab bar obscures content on small screens; labels too verbose; inconsistent iconography.
+
+P1 (usability & consistency)
+	•	Header layout + action placement inconsistent.
+	•	Share screen needs clearer primary action, expiry cue.
+	•	History needs visible filter/summary at top (you already have a good variant—apply everywhere).
+
+P2 (scope creep / clarity)
+	•	Address Verification appears without circuit in scope.
+	•	Wallet screen conflicts with proof-first MVP IA.
+
+⸻
+Acceptance Criteria (AC)
+
+⸻
+
+A) GLOBAL
+
+A1. i18n fix (Next.js + RN)
+
+Prompt (Dev)
+
+In our Next.js 15 + RN shared codebase using next-intl/i18next, audit and fix all instances where translation keys are rendered literally (e.g., nav.home, nav.prove, stats.proofsGenerated, message.data).
+	1.	Add missing keys to /locales/en.json and /locales/ne.json using these English strings:
+
+	•	nav.home: “Home”, nav.prove: “Prove”, nav.share: “Share”, nav.history: “History”, nav.settings: “Settings”
+	•	stats.proofsGenerated: “Proofs Generated”, stats.verifications: “Verifications”
+	•	message.data: “Your data stays on your device.”
+
+	2.	Replace hardcoded labels with t('...').
+	3.	Add a fallbackLng: 'en' and log missing keys in dev.
+	4.	Unit test: render nav and verify no raw keys appear.
+Output the diff for locales and components.
+
+Why: Keys leaking breaks trust and bilingual UX.
+AC: No raw keys visible; language toggle updates immediately.
+Dev Notes: Ensure app/[locale]/layout.tsx provides LocaleProvider; hydrate on mobile.
+
+⸻
+
+A2. Bottom tab bar cleanup
+
+Prompt (Design)
+
+Redesign the bottom tab bar for mobile: 5 tabs with icon + short label. Use 44×44dp min touch, 8dp icon, 12–13sp label. Active state uses Primary-600 underline or pill; inactive = Text/Muted. Ensure it does not overlay scrollable content (add bottom safe-area padding). Provide light/dark variants.
+
+Why: Overlap and long labels reduce tap accuracy and readability.
+AC: No overlap; labels: Home, Prove, Share, History, Settings.
+
+Prompt (Dev)
+
+In RN and web responsive shell, move tab bar above safe-area inset, add paddingBottom to content; set labels from i18n; ensure aria-current="page" on web.
+
+⸻
+
+A3. Header pattern normalization
+
+Prompt (Design)
+
+Create a standardized header for all main screens: Title (left), optional action (right), globe-language selector in overflow (not inline), back button for sub-screens. Max two right actions. Provide specs for sizes, paddings, and icon placements.
+
+Prompt (Dev)
+
+Implement <AppHeader title string> with slots: left={<Back/>} actions={[<Help/>,<Overflow/>]}. Remove ad-hoc headers from screens and migrate.
+
+AC: Consistent header on Home/Prove/Share/History/Settings; sub-flows show Back.
+
+⸻
+
+A4. Card density & icon sizing
+
+Prompt (Design)
+
+Standardize card paddings to 16–20px, radius 12dp, icon size 20–24, title 16/semibold, subtitle 14/regular. Provide component variants: ListCard, ActionCard, DangerCard.
+
+AC: All lists (History, Settings, Prove) use the same spec.
+
+⸻
+
+A5. Decide product model (Proof-first vs Wallet)
+
+Prompt (PM/Design)
+
+We have one “Wallet” screen (Rajesh) showing credentials—this conflicts with proof-first MVP IA. Choose one:
+Option A (Recommended v1): Proof-first flows only; remove “Wallet” for now.
+Option B (Roadmap): Keep Wallet but hide behind feature flag wallet.enabled=false by default.
+Provide final IA and a toggle plan.
+
+AC: Only one model shipped to prod; no dead-end nav.
+
+⸻
+
+B) SCREEN-SPECIFIC
+
+B1. Home
+
+Prompt (Design)
+
+Home layout:
+	•	Greeting (“Hello, {name}”).
+	•	Two KPI tiles: “Proofs Generated”, “Verifications” (same visual style across builds).
+	•	Quick actions: Generate Proof, My QR, Scan.
+	•	Privacy tips card (2 bullets).
+Remove raw keys; ensure visual balance and spacing.
+
+Prompt (Copy)
+
+EN:
+	•	“Proofs Generated”
+	•	“Verifications”
+	•	“Generate Proof” | “Show my QR” | “Scan request QR”
+NE (Noto Sans Devanagari):
+	•	“उत्पन्न प्रमाणहरू”
+	•	“प्रमाणीकरणहरू”
+	•	“प्रमाण उत्पन्न गर्नुहोस्” | “मेरो QR देखाउनुहोस्” | “अनुरोध QR स्क्यान गर्नुहोस्”
+
+AC: No overflow on 360×640dp; VoiceOver reads actions in order.
+
+⸻
+
+B2. Prove (catalog)
+
+Prompt (Design)
+
+Prove catalog shows 4 cards: Age 18+, Citizenship, Education, Income ≥ threshold. Remove “Address Verification” unless scoped; if kept, mark “(Beta)” and dim card. Add brief subtitles and icons.
+
+Prompt (Dev)
+
+Read catalog from config:
+
+proofTypes = [{id:'age_over_18',icon:'shield-check',title:t('Age Verification (18+)'),sub:t('Prove you meet minimum age')}, ...]
+
+Hide unimplemented types behind enabled flag.
+
+AC: No dead links; tapping a card routes to stepper.
+
+⸻
+
+B3. Generate Proof (stepper)
+
+Prompt (Design)
+
+Stepper with 3 steps: (1) Select Type, (2) Enter Data, (3) Generate. Replace header clutter with standard header. Progress indicator at top. Bottom primary CTA fixed above safe-area.
+
+Prompt (Copy)
+
+“Creating a private proof on your device…”
+“This never uploads your personal data.”
+
+AC: Proof generation sheet ≤ 60% viewport height; shows skeleton if WASM warmup.
+
+⸻
+
+B4. Share
+
+Prompt (Design)
+
+Share screen: Three ActionCards with clear hierarchy: Show QR (primary), Copy Link (with “expires in 15m” live countdown), Download PDF. Put a Security Note with shield icon and a learn-more link.
+
+Prompt (Dev)
+
+Implement a 15-min countdown for the link (MM:SS), auto-invalidate at 0 with toast. Add tap feedback on QR card to open full-screen QR with brightness boost.
+
+AC: Screen-reader describes expiry countdown; QR visible at 300×300px min.
+
+⸻
+
+B5. History
+
+Prompt (Design)
+
+Use the “stats+filter+list” variant consistently:
+	•	Top row: Total, Verified
+	•	Filter chips: All | Verified | Pending | Failed
+	•	Search bar
+	•	Cards with status pill (green/amber/red), date, org, ID, and actions (View, Share).
+Add Empty state: illustration + “Your verifications will appear here.”
+
+Prompt (Dev)
+
+Implement client-side filters and server paging. Status pills use tokens:
+	•	verified: Success/600 on light, Success/400 on dark
+	•	pending: Accent/600
+	•	failed: Danger/600
+
+AC: Filters persist per session; keyboard search on web.
+
+⸻
+
+B6. Settings
+
+Prompt (Design)
+
+Two sections: Security and Privacy; then Help; then Danger Zone.
+Security: Change PIN, Biometric Lock (toggle), Export Data.
+Privacy: Notifications, Language (opens system sheet), Data Deletion.
+Danger Zone: Log Out, Delete Account (destructive style).
+
+Prompt (Dev)
+
+Biometric toggle reflects OS capability; show inline helper “Use Face ID/Touch ID to unlock sensitive actions.” Confirmations for Delete with PIN re-auth.
+
+AC: Danger buttons use Destructive styling; VoiceOver reads toggles with state.
+
+⸻
+
+C) COPY & LOCALIZATION
+
+C1. Replace placeholder copy
+
+Prompt (Copy)
+
+Replace placeholder headings like “nav.history”, “nav.settings” with human strings. Provide EN + NE for Settings, History, Share, Prove, Home, and all secondary labels. Keep tone: calm, privacy-first. Output as key:value maps for /locales/en.json and /locales/ne.json.
+
+AC: 100% of visible text pulls from locales; no concatenation.
+
+⸻
+
+D) ACCESSIBILITY & PERFORMANCE
+
+D1. A11y sweep
+
+Prompt (QA)
+
+Run an a11y script: focus order, roles, labels (aria-label for icons), contrast (AA). Provide a report and fix list. Verify bottom bar meets 44×44dp and touch feedback.
+
+D2. WASM warmup UX
+
+Prompt (Dev)
+
+Pre-warm ZKP WASM on idle (post-home render) and cache. Show “Preparing proof components…” once, then suppress on subsequent runs.
+
+AC: p50 proof generation visibly smoother; fewer spinner flashes.
+
+⸻
+
+4) DELIVER — One-page change list you can track
+
+P0
+	1.	Fix i18n resolution; fill locale files; add fallback + missing-key logger.
+	2.	Redesign and implement tab bar; ensure no overlap; short labels.
+
+P1
+3) Normalize headers with a shared <AppHeader />.
+4) Share screen countdown + QR full-screen with brightness boost.
+5) History unified variant (stats+filters+list) + empty state.
+
+P2
+6) Prove catalog from config; remove/hide Address until circuit exists.
+7) Decide Wallet vs Proof model; feature-flag Wallet if needed.
+8) Settings: biometric toggle state + consistent sections.
+
+⸻
+
+Bonus: quick code prompts
+
+Locale scaffold
+
+Generate /locales/en.json and /locales/ne.json with keys: nav.*, stats.*, home.*, prove.*, share.*, history.*, settings.*, common.*. Fill with the copy above and placeholders for Nepali I’ll refine later.
+
+AppHeader
+
+Create a reusable <AppHeader title actions left> component with Tailwind classes matching our design tokens, export to both web and RN via shared props.
+
+Link countdown
+
+Build a React hook useExpiringLink(ttlMs) returning {remainingMs, expired, start(now)}; render MM:SS and auto-invalidate link with toast.
+
+⸻

@@ -1,0 +1,93 @@
+# Veridity — Figma Component Specs (Tab Bar & App Header)
+
+## 1) Tab Bar (Mobile)
+
+**Component name:** `TabBar/Container`  
+**Subcomponent:** `TabBar/Item`
+
+### Layout & Sizing
+- Container height: 64 dp (safe-area aware).  
+- Padding: Horizontal 8, Vertical 8.  
+- Gap between items: 6–10 dp (Auto Layout distribute).  
+- Item touch target: **≥ 44 × 44 dp**.  
+- Icon size: 20–22 dp.  
+- Label font: 12–13 sp, Inter Regular; Nepali: Noto Sans Devanagari 12–13.
+
+### Colors
+- Background: `Surface` (Light #FFFFFF / Dark #0B1220).  
+- Active label: `Primary/600` (Light #0F766E / Dark #2DD4BF).  
+- Inactive label: `Text/Muted` (Light #6B7280 / Dark #9CA3AF).  
+- Active indicator: 2 dp pill or underline (Primary/600).
+
+### Variants (TabBar/Item)
+- **state**: `active | inactive`  
+- **icon**: `home | prove | share | history | settings` (swap property)  
+- **label**: string (from i18n)
+
+### Constraints
+- Pin to bottom with **“Fix position when scrolling: Off”** in main screens.  
+- Add “Safe Area” frame overlay; ensure content frames have `padding-bottom = TabBarHeight + 8`.
+
+### Interactions
+- Item tap → Set active variant and trigger page navigation.  
+- Long-press (optional) → Haptic + tooltip label.
+
+### Accessibility
+- Minimum contrast AA for labels.  
+- VoiceOver/ TalkBack name: “{Label}, tab, {Active/Inactive}”.
+- Focus order: left→right; Enter/Space activates.
+
+---
+
+## 2) App Header
+
+**Component name:** `AppHeader`
+
+### Layout
+- Height: 56 dp (64 on large screens).  
+- Content: `[<Back 24dp>]  [Title (center-left)]  [Actions (max 2)]`.  
+- Padding: 16 horizontal, 8 vertical.  
+- Elevation: 2 (shadow) on scroll; 0 at top.
+
+### Tokens
+- Title: 18 sp, Inter/Noto Sans, SemiBold, `Text/Primary`.  
+- Icon color: `Text/Primary` (muted on inactive).  
+- Background: `Surface`.
+
+### Variants (Properties)
+- **type**: `root | sub` (sub shows back button).  
+- **title**: string (i18n).  
+- **actions**: `none | help | language | overflow | custom` (component set).  
+- **sticky**: `true | false` (use for long lists).  
+- **divider**: `true | false` (adds 1 dp border bottom `Border`).
+
+### Interaction Notes
+- Language opens a sheet (not an inline toggle) with EN / नेपाली.  
+- Back button triggers router.navigate(-1).  
+- Help opens `/help` in the same app shell.
+
+### Accessibility
+- Back button label: “Back”.  
+- Actions have `aria-label` / accessible names.  
+- Title announced once; no duplicate announcement from actions.
+
+---
+
+## 3) Example Frames to Include
+
+1. `Page/Home` with AppHeader (root) + TabBar active=Home.  
+2. `Page/Prove` (catalog) with AppHeader (root) + TabBar active=Prove.  
+3. `Page/Generate` (sub) with AppHeader type=sub, Back=true.  
+4. `Page/Share` with AppHeader (sub) + countdown tag.  
+5. `Page/History` with AppHeader (root) and filters.  
+6. `Page/Settings` with AppHeader (root) and sections.
+
+---
+
+## 4) Export Names
+
+- `Components/TabBar/Container`  
+- `Components/TabBar/Item`  
+- `Components/AppHeader`
+
+Use Figma variants and properties as listed so engineers can map 1:1 to props in React/React Native.

@@ -1,12 +1,11 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@shared/schema";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useTranslation, type Language } from "@/lib/i18n";
+import { AppHeader } from "@/components/AppHeader";
+import { useTranslation } from "@/lib/i18n";
 import { 
   Shield, 
   Plus, 
@@ -22,8 +21,7 @@ import { Link } from "wouter";
 
 export default function Home() {
   const { user } = useAuth();
-  const [language, setLanguage] = useState<Language>('en');
-  const { t } = useTranslation(language);
+  const { t } = useTranslation('en');
 
   // Fetch user stats
   const { data: stats } = useQuery<{totalProofs: number; verifiedProofs: number; recentProofs: any[]}>({
@@ -42,28 +40,28 @@ export default function Home() {
   };
 
   const firstName = (user as User)?.firstName || (user as User)?.email?.split('@')[0] || 'Friend';
-  const greeting = language === 'np' ? `नमस्ते, ${firstName}` : `Hello, ${firstName}`;
+  const greeting = t('home.greeting', { name: firstName });
 
   const quickActions = [
     {
-      title: t('nav.prove'),
-      description: "Generate new proof",
+      title: t('home.ctaGenerate'),
+      description: t('prove.subtitle'),
       icon: Plus,
       href: "/prove",
       color: "from-primary to-primary-600",
       testId: "action-generate-proof"
     },
     {
-      title: "My QR",
-      description: "Show my QR code",
+      title: t('home.ctaMyQR'),
+      description: t('share.qrDesc'),
       icon: QrCode,
       href: "/share",
       color: "from-accent to-amber-500",
       testId: "action-my-qr"
     },
     {
-      title: "Scan",
-      description: "Scan request QR",
+      title: t('home.ctaScan'),
+      description: t('share.qrDesc'),
       icon: Eye,
       href: "/share?scan=true",
       color: "from-success to-emerald-500",
@@ -73,46 +71,36 @@ export default function Home() {
 
   const tips = [
     {
-      title: language === 'np' ? "तपाईंको डेटा सुरक्षित छ" : "Your data stays secure",
-      description: language === 'np' ? "सबै प्रमाणहरू तपाईंको यन्त्रमा बनाइन्छ" : "All proofs are generated on your device",
+      title: t('home.tipLocal'),
+      description: t('prove.privacyNote'),
       icon: Shield
     },
     {
-      title: language === 'np' ? "तुरुन्त प्रमाणीकरण" : "Instant verification",
-      description: language === 'np' ? "संगठनहरूले तुरुन्त प्रमाणित गर्न सक्छन्" : "Organizations can verify instantly",
+      title: t('home.tipInstant'),
+      description: t('home.tipInstant'),
       icon: Zap
     }
   ];
 
   return (
-    <div className="min-h-screen bg-background apple-blur-bg pb-20">
-      {/* Header */}
-      <header className="apple-glass border-b border-border/20 sticky top-0 z-40 backdrop-blur-md">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold apple-gradient-text">
-                {greeting}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {language === 'np' ? 'आजको दिन कस्तो छ?' : 'How are you today?'}
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <LanguageSwitcher currentLanguage={language} onLanguageChange={setLanguage} />
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleLogout}
-                className="text-muted-foreground"
-                data-testid="button-logout"
-              >
-                {language === 'np' ? 'लगआउट' : 'Logout'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background apple-blur-bg" style={{ paddingBottom: '80px' }}>
+      <AppHeader 
+        title={greeting}
+        type="root"
+        actions={[
+          <Button 
+            key="logout"
+            variant="ghost" 
+            size="sm" 
+            onClick={handleLogout}
+            className="text-muted-foreground"
+            data-testid="button-logout"
+          >
+            {t('settings.logout')}
+          </Button>
+        ]}
+        sticky
+      />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Quick Stats */}
@@ -158,7 +146,7 @@ export default function Home() {
         <Card className="apple-card apple-glass border-0 apple-shadow">
           <CardHeader>
             <CardTitle className="text-lg">
-              {language === 'np' ? 'त्वरित कार्यहरू' : 'Quick Actions'}
+              {t('home.quickActions')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -197,7 +185,7 @@ export default function Home() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">
-                  {language === 'np' ? 'हालका प्रमाणहरू' : 'Recent Proofs'}
+                  {t('nav.history')}
                 </CardTitle>
                 <Link href="/history">
                   <Button variant="ghost" size="sm" data-testid="link-view-all-history">
@@ -233,7 +221,7 @@ export default function Home() {
         <Card className="apple-card apple-glass border-0 apple-shadow">
           <CardHeader>
             <CardTitle className="text-lg">
-              {language === 'np' ? 'गोपनीयता सुझावहरू' : 'Privacy Tips'}
+              {t('home.privacyTips')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

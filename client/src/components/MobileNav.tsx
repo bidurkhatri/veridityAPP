@@ -1,13 +1,11 @@
-import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Home, QrCode, Share, History, Settings } from "lucide-react";
-import { useTranslation, type Language } from "@/lib/i18n";
+import { Home, Shield, Share, History, Settings } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const MobileNav = () => {
   const [location] = useLocation();
-  const [language] = useState<Language>('en');
-  const { t } = useTranslation(language);
+  const { t } = useTranslation('en');
 
   const navItems = [
     {
@@ -18,7 +16,7 @@ const MobileNav = () => {
     },
     {
       path: "/prove",
-      icon: QrCode, 
+      icon: Shield, 
       label: t('nav.prove'),
       testId: "tab-prove"
     },
@@ -43,8 +41,16 @@ const MobileNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-surface-alt border-t border-border apple-glass">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav 
+      className="fixed bottom-0 left-0 right-0 z-50 apple-glass bg-background/95 backdrop-blur-md border-t border-border/20"
+      style={{ 
+        paddingBottom: 'max(8px, env(safe-area-inset-bottom))',
+        height: '64px'
+      }}
+      role="tablist"
+      aria-label="Primary navigation"
+    >
+      <div className="grid grid-cols-5 h-full px-2 pt-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.path || 
@@ -55,19 +61,25 @@ const MobileNav = () => {
             <Link
               key={item.path}
               href={item.path}
+              role="tab"
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
-                "flex flex-col items-center justify-center h-12 w-12 rounded-xl transition-all duration-200",
-                "text-xs font-medium min-w-0 flex-1 px-1",
+                "flex flex-col items-center justify-center space-y-1 p-1 rounded-xl",
+                "min-h-[44px] min-w-[44px] transition-colors duration-200",
                 isActive 
-                  ? "text-primary bg-primary/10" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "text-primary-600" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
               data-testid={item.testId}
             >
-              <Icon className="h-5 w-5 mb-1" />
-              <span className="text-[10px] leading-tight truncate">
+              <Icon className="h-5 w-5" />
+              <span className="text-xs font-medium leading-none">
                 {item.label}
               </span>
+              <div className={cn(
+                "mt-1 h-0.5 w-6 rounded-full transition-colors",
+                isActive ? "bg-primary-600" : "bg-transparent"
+              )} />
             </Link>
           );
         })}
