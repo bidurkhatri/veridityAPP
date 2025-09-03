@@ -3,6 +3,11 @@ export type Language = 'en' | 'np';
 export const translations = {
   en: {
     // Navigation
+    'nav.home': 'Home',
+    'nav.prove': 'Prove',
+    'nav.share': 'Share',
+    'nav.history': 'History',
+    'nav.settings': 'Settings',
     'nav.dashboard': 'Dashboard',
     'nav.generateProof': 'Generate Proof',
     'nav.verify': 'Verify',
@@ -74,6 +79,11 @@ export const translations = {
   },
   np: {
     // Navigation
+    'nav.home': 'होम',
+    'nav.prove': 'प्रमाण',
+    'nav.share': 'साझेदारी',
+    'nav.history': 'इतिहास',
+    'nav.settings': 'सेटिङहरू',
     'nav.dashboard': 'ड्यासबोर्ड',
     'nav.generateProof': 'प्रमाण उत्पन्न गर्नुहोस्',
     'nav.verify': 'प्रमाणित गर्नुहोस्',

@@ -1,0 +1,332 @@
+Awesome follow-up. Here’s a tight but complete blueprint for the backend, database, smart-chain, and tech stack—ready for engineering handoff.
+
+⸻
+
+1) Backend architecture (prod-ready)
+
+1.1 Services (monorepo, TypeScript)
+	•	API Gateway (Fastify on Bun): public REST (/api/v1/*), auth, rate limit, OpenAPI, webhooks.
+	•	Proof Verifier: verifies Groth16 proofs per claim type; manages circuit artifacts + keys; exposes internal RPC.
+	•	Integrations: MOHA/TU/NRB adapters (server-to-server), credential issuance (future VC).
+	•	Admin: users, API clients, audit, exports.
+	•	Worker: queues for webhook delivery, retries, async integrations, report generation.
+	•	Static/Artifacts: CDN for .wasm/.zkey/verification_key.json (signed, versioned).
+
+Pattern: modular monolith v1 (Fastify plugins per domain) → extract to services behind NATS/Kafka if throughput demands.
+
+1.2 Tech choices
+	•	Runtime: Bun 1.x (perf); CI also runs Node 20 as fallback.
+	•	HTTP: Fastify + @fastify/rate-limit, @fastify/helmet, @fastify/swagger.
+	•	Validation: Zod schemas (shared types to SDKs).
+	•	Auth:
+	•	Users: short-lived JWT (RS256), refresh rotation.
+	•	Partners: OAuth2 Client Credentials or API keys (hash at rest, scoped).
+	•	Admin: Web SSO + TOTP MFA.
+	•	Queues/Cache: Redis 7 (ElastiCache) + BullMQ; idempotency keys, rate counters, webhook outbox.
+	•	Storage: Postgres 15 (RDS), S3-compatible bucket for circuit artifacts and PDF receipts.
+	•	Secrets: AWS KMS + SSM Parameter Store.
+	•	Edge/WAF/CDN: Cloudflare (DoS, TLS, bot, geo).
+
+1.3 Request flow (verify)
+	1.	Gateway validates payload (Zod), auth scope, idempotency key.
+	2.	Fetch circuit version → load vKey from in-memory LRU (warm) or S3 (cold).
+	3.	snarkjs.groth16.verify(vKey, publicSignals, proof) → boolean.
+	4.	Persist proofs row (append-only), emit event proof.verified.
+	5.	Sync response; enqueue webhook delivery with retries (exponential backoff, DLQ).
+
+1.4 Anti-replay & binding
+	•	QR/request payload includes nonce + verifier_domain.
+	•	Circuit public signals include hash(nonce|verifier_domain|claim_type|circuit_version).
+	•	API enforces single-use nonce per verifier (Redis SETNX with TTL).
+
+1.5 Security hardening
+	•	Strict CSP/HSTS, mTLS optional intra-service.
+	•	Row-Level Security (RLS) for multi-tenant analytics tables (org-scoped views).
+	•	Structured logging (pino), request sampling, redaction of secrets, no proof blobs in logs.
+	•	SLOs: 99.9% uptime, p95 verify < 200ms (server-side), webhook p95 < 1.5s.
+
+⸻
+
+2) Database (PostgreSQL) — schema & ops
+
+2.1 Core tables (DDL sketch)
+
+-- users & auth
+CREATE TABLE users(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT, email TEXT UNIQUE, phone TEXT UNIQUE,
+  auth_type TEXT NOT NULL, password_hash TEXT,
+  lang TEXT DEFAULT 'ne',
+  registered_at TIMESTAMPTZ DEFAULT now(), last_login_at TIMESTAMPTZ
+);
+
+-- partners (API clients)
+CREATE TABLE api_clients(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  key_hash TEXT UNIQUE NOT NULL,                      -- store hash only
+  scopes TEXT[] NOT NULL,                             -- e.g. {'age_over_18','citizenship'}
+  webhook_url TEXT, webhook_secret TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(), last_used TIMESTAMPTZ
+);
+
+-- circuit versions (artifact control & audit)
+CREATE TABLE circuit_versions(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  claim_type TEXT NOT NULL,                           -- 'age_over_18', ...
+  semver TEXT NOT NULL,                               -- '1.2.0'
+  vkey_s3 TEXT NOT NULL, wasm_s3 TEXT NOT NULL, zkey_s3 TEXT NOT NULL,
+  enabled BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- incoming verification requests (optional journal)
+CREATE TABLE proof_requests(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  verifier_id UUID REFERENCES api_clients(id),
+  claim_type TEXT NOT NULL,
+  nonce TEXT NOT NULL,                                -- base64url
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(verifier_id, nonce)
+);
+
+-- proofs (append-only)
+CREATE TABLE proofs(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  verifier_id UUID REFERENCES api_clients(id),
+  claim_type TEXT NOT NULL,
+  circuit_version TEXT NOT NULL,                      -- semver snapshot
+  status TEXT NOT NULL,                               -- 'verified'|'failed'|'pending'
+  public_hash TEXT NOT NULL,                          -- e.g. hash of public signals
+  request_nonce TEXT,                                 -- to enforce single-use
+  created_at TIMESTAMPTZ DEFAULT now(),
+  verified_at TIMESTAMPTZ
+);
+CREATE INDEX idx_proofs_user ON proofs(user_id);
+CREATE INDEX idx_proofs_verifier ON proofs(verifier_id);
+CREATE INDEX idx_proofs_created ON proofs(created_at);
+
+-- webhooks outbox (exactly-once delivery semantics)
+CREATE TABLE webhooks_outbox(
+  id BIGSERIAL PRIMARY KEY,
+  proof_id UUID REFERENCES proofs(id),
+  target_url TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  secret TEXT NOT NULL,
+  attempt INT DEFAULT 0,
+  next_attempt_at TIMESTAMPTZ DEFAULT now(),
+  status TEXT DEFAULT 'pending'
+);
+
+-- audit logs (admin + system)
+CREATE TABLE audit_logs(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor_type TEXT, actor_id UUID,
+  action TEXT NOT NULL,
+  details JSONB,
+  ip INET,
+  at TIMESTAMPTZ DEFAULT now()
+);
+
+Partitioning: proofs monthly partitions for >10M rows/year.
+Analytics: materialized views (daily counts by claim, org); refresh cron.
+RLS (optional): CREATE POLICY on analytics views per verifier_id.
+
+2.2 ORM & migrations
+	•	Drizzle SQL-first migrations (deterministic), or Prisma if team prefers.
+	•	Migration guardrails: non-blocking defaults, zero-downtime pattern (add → backfill → swap).
+
+2.3 Indexing & performance
+	•	Composite: (verifier_id, created_at) for dashboards.
+	•	Unique (verifier_id, request_nonce) to block replays.
+	•	GIN on audit_logs.details if querying JSON keys.
+
+2.4 Data retention
+	•	audit_logs keep 24 months; archive to S3 parquet after.
+	•	proofs: keep indefinitely but anonymize user_id on account deletion.
+	•	Backups: PITR on RDS; nightly snapshot tested monthly (restore drill).
+
+⸻
+
+3) Smart-chain (optional, roadmap with guardrails)
+
+3.1 Modes
+	•	Off-chain (default): all verify on server; fastest, cheapest; no PII anywhere.
+	•	On-chain (opt-in): publish verifier contracts + revocation/roots, never PII.
+
+3.2 Network & contracts
+	•	Network: Polygon zkEVM / Polygon PoS (low fees, EVM tooling).
+	•	Verifier: Groth16 Solidity Verifier.sol (generated by snarkjs) per circuit/semver.
+	•	Registry: CircuitRegistry holds mapping claim_type => verifierAddress and enabled semver; emits CircuitUpdated.
+	•	Attestation (optional): CredentialRootRegistry stores Merkle roots of issued credentials; off-chain prover submits Merkle path in ZKP.
+	•	Revocation: Bitmap/Merkle revocation list; roll forward with events.
+
+3.3 Upgrade & governance
+	•	Gnosis Safe multisig (2/3) owns registries; only updates allowed via time-locked proposals (24–48h).
+	•	Keys: publish IPFS hashes of artifacts; pin in contract events for audit.
+
+3.4 Privacy constraints
+	•	Public signals limited to booleans/IDs; no birth year/income ever on-chain.
+	•	Use domain-separated hash in circuits to bind proofs to verifier or session.
+
+3.5 Rollout
+	•	Testnet (Amoy): deploy Verifier.sol + CircuitRegistry per claim.
+	•	Gas benchmarks target < 300k verify gas per proof (Groth16 typical).
+	•	Provide on-chain verifier option in API (mode=onchain) returning calldata bundle.
+
+⸻
+
+4) APIs (public) — precise spec
+
+4.1 Verify (synchronous fast path)
+
+POST /api/v1/verify
+
+{
+  "claim_type": "age_over_18",
+  "circuit_version": "1.0.3",
+  "proof": { "pi_a": "...", "pi_b": "...", "pi_c": "..." },
+  "public_signals": ["<hash(nonce|domain|claim|ver)>","1"],
+  "request": { "nonce":"...", "verifier_domain":"bank.example" }
+}
+
+Auth: Authorization: Bearer <partner-token>
+Idempotency: Idempotency-Key header (UUIDv4) stored in Redis 10m.
+200:
+
+{ "status":"verified","proof_id":"uuid","ts":"2025-09-04T02:11:04Z" }
+
+4xx/5xx with machine error_code (e.g., INVALID_PROOF, UNAUTHORIZED_SCOPE, NONCE_REPLAY).
+
+4.2 Status
+
+GET /api/v1/status/:proof_id → {status,payload}
+
+4.3 Webhooks (partner receives)
+
+Payload:
+
+{
+  "event": "proof.verified",
+  "proof_id": "uuid",
+  "claim_type": "age_over_18",
+  "status": "verified",
+  "ts": "2025-09-04T02:11:04Z",
+  "signature": "sha256=hmac(body, webhook_secret)"
+}
+
+4.4 Admin endpoints
+	•	POST /api/admin/clients (name, scopes, webhook) → api key shown once.
+	•	GET /api/admin/usage?from&to&claim_type&verifier_id
+	•	POST /api/admin/circuits (upload vKey/wasm/zkey, semver, enable)
+
+OpenAPI served at /docs with try-it; SDKs autogen (TS/Python/Go).
+
+⸻
+
+5) ZKP artifacts lifecycle
+	1.	Circuit dev (circom): unit tests with circom_tester.
+	2.	Powers of Tau / Phase 2: multi-party; publish transcripts.
+	3.	Artifacts: *.wasm, *.zkey, verification_key.json → S3 (versioned).
+	4.	CDN: signed URLs for mobile to download big artifacts on demand (if not bundled).
+	5.	Version pinning: mobile/web includes circuit_version; server verifies against enabled list.
+	6.	Rotation: deprecate old semvers via Admin; grace window; app prompts users to update.
+
+⸻
+
+6) Observability & reliability
+	•	Tracing: OpenTelemetry → OTEL Collector → Tempo/Jaeger (trace verify path).
+	•	Metrics: Prometheus (verify.latency, queue.depth, webhook.success_rate); SLO burn alerts.
+	•	Logs: Loki/S3; redaction rules (tokens, PII).
+	•	Health: /healthz (liveness), /readyz (deps), /metrics.
+	•	Chaos drills: dependency latency injection on Redis/Postgres 2x/month.
+
+⸻
+
+7) DevOps & CI/CD
+	•	Infra-as-Code: Terraform modules (VPC, ALB, ECS Fargate or Fly.io), RDS, ElastiCache, S3, IAM, CloudFront/Cloudflare.
+	•	Builds: GitHub Actions: lint → typecheck → unit+integration (Postgres service) → snark tests (small circuits) → build → deploy.
+	•	Deploy: Blue/green (two services behind ALB target groups) with DB migrations gated & reversible.
+	•	Secrets: CI pulls short-lived SSM params via OIDC federation.
+
+⸻
+
+8) Code slices (illustrative)
+
+8.1 Fastify verify handler (TS)
+
+const VerifyReq = z.object({
+  claim_type: z.enum(['age_over_18','citizenship','education','income_gte']),
+  circuit_version: z.string(),
+  proof: z.any(),
+  public_signals: z.array(z.string()).min(1),
+  request: z.object({ nonce: z.string(), verifier_domain: z.string().url() })
+});
+fastify.post('/api/v1/verify', { preHandler: [authPartner, rateLimit] }, async (req, rep) => {
+  const body = VerifyReq.parse(req.body);
+  enforceScopes(req.partner, body.claim_type);
+
+  await assertIdempotency(req);
+  await assertNonceUnused(body.request.nonce, req.partner.id);
+
+  const vKey = await vkeyCache.load(body.claim_type, body.circuit_version);
+  const ok = await snarkjs.groth16.verify(vKey, body.public_signals, body.proof);
+  const proofId = crypto.randomUUID();
+
+  await db.tx(async (sql) => {
+    await sql`INSERT INTO proofs(id,user_id,verifier_id,claim_type,circuit_version,status,public_hash,request_nonce)
+              VALUES(${proofId}, NULL, ${req.partner.id}, ${body.claim_type}, ${body.circuit_version},
+                     ${ok?'verified':'failed'}, ${hashSignals(body.public_signals)}, ${body.request.nonce})`;
+    if (ok) await outbox.enqueueWebhook(proofId, req.partner);
+  });
+
+  if (!ok) return rep.code(422).send({ status:'rejected', error_code:'INVALID_PROOF' });
+  return rep.send({ status:'verified', proof_id: proofId, ts: new Date().toISOString() });
+});
+
+8.2 Solidity registry (snippet)
+
+contract CircuitRegistry {
+  address public owner;
+  struct Circuit { address verifier; bool enabled; string semver; }
+  mapping(bytes32 => Circuit) public circuits; // keccak256("age_over_18")
+
+  modifier onlyOwner(){ require(msg.sender==owner); _; }
+  event CircuitUpdated(bytes32 indexed key, address verifier, bool enabled, string semver);
+
+  function setCircuit(bytes32 key, address verifier, bool enabled, string calldata semver) external onlyOwner {
+      circuits[key] = Circuit(verifier, enabled, semver);
+      emit CircuitUpdated(key, verifier, enabled, semver);
+  }
+}
+
+
+⸻
+
+9) Performance targets (server-side)
+	•	vKey cache hit ≥ 99%; cold load < 20ms (ALB→S3→mem).
+	•	p50 verify 25–40ms; p95 < 200ms at 100 rps.
+	•	Webhook delivery success ≥ 99.5% (with retries).
+	•	Redis latency p95 < 5ms; Postgres p95 < 15ms simple inserts.
+
+⸻
+
+10) Compliance & privacy (backend focus)
+	•	Data minimization: never persist private inputs or proof blobs.
+	•	Right to delete: user_id nullification, cascade anonymization, webhook to partners “account_deleted”.
+	•	DPA/Records: audit trail for admin actions; exportable (/api/admin/audit/export).
+	•	KMS-backed server secrets, rotation every 90 days.
+
+⸻
+
+TL;DR for implementation
+	•	Build a Fastify on Bun modular backend with Postgres + Redis and a Proof Verifier module wrapping snarkjs.
+	•	Store only metadata + hashes; enforce nonce, scope, idempotency.
+	•	Manage circuit artifacts with strict versioning and admin-gated rollout.
+	•	Provide clean OpenAPI, webhooks, and SDKs.
+	•	Keep on-chain optional behind a registry + verifier contracts, no PII on-chain.
+	•	Ship with strong observability, IaC, SLOs, and security from day one.
+
+If you want, I can turn this into a backend tech spec doc (with OpenAPI YAML + DB migrations + Terraform stubs) in one go.

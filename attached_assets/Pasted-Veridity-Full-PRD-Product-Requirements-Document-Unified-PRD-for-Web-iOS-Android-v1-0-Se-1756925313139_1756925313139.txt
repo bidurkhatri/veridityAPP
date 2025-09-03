@@ -1,0 +1,467 @@
+Veridity — Full PRD (Product Requirements Document)
+
+Unified PRD for Web + iOS + Android • v1.0 • Sept 2025
+
+⸻
+
+0) One-page summary
+
+Vision: Give every Nepali citizen a private, portable way to prove attributes (age, citizenship, education, income) without exposing raw data—anywhere, online or offline.
+
+Strategy: ZKPs generated client-side; verifications via Veridity APIs or QR. Mobile-first, bilingual, offline-first, low-friction UX.
+
+Primary users
+	•	Citizens (end users): prove facts privately.
+	•	Organizations (verifiers): banks, gov’t, schools; verify quickly with low ops burden.
+	•	Veridity admins: configure partners, review flags, monitor usage.
+
+North-star outcomes
+	•	T<3s median proof time on mid-range Android.
+	•	≥95% successful verifications on first attempt.
+	•	≤2 taps from Home to “Generate Proof”.
+	•	≥80 NPS from end users; ≥99.9% API uptime.
+
+⸻
+
+1) Goals & non-goals
+
+Goals
+	•	Private, on-device ZKP generation for Age, Citizenship, Education, Income.
+	•	Bilingual UX (English + Nepali) with accessible patterns (WCAG AA).
+	•	Works with spotty connectivity (offline queueing + QR handoff).
+	•	Simple enterprise integration (single POST /verify, webhooks).
+	•	Admin visibility (usage, audit, approvals, API key lifecycle).
+
+Non-goals (v1)
+	•	On-chain verification (roadmap).
+	•	Full W3C VC wallet (roadmap export only).
+	•	Document scanning/OCR (possible later).
+	•	In-app chat/support (link out only).
+
+⸻
+
+2) Success metrics (KPIs)
+	•	UX: time-to-proof (start → result) p50 ≤ 15s incl. UI; drop-off during onboarding ≤ 10%.
+	•	Reliability: proof verification failure due to system errors < 0.2%.
+	•	Accessibility: all primary flows keyboard/screen-reader compatible; touch targets ≥ 44×44 dp.
+	•	Adoption: 3 launch partners; 50k MAU by Q2’26; 250k verifications.
+
+⸻
+
+3) Personas & key jobs-to-be-done
+	1.	Sita (22, student, mid-range Android, Nepali UI)
+
+	•	JTBD: “Prove I’m 18+ to sign up for a wallet without sharing my DOB.”
+
+	2.	Ram (31, bank agent)
+
+	•	JTBD: “Verify applicant’s age/citizenship instantly with an audit log.”
+
+	3.	Asha (Gov admin)
+
+	•	JTBD: “Monitor daily verifications; approve edge cases; rotate partner keys.”
+
+⸻
+
+4) Experience principles
+	•	Privacy by default: data stays local; share only proofs.
+	•	Clear & calm: short copy, big affordances, predictable patterns.
+	•	Offline resilient: never block on network for proving.
+	•	One glance confidence: large “Verified / Not verified” status, color + icon.
+	•	Bilingual first-class: all strings & system messages localized.
+
+⸻
+
+5) Information architecture (IA)
+
+Mobile bottom tabs (5)
+	1.	Home (status, quick actions, tasks)
+	2.	Prove (choose proof type, recent)
+	3.	Share (my QR, scan verifier QR)
+	4.	History (past results, receipts)
+	5.	Settings (language, security, privacy)
+
+Web (sidebar)
+	•	Dashboard, Prove, Share, History, Admin (role-gated), Settings
+
+⸻
+
+6) Feature set (v1)
+
+End user
+	•	Registration (phone/email OTP), PIN setup, biometric opt-in
+	•	Language select (EN/NE) + live toggle
+	•	Proof types: Age≥X, Citizenship, Education, Income≥X
+	•	Client-side ZKP generation (bundled WASM + zkey)
+	•	Share via: API submit (online), QR (offline), link (time-boxed)
+	•	History with receipts (non-PII), export PDF
+	•	Offline queue (retries), device-local encrypted vault
+	•	Notifications (request to verify; result updates)
+
+Verifier org (integration UX)
+	•	“Verify with Veridity” QR/link flow
+	•	API key management (admin-issued)
+	•	Webhook registration + status polling
+
+Admin
+	•	Usage charts, filters by type/region
+	•	Flagged queue: manual approve/reject with reason
+	•	API clients CRUD, key rotation, scopes
+	•	Audit logs (actor, action, IP, timestamp)
+	•	CSV/JSON export
+
+⸻
+
+7) Detailed user flows
+
+7.1 Onboarding (first run)
+	1.	Splash → Language (EN/ने)
+	2.	Permissions explainer (camera for QR, notifications optional)
+	3.	Phone/Email → OTP (auto-read on Android if possible)
+	4.	Create 6-digit PIN → Enable biometrics?
+	5.	Consent (privacy summary; “data stays on device”)
+	6.	Home
+
+Edge cases: OTP resend cooldown (30s), offline onboarding (allow account stub; complete OTP later), weak device warning only if proof times exceed threshold.
+
+7.2 Generate Age Proof
+
+Home → Prove → Age ≥ X → DOB year input (or picker) → Generate proof
+→ Progress sheet (spinner + tip “this happens on your device”)
+→ Result (Green check, “Verified Age ≥ X”) with primary CTA: Share
+→ Choose Share via (API submit to requester / Show my QR / Copy link)
+
+Errors: “Not eligible” (clear explanation, no DOB shown), “Proof generation failed” (retry, diagnostics link)
+
+7.3 Scan & submit to verifier (QR)
+
+Share → Scan request → camera view → read payload (claim_type, verifier_id, nonce)
+→ If offline: generate proof, Queue submission; display “Queued” badge
+→ If online: submit → Result receipt; History entry
+
+7.4 History & receipts
+
+History list → item → details: date/time, claim, verifier, status, reference ID, “View QR receipt”, “Export PDF”.
+
+7.5 Account deletion
+
+Settings → Privacy → Delete account → confirm PIN/biometric → irreversible summary → delete local vault, call server delete, clear history UI.
+
+⸻
+
+8) App design system
+
+8.1 Color palette (light / dark) — accessible (AA)
+
+Token	Light	Dark	Usage
+Primary/Brand	#0F766E	#2DD4BF	buttons, highlights
+Primary-600	#0F766E	—	primary button bg
+Primary-700	#0B5F59	—	pressed/active
+Accent	#F59E0B	#FBBF24	emphasis, warnings
+Success	#16A34A	#22C55E	verified states
+Danger	#DC2626	#F87171	errors
+Text/Primary	#111827	#F3F4F6	headings/body
+Text/Muted	#6B7280	#9CA3AF	captions/help
+Surface	#FFFFFF	#0B1220	cards/screens
+Surface-Alt	#F8FAFC	#111827	backgrounds
+Border	#E5E7EB	#1F2937	outlines/dividers
+
+Notes: High-trust look with teal/emerald primary; amber accents for attention. Avoid pure red for core flows except errors.
+
+8.2 Typography
+	•	Latin: Inter (weights 400, 500, 600)
+	•	Devanagari: Noto Sans Devanagari (400, 600)
+	•	Scale: 12 / 14 / 16 (base) / 18 / 20 / 24 / 32
+	•	Line height: 1.4–1.6; Letter-spacing: default
+	•	Usage:
+	•	H1 24–32 bold, H2 20–24 semibold, Body 16 regular, Caption 14
+
+8.3 Layout, grid, shape
+	•	Grid: 4dp spacing; content gutter 16dp (mobile), 24–40px (web)
+	•	Cards radius: 12dp; inputs/buttons radius 10dp
+	•	Elevation: 0/2/8 for surface/raised/modals; soft shadow only
+
+8.4 Core components (mobile & web)
+	•	AppBar (title, back, help)
+	•	Button (Primary/Secondary/Tertiary/Destructive; loading & disabled states)
+	•	Input (text/number, OTP 6 cells, dropdown, date/year picker)
+	•	Tile (proof type card with icon + short desc)
+	•	Bottom sheet / Modal (confirmations, progress)
+	•	Toast/Snackbar (success/error, 3–4s)
+	•	QR Scanner View (overlay corners, torch toggle, permission fallback)
+	•	QR Display (code + short code fallback)
+	•	Status Banner (Verified/Queued/Failed)
+	•	List item (History, with icon, title, timestamp, status pill)
+
+States to spec: default / hover (web) / focus / pressed / disabled / error / loading.
+
+8.5 Motion
+	•	Durations: 150–220ms standard; 300ms sheet/modals
+	•	Easing: standard decel/accel
+	•	Micro-animations: progress ring during proving, checkmark morph on success
+	•	Reduce motion setting respected.
+
+8.6 Accessibility
+	•	Color contrast AA for text/icons; large text ≥ 3:1.
+	•	Touch targets ≥ 44×44dp; list item min height 56dp.
+	•	Screen reader labels for icons (e.g., “Scan QR”).
+	•	Logical tab order; focus ring visible on web.
+	•	Error messaging: text + icon + instruction to recover.
+
+8.7 Localization & copy
+	•	All strings in EN + Nepali. Use placeholders, not concatenation.
+	•	Tone: reassuring, direct, privacy-affirming.
+
+Examples (EN → Nepali):
+	•	“Generate Proof” → “प्रमाण उत्पन्न गर्नुहोस्”
+	•	“Proved: Age 18+” → “प्रमाणित: उमेर १८+”
+	•	“Your personal data never leaves your device.” → “तपाईँको निजी डेटा कहिल्यै पनि तपाईँको यन्त्रबाट बाहिर जान्न।”
+
+⸻
+
+9) Screen-by-screen specs (mobile)
+	1.	Splash / Language
+
+	•	Logo, language buttons (EN/ने). Save choice immediately.
+
+	2.	Phone/Email → OTP
+
+	•	Phone input with country preset +977, “Send code”, 30s resend timer.
+	•	OTP 6-cell input, auto-advance; error state for wrong code.
+
+	3.	PIN + Biometric
+
+	•	Create PIN (6 digits) with confirm; biometric opt-in sheet (OS prompt).
+
+	4.	Home
+
+	•	Greeting (“Namaste, Sita”), last proof status, quick actions: [Generate Proof], [My QR], [Scan].
+	•	Tips carousel (privacy notes).
+
+	5.	Prove (catalog)
+
+	•	Cards: Age 18+, Age 21+, Citizenship, Education, Income ≥ configurable.
+	•	Each card shows icon + 1-line description.
+
+	6.	Proof input
+
+	•	Age: Year picker (1900–current), helper text.
+	•	Citizenship: ID number; optional secure hint text.
+	•	Education: Degree level dropdown; institution; (later VC import).
+	•	Income: Number input (masked), threshold selector.
+
+	7.	Proving (bottom sheet)
+
+	•	Progress ring, copy: “Creating private proof on your device…”
+	•	Link: “How this keeps you private” → short explainer.
+
+	8.	Result
+
+	•	Verified: Large check, plain sentence “You meet the requirement.”
+CTAs: Share (primary), History, Done
+	•	Not eligible: Warning icon, clear reason; CTA: Close
+
+	9.	Share
+
+	•	Tabs: For this request (if scanned) / General
+	•	Options: Submit to requester (online), Show my QR, Copy secure link (expires in 15 min), Save receipt (PDF).
+
+	10.	Scan
+
+	•	Camera w/ framing; torch toggle; “Can’t scan? Enter code”.
+	•	On success: show request summary sheet (org name, claim). CTA: Continue.
+
+	11.	History
+
+	•	List with status pills: Verified / Failed / Queued.
+	•	Filters by type/date.
+
+	12.	Settings
+
+	•	Profile, Language, Security (Change PIN, Biometrics), Privacy (Data & deletion), About, Help.
+
+Web screens mirror above with responsive layouts + Admin area.
+
+⸻
+
+10) Content & microcopy patterns
+	•	Success: “Verification successful.” / “प्रमाणिकरण सफल।”
+	•	Eligibility fail: “This requirement isn’t met.” (never reveal private numbers)
+	•	Network: “No internet. We’ll send this automatically when you’re back online.”
+	•	Privacy nudge: “Only the proof is shared, not your details.”
+
+⸻
+
+11) Onboarding details
+
+Checklist
+	•	Language → OTP → PIN → Biometrics → Consent → Home
+	•	Max 90 seconds happy path.
+	•	Skippable biometrics; mandatory PIN.
+	•	Consent screen bullets (3):
+	1.	“Your data stays on your device.”
+	2.	“You control sharing.”
+	3.	“You can delete your account anytime.”
+
+Instrumentation
+	•	Events: onboard_start, otp_sent, otp_verified, pin_set, bio_enabled, consent_accepted, onboard_complete, with durations.
+
+⸻
+
+12) Security UX
+	•	Biometric gate before showing My QR and Share.
+	•	Screen blur on app switch (Android/iOS app switcher snapshots).
+	•	Clipboard copy requires confirm; auto-clear after 90s.
+	•	Session re-auth (PIN/biometric) after 5 minutes background.
+
+⸻
+
+13) Offline behavior
+	•	Proof generation: always available (bundled artifacts).
+	•	Submissions: queued with visible badge + retry policy (exp backoff up to 24h).
+	•	Share → Show QR always available (contains proof or proof reference + nonce).
+	•	History shows “Queued” with last attempted timestamp.
+
+⸻
+
+14) Error states & empty states
+	•	Empty History: “Your verifications will appear here.” → “Generate Proof”
+	•	Scanner no permission: Illustration + “Allow camera to scan QR.”
+	•	Circuit artifacts missing: “Update required to generate this proof.” → Update link
+	•	Clock skew: “Device time differs. Please enable automatic time.”
+
+⸻
+
+15) Analytics & events (privacy-preserving)
+
+No PII. Use random device/user IDs. Sample:
+	•	proof_start {type}
+	•	proof_generated {type, duration_ms, device_tier}
+	•	proof_failed {type, reason_code}
+	•	share_method_selected {method}
+	•	submission_status {result, http_code}
+	•	qr_scan {claim_type}
+	•	onboard_complete {duration_ms}
+
+⸻
+
+16) Notifications
+	•	Verification request: “{Org} requests {claim}. Open Veridity to respond.”
+	•	Queued sent: “Your proof to {Org} was submitted.”
+	•	Security: “PIN changed.”
+Opt-in at onboarding; granular toggles in Settings.
+
+⸻
+
+17) Accessibility checklist (must pass)
+	•	TalkBack/VoiceOver narrations on all actionable items.
+	•	Dynamic type scaling up to 120%.
+	•	Focus order mirrors visual order; ESC/Back to close sheets.
+	•	All color states pass AA; provide text alternative to color cues.
+
+⸻
+
+18) Acceptance criteria (sample)
+
+Age ≥18 proof (mobile)
+	•	Given a registered user with app artifacts present
+	•	When user selects Age ≥18, inputs 2000, taps Generate
+	•	Then show progress ≤ 4s median; result screen shows “Verified Age ≥18”
+	•	And Share options include API/QR/Link; QR scans successfully from verifier app.
+
+Offline submission
+	•	Given no connectivity
+	•	When user scans a request and generates proof
+	•	Then show “Queued” in History; when online returns, auto-submit; update to “Verified” and notify.
+
+Localization
+	•	Switching language updates all visible copy instantly without app restart.
+
+⸻
+
+19) Dependencies & constraints
+	•	Bundled WASM + zkey per circuit; total app size target < 60MB (Android).
+	•	Mid-range device baseline: 8-core CPU, 3GB RAM; proof gen p50 ≤ 3s/type.
+	•	Camera permission for QR; fallback manual code.
+
+⸻
+
+20) Risks & mitigations
+	•	Low-end device slowness: Keep circuits minimal, show expectation text; pre-warm WASM on idle.
+	•	Replay of proofs: Include request nonce in public signals; single-use by verifier; expire links.
+	•	User confusion about privacy: Persistent in-context explainer links; visual “Local only” badge during proving.
+	•	Connectivity variance: Robust queue with backoff + visible state.
+
+⸻
+
+21) Rollout plan
+	•	Internal dogfood (week 1–2): 50 users, instrument metrics.
+	•	Pilot partners (week 3–6): 2 banks + 1 university; monitor API latency & success.
+	•	Public beta (week 7): Play Store (closed testing), App Store TestFlight.
+	•	GA (week 10): staged rollout 10% → 50% → 100%; monitor crash-free ≥ 99.5%.
+
+⸻
+
+22) Design delivery (Figma structure)
+	•	/Foundations (colors, type, grid, icons)
+	•	/Components (buttons, inputs, sheets, toasts, QR)
+	•	/Patterns (OTP, scanner, results, empty/error)
+	•	/Flows (Onboarding, Age proof, QR request, History, Settings)
+	•	/Admin (web) (tables, charts, forms)
+	•	Prototypes (happy path, offline path, error path)
+
+Include redlines (spacing, sizes), component variants, i18n content file linkage.
+
+⸻
+
+23) Copy deck (selected)
+
+Consent screen (EN)
+	•	Title: “Your privacy is our default.”
+	•	Bullets:
+	•	“Your data stays on your phone.”
+	•	“You decide when to share.”
+	•	“Delete your account anytime.”
+
+Consent screen (NE)
+	•	शीर्षक: “तपाईँको गोपनीयता नै हाम्रो पूर्वनिर्धारण हो।”
+	•	बुँदा:
+	•	“तपाईँको डेटा तपाईँको यन्त्रमै रहन्छ।”
+	•	“कहिले र कससँग साझा गर्ने निर्णय तपाईँको।”
+	•	“खाता जुनसुकै बेला मेटाउन सक्नुहुन्छ।”
+
+(Full string list maintained in /locales/en.json & /locales/ne.json.)
+
+⸻
+
+24) Open questions
+	•	Income proof policy thresholds (static vs org-provided?).
+	•	Education proof MVP path (admin attestation vs Merkle inclusion)?
+	•	Minimum OS support (Android 8 vs 9; iOS 13 vs 14)?
+	•	QR payload standardization (compact JWS vs custom)?
+
+⸻
+
+25) Appendices
+
+A) QR payload (request)
+
+{
+  "v": 1,
+  "verifier_id": "org_abc",
+  "claim_type": "age_over_18",
+  "nonce": "base64url-16B",
+  "expires_at": 1696459200
+}
+
+B) Event naming convention
+<domain>_<action> kebab→snake; include ts_ms, user_tier, device_tier.
+
+C) Receipt PDF fields
+Header (logo, “Verified”), claim summary, verifier, timestamp, proof ref, privacy footer.
+
+⸻
+
+Final notes
+
+This PRD defines what we’re building (features, flows, copy), how it should look & feel (design system), and how it should behave (acceptance criteria, offline, accessibility). It aligns to the technical architecture you already defined (client-side proving, API verification, admin flows) and is ready for design & build execution.

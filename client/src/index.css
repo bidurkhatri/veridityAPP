@@ -5,25 +5,41 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(210, 11%, 98%);
-  --foreground: hsl(210, 29%, 10%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(210, 29%, 10%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(210, 29%, 10%);
-  --primary: hsl(221, 83%, 53%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(270, 85%, 60%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --muted: hsl(210, 11%, 96%);
-  --muted-foreground: hsl(210, 12%, 55%);
-  --accent: hsl(313, 73%, 50%);
-  --accent-foreground: hsl(0, 0%, 100%);
-  --destructive: hsl(0, 93%, 73%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --border: hsl(210, 20%, 89%);
-  --input: hsl(210, 20%, 89%);
-  --ring: hsl(221, 83%, 53%);
+  /* PRD Color Palette - Light Theme */
+  --primary: 150 84% 23%; /* #0F766E - Teal primary */
+  --primary-600: 150 84% 23%;
+  --primary-700: 150 85% 18%; /* #0B5F59 - Pressed state */
+  --primary-foreground: 0 0% 100%;
+  
+  --accent: 42 96% 48%; /* #F59E0B - Amber accent */
+  --accent-foreground: 0 0% 0%;
+  
+  --success: 142 76% 36%; /* #16A34A - Green success */
+  --success-foreground: 0 0% 100%;
+  
+  --destructive: 0 74% 50%; /* #DC2626 - Red danger */
+  --destructive-foreground: 0 0% 100%;
+  
+  --background: 0 0% 100%; /* #FFFFFF - White surface */
+  --foreground: 218 27% 10%; /* #111827 - Dark text */
+  
+  --card: 0 0% 100%;
+  --card-foreground: 218 27% 10%;
+  
+  --surface-alt: 210 18% 98%; /* #F8FAFC - Alt background */
+  
+  --muted: 210 18% 98%;
+  --muted-foreground: 215 16% 47%; /* #6B7280 - Muted text */
+  
+  --border: 220 13% 91%; /* #E5E7EB - Border color */
+  --input: 220 13% 91%;
+  --ring: 150 84% 23%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 218 27% 10%;
+  
+  --secondary: 215 16% 47%;
+  --secondary-foreground: 0 0% 100%;
   --chart-1: hsl(214, 100%, 35%);
   --chart-2: hsl(159.7826, 100%, 36.0784%);
   --chart-3: hsl(43, 96%, 56%);
@@ -54,25 +70,41 @@
 }
 
 .dark {
-  --background: hsl(210, 30%, 8%);
-  --foreground: hsl(210, 40%, 98%);
-  --card: hsl(210, 30%, 12%);
-  --card-foreground: hsl(210, 40%, 98%);
-  --popover: hsl(210, 30%, 12%);
-  --popover-foreground: hsl(210, 40%, 98%);
-  --primary: hsl(221, 83%, 63%);
-  --primary-foreground: hsl(210, 30%, 8%);
-  --secondary: hsl(270, 85%, 70%);
-  --secondary-foreground: hsl(210, 30%, 8%);
-  --muted: hsl(210, 30%, 15%);
-  --muted-foreground: hsl(210, 40%, 55%);
-  --accent: hsl(313, 73%, 60%);
-  --accent-foreground: hsl(210, 30%, 8%);
-  --destructive: hsl(0, 93%, 73%);
-  --destructive-foreground: hsl(210, 30%, 8%);
-  --border: hsl(210, 30%, 18%);
-  --input: hsl(210, 30%, 18%);
-  --ring: hsl(221, 83%, 63%);
+  /* PRD Color Palette - Dark Theme */
+  --primary: 174 85% 57%; /* #2DD4BF - Bright teal */
+  --primary-600: 174 85% 57%;
+  --primary-700: 174 85% 47%;
+  --primary-foreground: 0 0% 0%;
+  
+  --accent: 45 93% 58%; /* #FBBF24 - Bright amber */
+  --accent-foreground: 0 0% 0%;
+  
+  --success: 142 76% 55%; /* #22C55E - Bright green */
+  --success-foreground: 0 0% 0%;
+  
+  --destructive: 0 85% 70%; /* #F87171 - Soft red */
+  --destructive-foreground: 0 0% 0%;
+  
+  --background: 217 33% 7%; /* #0B1220 - Dark blue bg */
+  --foreground: 210 18% 96%; /* #F3F4F6 - Light text */
+  
+  --card: 217 33% 7%;
+  --card-foreground: 210 18% 96%;
+  
+  --surface-alt: 218 27% 10%; /* #111827 - Alt dark bg */
+  
+  --muted: 218 27% 10%;
+  --muted-foreground: 218 11% 65%; /* #9CA3AF - Muted text */
+  
+  --border: 217 19% 18%; /* #1F2937 - Dark border */
+  --input: 217 19% 18%;
+  --ring: 174 85% 57%;
+  
+  --popover: 217 33% 7%;
+  --popover-foreground: 210 18% 96%;
+  
+  --secondary: 218 11% 65%;
+  --secondary-foreground: 218 27% 10%;
   --chart-1: hsl(214, 100%, 50%);
   --chart-2: hsl(159.7826, 100%, 36.0784%);
   --chart-3: hsl(43, 96%, 56%);
@@ -184,11 +216,22 @@
 }
 
 .apple-gradient {
-  background: linear-gradient(135deg, hsl(221, 83%, 53%) 0%, hsl(270, 85%, 60%) 50%, hsl(313, 73%, 50%) 100%);
+  background: linear-gradient(135deg, hsl(150, 84%, 23%) 0%, hsl(174, 85%, 57%) 50%, hsl(142, 76%, 36%) 100%);
+}
+
+.dark .apple-gradient {
+  background: linear-gradient(135deg, hsl(174, 85%, 57%) 0%, hsl(174, 85%, 67%) 50%, hsl(142, 76%, 55%) 100%);
 }
 
 .apple-gradient-text {
-  background: linear-gradient(135deg, hsl(221, 83%, 53%) 0%, hsl(270, 85%, 60%) 50%, hsl(313, 73%, 50%) 100%);
+  background: linear-gradient(135deg, hsl(150, 84%, 23%) 0%, hsl(174, 85%, 57%) 50%, hsl(142, 76%, 36%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .apple-gradient-text {
+  background: linear-gradient(135deg, hsl(174, 85%, 57%) 0%, hsl(174, 85%, 67%) 50%, hsl(142, 76%, 55%) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
