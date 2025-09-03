@@ -1,0 +1,1433 @@
+📄 Veridity: Product Requirements & Technical Documentation (ZKP Identity Platform)
+
+⸻
+
+🧭 1. Product Overview
+
+Product Name: Veridity – a privacy-first digital identity platform tailored for Nepal. Veridity enables Nepali citizens to prove specific identity attributes (such as age, education, citizenship status, income range) without disclosing sensitive personal data, by leveraging advanced zero-knowledge proof (ZKP) cryptography ￼. The platform is designed as a multi-platform solution (Web, iOS, Android) to ensure broad accessibility. Its primary use cases include identity verification for government services, banks, educational institutions, and private companies in Nepal. Users can securely verify they meet certain criteria (e.g. age over 18, valid citizenship) while their personal data remains private on their device ￼ ￼.
+
+Context & Need: Nepal presents unique challenges and opportunities for digital identity solutions. With over 10 million unbanked citizens and 40% of the population living in rural areas, there is a critical need for an accessible and secure ID verification system ￼. Traditional identity checks often require sharing photocopies of documents or personal details, raising privacy concerns. Veridity addresses this by using ZKPs so that only the proof of an identity claim is shared, never the underlying personal data ￼. This approach fosters trust and protects user privacy, which is especially valuable in an era of increasing data breaches and surveillance.
+
+Unique Value Proposition: Veridity’s core innovation is the integration of Zero-Knowledge Proofs into everyday ID verification. This means a user can, for example, prove they are over 18 without revealing their birth date, or prove their income falls within a required range without revealing the actual amount ￼ ￼. The platform emphasizes:
+	•	Privacy-Preserving Verification: Personal data never leaves the user’s device unencrypted; only cryptographic proofs are exchanged. Even Veridity’s servers or partner organizations cannot see the raw personal info – they only see a valid/invalid proof result ￼.
+	•	Inclusivity and Accessibility: A mobile-first design ensures it works offline on typical Android devices, suitable for rural areas with limited connectivity ￼. The interface will be bilingual (English and Nepali) to reach a wide user base, including those more comfortable in Nepali.
+	•	Speed and Cost Efficiency: ZKP generation and verification are optimized to be fast and lightweight – target proof generation time is under 3 seconds on a smartphone ￼, and verification can be near-instant (under 1 second) on the server ￼. Each verification is low-cost (estimated around $0.05 or less in computational resources) ￼, making it economically viable for mass adoption.
+	•	Cross-Platform Availability: Veridity will be available as a responsive web application and as native mobile apps (via React Native). This ensures users can access services on any device, and organizations can integrate via web or mobile SDKs.
+
+In summary, Veridity is positioned to become Nepal’s go-to digital identity solution by providing secure, privacy-first verification built on cutting-edge cryptography, while being practical for real-world conditions in Nepal (offline support, multilingual UI, low cost). It brings the benefits of modern self-sovereign identity to government and enterprise use cases in Nepal, empowering users to control their personal information ￼.
+
+⸻
+
+🎯 2. Product Goals
+
+Veridity’s development is guided by several key goals and objectives:
+	•	Privacy-Preserving Identity Verification: Implement identity and credential checks where users do not have to expose personal data. Using ZKPs, the system should verify attributes (e.g. “is the user a Nepali citizen?”, “is user’s age ≥ 18?”, “does user have a Bachelor’s degree?”) without requiring the user to hand over documents or sensitive info. This goal directly addresses privacy concerns and aligns with data minimization principles (only share what’s necessary).
+	•	Compatibility with Low-Connectivity Environments: Ensure the platform works reliably in Nepal’s rural areas where internet connectivity can be intermittent or slow. The mobile app must have offline-first capabilities – for example, allow a user to generate a proof without real-time network access. Verification with third parties might require connectivity, but the app should queue requests or use SMS/USSD as fallback if needed (for future consideration). The design should be lightweight in data usage, and perform essential operations (like proof generation) on-device so that a spotty network doesn’t hinder the user experience ￼.
+	•	Multilingual User Experience: Provide a user interface in both English and Nepali (and possibly other local languages if needed). All user-facing text, prompts, and error messages should be available in Nepali (using Devanagari script) to cater to the large Nepali-speaking population. This includes support for proper text rendering and layout in Nepali. Users should be able to easily switch language preferences. The goal is to reduce language as a barrier to using digital identity services.
+	•	Security & Trust: Employ industry-standard and best-practice security measures across the board. This includes end-to-end encryption (TLS 1.3 for data in transit), secure local storage on devices (encryption of any cached data or keys), and hardened APIs on the backend. The system should be OWASP Top 10 compliant, mitigating common vulnerabilities (SQL injection, XSS, CSRF, etc.). Additionally, incorporate biometric authentication for the mobile app (leveraging device fingerprint or face ID) to protect against unauthorized use of a person’s digital ID. Establish trust by being transparent (open algorithms, possibly open source certain components) and obtaining necessary certifications/compliance (e.g., aligning with GDPR for data handling).
+	•	Scalable Integration for Enterprises and Government: Build secure, scalable APIs and possibly SDKs that allow government agencies, banks, universities, and other enterprises to integrate Veridity’s verification service into their systems. This goal means providing clear documentation (for developers at partner organizations), API key management, and high availability. The platform should handle high volumes of verification requests (e.g., during exam result season or voter registration drives) with scalable cloud infrastructure. Additionally, it should support auditing and logging features needed by enterprises (so verifications can be traced and compliance requirements met, without compromising user privacy).
+	•	Multi-Platform Deployment: Deliver Veridity as a multi-platform application:
+	•	Web Application: A Next.js web app for desktops and mobile browsers, useful for admin users and possibly citizens on desktop.
+	•	Mobile Application: A cross-platform mobile app (built with React Native or Flutter) targeting iOS and Android for end-users. The goal is to cover the majority of devices in use (which in Nepal will be mostly Android phones, but also iPhones in urban areas). The mobile app should be optimized for performance and usability on low-end Android devices (common in developing regions).
+	•	Ensure feature parity across platforms where possible (e.g., both web and mobile allow generating all types of proofs).
+	•	Publish mobile apps on relevant app stores (Google Play Store, Apple App Store) with necessary compliance (the apps will likely require Nepali government approval if used for official ID, which should be considered).
+	•	Ease of Use and User Control: Beyond just privacy, a key goal is usability. The process for a user to verify their identity or credential should be straightforward: minimal steps, clear instructions, and quick feedback. Where possible, offer guidance in the app (e.g., if a proof fails, provide next steps like “please check that your input matches your official documents”). Users should also have control over their data – for example, ability to revoke a proof or see their verification history (so they know which organizations they shared a proof with). This builds user trust and confidence in the system.
+	•	Compliance with Local Regulations: Align with any Nepali digital identity regulations and international standards. For instance, ensure that data residency requirements are met (if any Nepali law requires data to be stored locally), and follow global best practices like GDPR for user consent and data deletion. Since Veridity deals with personal data and government IDs (even if data is kept private, the system interacts with such info), legal compliance and working closely with regulators is a goal to ensure the platform’s legitimacy and acceptance.
+
+By meeting these goals, Veridity aims to provide a robust, trustworthy, and widely adopted identity verification platform that benefits individuals (privacy, convenience) and organizations (security, efficiency) alike.
+
+⸻
+
+🔄 3. Core User Flows
+
+Understanding the core user flows is essential to designing the user experience and system interactions. Below are the primary end-user flows in the Veridity application:
+
+3.1 User Registration
+
+Description: This is the onboarding process for a new user (citizen) of Veridity. The goal is to create a secure, verified account for the user while collecting minimal personal information.
+	•	Input Required: At registration, the user provides basic information such as full name, a contact detail (could be an email address or mobile number), and an optional government-issued identifier (for example, a national ID number or citizenship certificate number, if the user wants to link their account to official records for easier verification). The UI will be simple, asking for just a few fields to lower barriers to entry.
+	•	Verification of Contact: If the user provided a mobile number or email, the system performs a one-time verification (OTP SMS or email verification code) to ensure the contact is valid. For example, if a phone number is given, an OTP code is sent via SMS which the user must enter to confirm their account. In low-connectivity scenarios, if an online OTP is not feasible, alternative offline verification (like showing a code to an agent or using an invite code) could be considered, but initially a standard OTP is used.
+	•	Local Account Creation: Once contact is verified, an account is created. No sensitive personal data (like DOB, documents) is uploaded at this stage – the user’s device may generate a keypair or other credentials for ZKP usage. For instance, the app might create a local cryptographic identity (similar to a wallet) that will store any credentials or attestations the user obtains. This can be protected by a user-chosen PIN or the device biometric for security.
+	•	Optional KYC Link: If the user provided an official ID (e.g., national ID number), the system could attempt to verify this with government databases via API (if available) to bootstrap the user’s credentials. However, to preserve privacy, this step is optional and only done with user consent. Alternatively, the user can skip and still use the app, but some proof requests might require manual approval later (by an admin) if not auto-verified.
+	•	Completion: The user is now registered and can access the main dashboard of the app, where they can generate proofs of various types. They might receive a brief in-app tutorial on how to use the app to create a proof. Importantly, no personal data except the contact and maybe a user ID is stored on the server – all other attributes the user will prove remain with the user until proving.
+
+3.2 Proof Generation Flow
+
+This is the central flow of the application, where the user creates a zero-knowledge proof of an identity attribute or claim. This flow is performed entirely on the client side (mobile app or web app) to maximize privacy – the server will only receive the proof, not the raw data.
+
+Steps to Generate a Proof:
+	1.	Select Proof Type: The user begins by selecting what kind of verification they need. The app presents options like Age Verification, Education Credential, Citizenship, Income Bracket, etc. Each proof type corresponds to a specific ZKP circuit and logic. For example, if the user needs to prove they are over 18 (perhaps to access a service or content), they would choose “Age Verification (18+)”.
+	2.	Input Private Data: After selecting, the app prompts the user to enter the relevant data privately.
+	•	For Age Verification, the user might enter their date of birth or birth year. (Alternatively, if the app has scanned the user’s citizenship card or ID document earlier, it might auto-fill this from a secure local store.)
+	•	For Education Proof, the user might select or enter their highest degree and the institution (e.g., “Bachelor’s, Tribhuvan University, Class of 2022”).
+	•	For Citizenship Proof, the user might input their citizenship number or scan a QR code from a government-issued digital ID (if available).
+	•	For Income Verification, the user could input their annual income, or choose from ranges if the proof is about falling within a range (the exact strategy depends on how the circuit is designed; possibly the user provides an income and the proof circuit checks if it’s ≥ a threshold).
+The key aspect is that this data stays on the client device and is not sent to the server as plaintext. The app may temporarily store it in memory to use as witness inputs for the ZKP generation.
+	3.	Client-Side ZKP Generation: Once the user provides the input, the app uses the appropriate ZKP circuit (pre-compiled and embedded in the app as .wasm and associated proving key .zkey files) to generate a proof. The app likely utilizes the snarkJS library (or similar) in the background to do this. For example, for a Groth16-based proof, the app will:
+	•	Load the circuit’s WASM (which contains the arithmetic circuit logic compiled from Circom) and the proving key (which was generated in a trusted setup ceremony for that circuit).
+	•	Construct a JSON of the user’s inputs as the private witness inputs.
+	•	Run the prover to produce the proof and the public signals. Public signals are the publicly verifiable outputs of the circuit – e.g., for age verification, the public output might simply be a boolean isOver18 = true and perhaps a commitment to the user’s birth year or a hash, depending on circuit design.
+	•	This operation is done locally. Thanks to modern optimizations and the efficiency of Groth16, it can be done quickly even on mobile hardware (under a few seconds) ￼. For instance, snarkJS running a small proof (~10k constraints) can complete in a couple of seconds on a mid-range phone, since it uses WebAssembly and can leverage big integers support in modern JS engines ￼ ￼. (The exact performance will be tested and optimized in the development cycle.)
+	4.	Submit Proof + Public Signal: After generation, the app now has a ZK proof (usually a blob of data, consisting of several cryptographic elements) and the associated public signals. The app packages these into a verification request to send to the Veridity server (or directly to a third-party verifier via an API, depending on integration mode):
+	•	If using the Veridity service for verification, the app calls an API like POST /api/v1/verify with a payload containing the proof and an identifier of what is being proved (e.g., claim type = age_over_18) ￼. The request is authenticated with the user’s session or an API token. All communication is over HTTPS (TLS 1.3).
+	•	Optionally, instead of immediate server submission, the user could choose to export the proof (e.g., as a QR code or file) if they need to deliver it offline to a verifier. In initial versions, we focus on online verification, but offline QR code scanning by a verifier app is a planned feature for environments with no connectivity.
+	•	The public signals (like the declared claim) might also be included or derivable. For example, the server needs to know what claim this proof is supposed to attest to (the circuit might output a tag or ID for the claim). In our API, we include a claim_type or similar field in the request ￼.
+	5.	Receive Result: The Veridity server (or the verifying party’s server) checks the proof. On the backend, the verification process uses the ZKP verifier key (a public key corresponding to the proving key, generated in the trusted setup) and the proof’s public signals:
+	•	The backend will load the correct verification key for the claim type requested (each proof type has its own key).
+	•	It uses a library like snarkJS or a native cryptography library to verify the proof. This is a fast operation (milliseconds) since Groth16 verification involves a few pairings and arithmetic checks.
+	•	The result of verification is a boolean: valid or invalid.
+	•	If valid, the server responds with a success status (and possibly a token or reference ID for the verified proof). If invalid, the server responds with a failure and an error message.
+	•	From an end-user perspective in the app, they would see a visual indicator: e.g., a big green checkmark if the proof is valid (and perhaps details like “Verified that age ≥ 18”), or a red cross if not valid (with a message like “Verification failed. Please check your input or contact support.”). The UI/UX should make this very clear.
+
+Post-Verification (Optional): The user can choose to share the positive result with a third party. For example, after generating an “Age ≥18” proof successfully, the user might have a button to share this proof or result with a specific organization. If the verification was done through the Veridity API directly, the organization might already have the result (for instance, if the user scanned a QR at a bank, which triggered the verification via API, the bank’s system gets the result). Alternatively, if the user did it themselves, they might export a certificate or QR code that a verifier can scan to confirm validity (this could embed the proof ID that the verifier’s system can check via the status API GET /api/v1/status/{proof_id} ￼).
+
+Throughout this flow, the user’s raw personal data (DOB, degree info, etc.) is never revealed to the server or verifier – only the proof is shared, which is cryptographically locked to reveal no more information than “the claim holds true” ￼. This flow may be repeated whenever a user needs to prove something; the data can be freshly input each time or, in later versions, pulled from stored verified credentials (see Roadmap for verifiable credentials storage).
+
+3.3 Using Verified Identity with Third Parties
+
+Once a user has generated the necessary proof, the next step is to use that proof to gain access to a service or complete an identity check with a third-party organization (government office, bank, employer, etc.). This flow can vary depending on integration, but generally:
+	•	In-App QR Code / Link: The Veridity app can display a QR code representing the proof result (or a reference to it). For instance, after a successful proof generation, a “Show QR to verifier” button could display a QR containing a proof ID or an encoded form of the proof. An official at a service counter could scan this using a Veridity verifier app or their system to quickly validate the proof. This is useful for in-person scenarios (e.g., showing proof of age at a voting booth).
+	•	Direct API Submission: In many cases, the process will be seamless: If an organization integrates Veridity’s API, they might simply prompt the user for a Veridity verification. For example, an online bank account registration might have a “Verify with Veridity” button. Clicking it could either open the Veridity app (deep link) or direct the user to generate the required proof. After generation, the proof is automatically sent to the bank’s systems via Veridity API, and the bank instantly gets a confirmation that the check passed. The user is then allowed to proceed. This flow requires prior integration (which we’ll cover in the API section).
+	•	Exportable Verifiable Credential (Optional/Future): For longer-term usage, a user might export a digitally signed credential attesting to something (e.g., a digital certificate of their degree). This could be in the form of a W3C Verifiable Credential (VC) or similar. Although not part of the initial MVP, the roadmap includes adding DID/VC support so that users won’t need to re-generate proofs for frequently used credentials; instead they can present a reusable ZKP-based credential. In current flows, each verification is on-demand and one-time.
+	•	User Consent and Control: When a user uses their proof with a third party, ensure that the user explicitly consents to share that proof. The app might show “Do you want to share proof X with organization Y?” if the request comes from an external source. This is to maintain user agency over where their identity information (even in proof form) goes.
+
+After a verification is used, the user can typically view a log of it in their app (e.g., “You proved Age>18 to Nepal Bank Ltd. on Sep 5, 2025”). This audit trail is stored locally and perhaps on the server in an anonymized form (the server might store “user X verified claim Y with result success at time Z for requester Q”). These logs support dispute resolution and compliance, without storing the sensitive data itself.
+
+Failure Handling: If any step fails (e.g., proof generation fails due to input not satisfying requirements, or verification fails because the input was incorrect or the user is not eligible), the user should be informed gently. For example, if a user tries to prove income > NPR 50,000 but they input 30,000 (which won’t satisfy the circuit’s requirement), the proof might still generate but verification will yield a “false” outcome. The app can catch that and tell the user that they do not meet the criteria, rather than a generic error. Any technical errors (like inability to load the circuit) should have fallback messaging like “Technical issue, please try again or contact support.”
+
+By covering these flows, we ensure the end-to-end journey for an end user – from onboarding into Veridity, to generating cryptographic proofs of their identity claims, to actually using those proofs in real-world scenarios – is well-defined and user-friendly. Each flow is designed to prioritize privacy (minimum data disclosure), simplicity (few steps with guidance), and reliability (works offline or with intermittent internet, provides clear success/failure feedback). These flows also inform what features and APIs we need to implement on the backend.
+
+⸻
+
+🧑‍💼 4. Admin User Flow
+
+Besides end users (citizens), Veridity will have an Admin Dashboard for authorized administrators. These could be Veridity’s internal team or perhaps designated officials at partner organizations (with limited scopes) who oversee the system’s usage, handle exceptional cases, and monitor system health. The Admin user flow outlines how administrators interact with the platform:
+
+Admin Dashboard Overview:
+
+The Admin Dashboard is a secure web application (likely part of the Next.js web app, with an admin route protected by authentication and role-based access). Admins log in using their credentials (with MFA if possible, given the sensitivity). Once logged in, they have access to various sections of the dashboard:
+	•	User and Proof Activity Logs: A view that lists recent verification activities. This includes entries like: timestamp, user ID (or an anonymized hash), type of proof (age, education, etc.), result (success/failure), and requesting entity (if applicable). This log helps in monitoring usage and spotting any anomalies or abuse. For privacy, personal details aren’t shown – just the high-level info and maybe an internal reference to the proof. Admins can filter logs by date, proof type, region, etc.
+	•	Verification Statistics & Analytics: The dashboard provides aggregated statistics such as:
+	•	Number of proofs generated per day/week (overall and by type).
+	•	Success/failure rates (to detect if maybe some circuit is causing many failures or if fraudulent attempts are happening).
+	•	Usage by region or demographics (if we collect region info – possibly by inferring from phone area code or a provided address if user gave one, though careful with privacy here). This helps understand adoption (e.g., “Bagmati province has 500 verifications this week, whereas Karnali only 50” – which could inform outreach).
+	•	Active user counts, and other key performance indicators.
+	•	Manual Proof Review & Approval: In some cases, a proof might be flagged for manual review. For example, if a user’s data didn’t match any known record and we want an admin to verify it before approving the proof (particularly if integration to an official database fails or isn’t available). The admin can see a queue of flagged proofs or pending verifications. For each, they might have limited visibility – perhaps the user’s claimed data and any supporting evidence.
+	•	For instance, if a user claims a certain degree and our system couldn’t auto-verify with the university, the admin might see the user’s claim and possibly uploaded scans (if we ever allow that as backup) and then have options to mark it as “Verified” or “Rejected”. Marking as Verified could allow the system to then generate a credential for the user so future proofs for that claim auto-pass.
+	•	Admins can also handle incomplete proofs: if a proof generation started but didn’t complete, or if a user’s account setup is incomplete (maybe OTP not verified), admins could assist.
+	•	API Keys & Integrations Management: For enterprise and government integration, the admin panel should allow managing API clients. This means:
+	•	Listing organizations that have API access, issuing API keys or OAuth client credentials, setting permissions for what each client can verify (e.g., a certain bank might only be allowed to verify income and citizenship proofs, not education, depending on agreements).
+	•	Monitoring API usage by these clients (how many calls, any errors).
+	•	Revoking or rotating API keys as needed for security ￼.
+	•	Setting up webhooks endpoints for clients if needed (the admin might configure which URL to send webhook results to for each client that registers one).
+	•	Regional/Partner Administration: If the system is used by government entities, there may be roles such as a Ministry official who can only see data relevant to their ministry. For example, someone from the Ministry of Education might have an admin view restricted to education credential verifications. The platform should support role-based access control:
+	•	Super Admin (full access – likely Veridity internal team).
+	•	Government Admin (can see relevant verifications, e.g., MOHA official can see citizenship verification logs).
+	•	Partner Admin (a bank’s admin who can see their own customers’ verification requests if that’s part of the service).
+	•	These roles need carefully defined scopes to maintain privacy and least privilege.
+	•	Audit Trail & Reports: Every action an admin takes (login, approving a proof, revoking a key, etc.) is logged in the audit_logs table ￼ ￼ for security and compliance. The dashboard provides a view to see these audit logs. Additionally, the admin can export logs or reports (e.g., a CSV of usage stats over a quarter) for reporting to stakeholders. There might be quick-export buttons for common reports (such as monthly usage report, or list of new users registered in a time period).
+	•	System Health Monitoring: Basic monitoring info could be shown (or linked) in the admin area. E.g., status of the server (uptime, response times), pending tasks, etc. If something like proof generation queueing is implemented, admins could see if any backlog exists. For MVP, this might be simple, but as the system scales, integrating with monitoring tools or dashboards (like Grafana, etc.) might be necessary – those might be separate, but an admin link could be provided.
+	•	Support & Helpdesk: Admins might also serve as support. The dashboard could have a section to look up a user (by email or ID) to assist with issues. For example, if a user reports “my proof keeps failing”, an admin could search their ID and see recent attempts and possibly details (still privacy respecting, but maybe an error code). This helps resolve user issues. Additionally, from here an admin could trigger certain actions like resetting a user’s account (if they got locked out) or revoking a compromised account, etc.
+
+Admin Notifications: If certain events occur (like system errors, or a suspicious pattern of failures), the admins should get notifications. This could be done via email alerts or an in-dashboard alert. For example, if verification failures spike or if someone tries to breach (multiple invalid proofs), an alert could be raised for investigation.
+
+Manual Override: A rare but important function – if for any reason the automated ZKP verification cannot be done (maybe a circuit bug or a missing circuit for a new ID type), the admin might have a way to manually verify and approve a user’s claim. This is obviously less ideal (trust-based rather than ZKP), but it ensures continuity of service in edge cases. Such manually verified credentials could be flagged and later replaced with proper ZKP-based ones when available.
+
+In summary, the Admin flow is about oversight and intervention. The system is largely automated and self-service for users, but admins are there as a safety net and control mechanism to ensure everything runs smoothly, to integrate with external systems (like issuing API keys), and to handle exceptions. The admin interface must be robust, secure (accessible only by trained personnel), and provide the necessary information without exposing any more personal data than needed. For instance, an admin might see “User #12345 (hash) – Age proof failed” but not the user’s actual birthdate unless needed for troubleshooting a verified claim. This maintains the platform’s privacy ethos even in admin operations.
+
+⸻
+
+📲 5. Mobile Application Plan
+
+The mobile application is a critical component of Veridity, as it will be the primary touchpoint for end users (citizens). The plan covers the technology stack selection, key capabilities, and design considerations to meet our goals:
+
+5.1 Technology Stack & Framework
+	•	Cross-Platform Framework: We have chosen React Native (with Expo) as the primary mobile framework. This allows us to develop a single codebase for both Android and iOS, ensuring consistency and faster development. Expo, in particular, provides a managed environment that simplifies building and deploying apps, plus it offers a rich set of libraries (camera, secure storage, updates, etc.) out-of-the-box.
+Rationale: React Native with Expo enables a “write once, run anywhere” approach for the mobile app. It also aligns well with our web tech (React on Next.js) so developers can share some expertise and even code between web and mobile (for example, business logic or validation code). The alternative considered was Flutter, which is also cross-platform and has performance parity with native; however, we prioritize the ability to reuse web code and the larger pool of JavaScript developers. If performance or specific native features become an issue, we may revisit Flutter, but RN is sufficient for now.
+	•	Shared Code and Monorepo: We intend to maximize reuse between the web and mobile apps. The project can be structured as a monorepo (using tools like Yarn Workspaces or Turborepo) containing both the Next.js app and the React Native app, along with shared packages (for example, a shared module for constants, types, translations, and even some UI components where feasible). This ensures consistency – e.g., the same validation logic for input formats can be used on web and mobile. Expo supports monorepo setups well ￼. With a monorepo, we can also have a single CI pipeline running tests across both platforms.
+	•	UI Design and Consistency: For the web app, we use Tailwind CSS with the shadcn/ui component library (which is built on Radix UI and Tailwind) for a modern, accessible design. On React Native, we will strive for a similar look & feel. We can utilize NativeWind (Tailwind in React Native) to use utility classes in RN for styling, giving us consistency in design tokens (colors, spacing, typography) across platforms. While shadcn/ui components themselves won’t directly port to RN, we’ll create RN equivalents for common components (buttons, cards, forms) styled to match. The design will be clean and simple, considering potentially limited literacy – using clear icons and minimal text where possible.
+	•	Offline and Performance Considerations: The app should work offline or with poor connectivity. We will employ an “offline-first” approach:
+	•	Use local storage (SecureStore or SQLite) to cache any data needed.
+	•	For proof generation, all heavy computation is done on-device using WASM and does not require internet. We will package the ZKP circuit binaries with the app (or have them downloadable on first use) so that even offline, proof generation works.
+	•	Any API calls (like sending the proof) will be done opportunistically – if offline at the moment of wanting to verify, the app can queue the request and send when back online, or present a QR for offline verification by another device.
+	•	Performance: React Native is generally performant for UI, but ZKP generation is CPU-intensive. We’ll make sure to run the proof generation in a background thread (perhaps using WebAssembly via a JS thread, or native modules if needed) so the UI remains responsive (e.g., show a loading spinner “Generating proof, this may take ~3 seconds”). If needed, we may offload to a background service or use worker threads in JS for multi-core usage.
+
+5.2 Key Mobile Capabilities & Features
+	•	Biometric and PIN Authentication: The mobile app will support biometric login (fingerprint or face ID, depending on device) as well as a fallback PIN code or pattern. When a user registers, they will set up a 4-6 digit PIN. On subsequent uses, they can choose to enable biometric auth for convenience. This ensures that even if the phone is stolen, the Veridity app cannot be opened to impersonate the user without biometric or PIN. The biometric integration is done via Expo’s LocalAuthentication or similar modules, which interface with Android’s Biometrics API and iOS Face/Touch ID.
+	•	Secure Local Storage: Any sensitive data on the device (like the user’s key pair, or cached credentials) will be stored using strong encryption. We’ll use Expo SecureStore (which uses iOS Keychain and Android Keystore under the hood) for small items like keys or tokens. For any larger data (like a stored verifiable credential or an offline ledger of proofs), we can use an encrypted database. One approach is to use SQLite encrypted with a library (there are libraries like WatermelonDB with encryption plugins, or we implement AES-256 encryption on data before storing). This ensures that even someone with full device access can’t easily extract personal data from the app. Also, sensitive data will be wiped if the user logs out or deletes the app (and user can be given an option to wipe if needed).
+	•	Push Notifications: The app will utilize push notifications for important events. For example, if a user initiates a verification from a web browser (via a deep link) or if an organization sends a request to the user for verification, a push notification can alert the user: “Organization X requests proof of Y – tap to open Veridity and respond.” Expo’s push notification service can handle sending notifications reliably cross-platform. Also, notifications can remind users of things like if their credential is about to expire or new features available.
+	•	QR Code Scanner: A built-in QR code scanner will be included to facilitate quick interactions. Users might scan a QR code displayed by a service provider to start a proof request (the QR could encode what proof is needed and an endpoint to send to). Conversely, the user app itself can display QRs that verifiers scan; but as for scanning, Expo’s Camera module or expo-barcode-scanner will be used to scan codes. This scanner needs to work offline as well (for offline verification exchanges).
+	•	Localization (i18n): The app will detect the device’s language setting on first launch and default to Nepali if the device is in Nepal and set to Nepali language. Otherwise, English is the default fallback. A language toggle is provided in settings. We will maintain translation files (probably JSON or using i18next for React Native). All UI strings have Nepali translations (ensuring proper Unicode rendering). The design accounts for possibly longer text in Nepali vs English. Also, any date or number formatting will respect locale (e.g. Nepali format for dates if Nepali locale chosen). This is crucial for user comfort.
+	•	Accessibility: The app should be usable by people with varying abilities. We will follow basic accessibility guidelines: readable font sizes, sufficient color contrast, support for screen readers (React Native’s Accessibility API to label elements), etc. Also, considering literacy levels, we’ll include intuitive icons and maybe voice guidance (future feature: “voice input for non-literate users” is on the roadmap, likely meaning the app could guide via audio or accept voice commands in Nepali by 2026).
+	•	Update Strategy: Because the circuits or logic might update, using Expo gives us the advantage of OTA (Over-The-Air) updates for JS code (except native builds). We can push minor updates or translations updates without requiring a full app store update, as long as we respect the app store policies. For critical updates or new circuits that require new WASM files, we might need a full update. We’ll plan the rollout such that adding new proof types might coincide with app updates.
+	•	Fallback for Low-End Devices: Not all users have the latest smartphones. The app will be tested on low-end Android devices (e.g., 2GB RAM, Android Go phones). We’ll minimize large dependencies and avoid heavy background processes. If some devices struggle with proof generation due to limited CPU, we could in future consider a server-assisted proving (i.e., user data is still private but maybe split the work) — but initially, we stick to client-side. The UI should also adapt to small screen sizes (older phones, possibly as small as 4-inch screens).
+
+In conclusion, the mobile app plan focuses on providing a robust, user-friendly, and secure application that works in the hands of everyday Nepali citizens. By using React Native with Expo, we balance development efficiency with performance, and we incorporate necessary features (offline support, biometric security, QR scanning) to meet the unique needs of the environment where it will be used. This mobile app will serve as the user’s personal identity wallet and verification tool, so it must be trustworthy and convenient.
+
+⸻
+
+🧱 6. Architecture
+
+Veridity’s system architecture is designed to be modular, scalable, and secure, integrating the ZKP components with conventional web infrastructure. Here we outline the major components and how they interact:
+
+6.1 Overview
+
+At a high level, the architecture consists of:
+	•	Client Applications: The Web app (Next.js) and Mobile apps (React Native) – these handle user interactions and client-side proof generation.
+	•	Backend API Server: A server that hosts RESTful API endpoints for verification requests, user/account management, admin dashboard, and integration endpoints. This also contains the verification logic for proofs, using ZKP libraries to verify incoming proofs.
+	•	ZKP Module: Circuits and proving/verifying keys, which are used both on client side (for proving) and server side (for verification). There’s also potential for a Verifier Smart Contract in future (for on-chain verification), but initially verification is off-chain on the server.
+	•	External Integrations: Connections to external databases or APIs (government registries, university records, bank KYC systems) that help verify or fetch data, when needed, to support the proofs.
+	•	Database: A PostgreSQL (planned) database for storing necessary data like user accounts, proof records, logs, API keys, etc.
+	•	Infrastructure & Deployment: The hosting environment (for web, likely a platform like Netlify for the web front-end; for the backend, possibly Vercel Functions, AWS or Bun’s deployment; for mobile, distribution via app stores with CI/CD).
+
+Below, we detail each part:
+
+6.2 Frontend Architecture (Web)
+	•	Next.js 15 (Web App): The web application is built with Next.js (version 15, which by 2025 includes the new App Router and improvements for React 19). We use the App Router for structuring pages and leveraging server-side rendering (SSR) or static generation where appropriate. The choice of Next.js enables hybrid rendering; for pages like the landing site or documentation, we can pre-render (SSG) for speed, whereas for user-specific pages (dashboard), we use SSR for dynamic data. Next.js also provides built-in API routes which we use minimally (since a separate backend handles logic, but some quick API routes or webhook handlers could live in the Next app if needed for simplicity).
+	•	Bun Runtime for Next.js: We plan to run the Next.js server using Bun instead of Node.js for performance and efficiency. Bun is an all-in-one JavaScript runtime known for its speed ￼. By using Bun’s runtime to serve Next.js (which is increasingly possible with Next 15 and Bun 1.x), we expect faster cold starts and lower latency. Bun’s native bundler and transpiler also speeds up development and build times. (If any compatibility issues arise, we have the fallback to Node, but we’ll aim for Bun in production once stable ￼). The deployment on Netlify or similar will either directly support Bun or use Node if needed; this detail will be sorted out in deployment configuration.
+	•	UI Layer: Using Tailwind CSS + shadcn/ui on Next.js gives us a consistent design system. We set up a design system with Tailwind (colors, spacing to match brand guidelines). Shadcn/UI provides a collection of accessible, pre-styled components (like modals, dropdowns, forms) that we will use for rapid development and uniform look. We also ensure these are localized (using React’s context or a library for i18n). The web app is primarily for admin and developer audiences (and maybe users who prefer web), so it will include the Admin Dashboard (protected routes) and some user functionality (like maybe a user can login on web to access their proofs too).
+	•	State Management: On the web front-end, we’ll use a combination of React’s built-in state and perhaps context or a lightweight state library if needed. Because our interactions are mostly form submissions and API calls, we may not need something heavy like Redux. Context can handle user auth state (i.e., whether the user is logged in, user info) and language settings. We also use Next’s built-in data fetching (server actions or getServerSideProps) for certain secure data fetches.
+	•	Web to Mobile Integration: If a user chooses to verify via web and mobile together, we can use deep links. For instance, scanning a QR code on the web to open the mobile app – or vice versa. The architecture will include a custom URL scheme (like veridity://verify?claim=age) or an App Link/Universal Link to hand off tasks between web and mobile smoothly.
+
+6.3 Frontend Architecture (Mobile)
+	•	React Native App: As discussed, the RN app shares logic with the web where possible. The architecture is MVVM-ish: we have React components for UI, hooks or context for state, and service modules for tasks like proof generation or API calls.
+	•	We ensure modularity: e.g., a ProofService module encapsulates the logic of taking inputs and invoking the ZKP generation (snarkJS calls). This module can potentially be shared with web (maybe as WebAssembly usage in browser) for consistency.
+	•	Navigation: We’ll use React Navigation in the app to structure screens (Registration -> Dashboard -> Proof flows -> Settings, etc.). Each proof flow might be a stack of screens (input screen -> maybe a confirm screen -> result screen).
+	•	Networking: Expo’s fetch (global fetch API) is used for API calls. We handle connectivity by detecting offline mode (perhaps using NetInfo) and showing appropriate messaging or queueing requests.
+
+6.4 Backend Architecture (API & Logic)
+	•	Runtime and Framework: The backend will initially be built as part of the Next.js application’s API routes (which is possible for smaller scale). With Next.js API routes, each endpoint is a function that can run on the server. Because we’re using Bun, these API routes run on Bun’s HTTP server environment. This is convenient in development (we don’t need a separate Express app). However, we must ensure heavy operations (like proof verification) are efficient here.
+	•	If needed for scaling or separation of concerns, we could split this into a standalone Node/Bun server in the future. But for MVP, Next API routes suffice. They will be under /api/* paths.
+	•	Endpoints Design: We expose RESTful endpoints for various functionalities. As per the (updated) design:
+	•	Public Verification Endpoints: e.g., POST /api/v1/verify which takes a proof and claim type and returns a result ￼. (This supersedes earlier idea of separate endpoints per proof type; a unified endpoint with a parameter is easier to extend.)
+	•	Credential Issuance: e.g., POST /api/v1/credentials/request (for an org to request issuing a credential to a user) ￼. This could be part of how a user gets an official attestation loaded into their app (future use).
+	•	Status & Webhooks: GET /api/v1/status/{proof_id} to poll the result of a verification if the request is asynchronous ￼. Also, POST /api/v1/webhooks/verify for Veridity to push results to client systems ￼ (clients can register a webhook, then when their request completes, we send the result).
+	•	User Management: e.g., POST /api/register, POST /api/login (or we integrate with a third-party auth if needed, but likely a simple JWT-based auth managed by us).
+	•	Admin Endpoints: e.g., GET /api/admin/stats, GET /api/admin/proofs?filter=..., POST /api/admin/proofs/{id}/approve for manual approvals, etc. These are protected and only accessible with admin JWT or session.
+	•	Integration Endpoints (Internal to Server): The blueprint mentions endpoints like /api/integration/moha/citizen-verify, etc. These likely represent internal calls the server will make to government services:
+	•	For example, when a user tries a citizenship proof, our server might call MoHA’s citizen verification API to confirm the citizen number and maybe fetch DOB (to then generate the ZKP or to compare).
+	•	Similarly, for education, call TU’s database to confirm a degree.
+	•	These would be implemented as internal service functions or cron jobs rather than public API. Possibly an admin triggers these or they run as part of proof generation when needed. We will encapsulate these in an integration service module and in the Admin panel allow config of API keys for these external services.
+	•	Verification Logic (ZKP): When a proof is submitted to POST /api/v1/verify, the backend performs:
+	1.	Identify the proof type (claim_type).
+	2.	Load the corresponding verification key (which is a JSON or binary file produced by the trusted setup for that circuit). These keys will be stored on the server (maybe in a secure storage or at least not publicly accessible).
+	3.	Use the snarkJS library (or a Rust-native library via WASM, but snarkJS is convenient since we’re in JS) to verify the proof against the verification key and public signals. For example:
+
+const vKey = JSON.parse(fs.readFileSync("circuits/age_verification_key.json"));
+const valid = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+
+If valid is true, we proceed; if false, return an error ￼.
+
+	4.	If valid and if the endpoint is being called by an authorized verifier (like a bank via API key), record that result and respond with success. If the call is from a user’s app, also record it and respond success.
+	5.	We might generate a unique proof verification ID and store the details in the proofs table, so that the status can be checked or an audit exists.
+The verification is computationally light (a few milliseconds) ￼, so our server can handle many verifications per second. We will still put in place rate limiting (especially on public API) to prevent abuse (like someone spamming fake proofs).
+
+	•	Circuits & Trusted Setup: Each proof type corresponds to a Circom circuit. We have (for now) circuits for AgeCheck, Education, Citizenship, IncomeRange as outlined in section 7. These circuits need a trusted setup (Groth16) which produces two keys:
+	•	Proving Key (.zkey file) – large and kept typically client-side (or wherever proving happens).
+	•	Verification Key (usually a small JSON) – used on server or by anyone to verify proofs.
+We will run a multi-party ceremony for each circuit (or use a powers of tau common ceremony ￼ plus circuit-specific phase 2). This should be done prior to deployment and the resulting keys stored safely. The backend will hold the verification keys. The proving keys and WASM files will be packaged in the mobile app (and possibly available on the web for web usage). The security of the trusted setup is crucial – since a dishonest setup could fake proofs – so we’ll either use an existing common ceremony or have multiple participants (including third parties) in our ceremony and publish the transcript for transparency.
+	•	Scalability: Initially, Next.js API routes on a single server can handle our load (Nepal’s population is ~30 million, but not all will use at once; even a few thousand verifications a day is fine on one server). For scaling:
+	•	We can containerize the app and run multiple instances behind a load balancer (stateless by design, except the DB).
+	•	The database is central and can be scaled vertically or with read replicas as needed.
+	•	Using Bun should give a performance edge per instance. Also, we consider moving heavy tasks (if any) to background jobs or serverless functions.
+	•	For example, if an integration API call is slow, we might handle proof requests asynchronously (immediately respond “pending” and then update via webhook or status endpoint when done). This way the API doesn’t stall on external calls.
+	•	Security Layers: The backend will enforce authentication and authorization:
+	•	End-user calls (from mobile app) will include a JWT token issued at login, or use session cookies if via web. We’ll verify token on each request and scope what they can do (e.g., a user can only fetch their own proof status, not others).
+	•	Partner API calls will require an API Key or token in the header ￼. For instance, Authorization: Bearer <API_KEY>. Each API key is tied to an organization and has allowed actions.
+	•	Admin calls require admin JWT or an API key with admin scope.
+	•	All inputs are validated and sanitized to prevent injections. Since we mainly accept structured JSON, we’ll ensure any user-provided strings (like names) are safely handled (parameterized queries for DB, etc.).
+	•	We will deploy behind HTTPS (with HSTS and proper TLS configs). Also, our API will include appropriate headers (CORS settings to allow our domains, CSP if needed, etc.).
+
+6.5 Database
+	•	PostgreSQL is chosen for reliability and relational capabilities. The schema is outlined in section 11. Key tables:
+	•	users – stores basic user info (we do not store sensitive PII like DOB here; maybe just name, email/phone, and an identifier). The id is a UUID.
+	•	proofs – stores each proof verification attempt: ID, user_id, type, status, hash, timestamp. The proof_hash could be a digest of the proof or some commitment to tie it to a specific data without storing data.
+	•	audit_logs – records admin actions and possibly important user actions for compliance (like user consent given, deletion requests, etc.).
+	•	Possibly other tables: api_clients (for API keys, with fields: id, name, api_key hash, permissions), credentials (if we issue long-lived credentials like a DID or VC for user, to track those).
+	•	We will apply encryption at rest on the database (via cloud provider or PG’s TDE if available) to add another layer of security in case of server breach. Also, sensitive fields (though we minimize storing any) can be encrypted at the application level (for instance, if we stored a national ID number for some reason, we’d encrypt it). Right now, the design tries not to store raw personal data, just results and references.
+	•	ORM or Query Builder: Likely we’ll use an ORM like Prisma or Drizzle for type-safe database access (especially since we are using TypeScript). This makes it easier to manage migrations and ensures consistency with our types.
+	•	Data retention: We will have policies for data retention – e.g., proofs might only be logged for a certain period (or indefinitely if just storing hashes and non-sensitive metadata). User accounts we store until deletion requested. We’ll ensure compliance with “Right to Delete” by marking data for deletion and removing it (except logs that we are required to keep, which can be anonymized).
+
+6.6 External Integration Architecture
+	•	When the Veridity backend needs to verify some information with an external source (like verifying a citizen ID with the government database), it will use specialized integration modules. For example, a MoHAService.verifyCitizen(citizenNumber) that calls the Ministry of Home Affairs API. These calls will be made server-side (never exposing the user’s raw data directly to external APIs without user consent).
+	•	We need to secure these integrations, likely via API keys or VPN if required by government. The architecture might include a secure proxy or cloud function that connects to government networks if needed.
+	•	We also have to handle the scenario if such services are down or slow – hence the possibility of marking proofs as pending and letting admins resolve or later completing when the service is back.
+
+6.7 Future: Verifier Smart Contract & Blockchain
+	•	On the roadmap is the idea of on-chain verification (Polygon ID / zkSync). The architecture is prepared to accommodate that:
+	•	The Circom circuits we write could be compatible with on-chain verifiers (e.g., solidity verifier contracts) since they’re Groth16. In future, we might deploy a smart contract that holds the verification keys and can verify proofs publicly on a blockchain. This would enable decentralized verification (no need to trust our server – a verifier could check on Ethereum/Polygon whether a proof is valid).
+	•	We’d have to manage the on-chain cost and possibly switch to newer proving schemes (Polygon ID uses a variant of zkSNARK that’s optimized).
+	•	The architecture might evolve to a decentralized identity model where users have a DID and we or others issue verifiable credentials anchored on-chain, and proofs can be verified by smart contracts. But initially, our off-chain architecture is simpler and more practical in Nepal’s context (given internet and blockchain understanding might be limited).
+
+For now, the described architecture provides a cohesive system where the clients handle data input and proof generation, and the server handles verification and coordination. This separation ensures privacy (data on client) and also central oversight (verification keys on server). The use of Next.js/Bun unifies our tech stack (frontend and backend in one project) which speeds up development and deployment, while still allowing us to scale out components as needed in the future (we can extract the backend into a microservice if the need arises, without major rewrite).
+
+⸻
+
+💻 7. Development Setup & Onboarding
+
+To ensure new developers can quickly get started and existing developers maintain consistency, this section details the development environment setup, tools, and onboarding process. It covers how to set up the project locally, the technologies required, and guidelines for contributing to the codebase.
+
+7.1 Prerequisites & Tooling
+	•	Node.js / Bun: Install the latest LTS version of Node.js (>= 18) as well as Bun (>= 1.0). Bun will be used to run the development servers and manage packages due to its speed and Node compatibility ￼ ￼. Ensure Bun is properly installed and available in your PATH. You can verify by running bun --version. We also keep Node available for any tools that might not yet work with Bun (for example, some npm scripts may call Node explicitly).
+	•	Package Manager: We primarily use Bun’s built-in package manager (bun install) for dependencies. Alternatively, developers can use npm/Yarn if needed, but the project is configured for Bun (which can install from package.json as well).
+	•	Expo CLI: For mobile development, install Expo CLI globally by running npm install -g expo-cli (or use npx expo which comes with the Expo package). This will be used to run the React Native app in development. Also install the Expo Go app on your smartphone or have an emulator ready for iOS/Android to run the app.
+	•	Development OS Requirements:
+	•	For iOS development: a Mac with Xcode installed is needed (for running iOS simulator or building the iOS app). Install the latest Xcode and run sudo xcode-select -s /Applications/Xcode.app to set the developer directory.
+	•	For Android: Android Studio with SDK tools for at least API Level 31+. Ensure ANDROID_HOME environment variable is set and emulator works, or have an Android device for testing (enable USB debugging).
+	•	Database: Install PostgreSQL (if you want to run a local DB for testing). Alternatively, use Docker to run a Postgres instance (docker run -p 5432:5432 -e POSTGRES_PASSWORD=veridity -e POSTGRES_USER=veridity postgres:14). We provide a sample .env file with the connection string for local development pointing to localhost PG.
+	•	Other Tools:
+	•	circom and snarkjs if you plan to modify or compile circuits. Install them globally via npm (npm install -g circom@latest snarkjs@latest) ￼. This is optional for general app dev, but needed for ZKP developers.
+	•	Git (obviously) – our code repository is managed on GitHub. Ensure you have access and set up SSH keys if required.
+	•	A code editor (VSCode recommended with extensions for ESLint, Prettier, Tailwind CSS IntelliSense, etc. We have a workspace settings JSON to help with recommended extensions).
+	•	Python (if any scripts use it, though not anticipated, except maybe for some build scripts or if using circom which is binary).
+
+7.2 Project Structure
+
+Once the repository is cloned, the project structure looks roughly like:
+
+/veridity-root
+  /apps
+    /web    (Next.js project)
+    /mobile (React Native/Expo project)
+  /packages
+    /shared    (shared TS utilities, types, constants)
+    /contracts (if we have any solidity or DID related code later)
+    /circuits  (circom files, and maybe compiled artifacts)
+  package.json (workspace root, with scripts)
+  bunfig.toml  (Bun configuration if used, e.g., for monorepo linking)
+  tsconfig.json (base TS config extended by apps)
+  .env.local.example (sample environment file)
+
+We use a monorepo with Yarn Workspaces or Bun’s workspace support to allow imports between packages/shared and the apps. This means, for example, both web and mobile can import from @veridity/shared to get common stuff like validation functions or constant definitions (to avoid duplication).
+
+In the circuits directory, we maintain the Circom source files (.circom) and possibly a script to compile them and generate the wasm and zkey. The compiled artifacts might be stored in apps/mobile/assets/circuits for bundling into the app, and similarly served in the web app public folder if we ever do proofs in browser.
+
+7.3 Setting Up the Development Environment
+
+Step 1: Clone the Repository
+Use Git to clone the Veridity repository:
+
+git clone https://github.com/FintexAustralia/veridity.git
+cd veridity
+
+(Replace with actual repo URL and org once available.)
+
+Step 2: Install Dependencies
+Run the package manager to install dependencies for all projects:
+
+bun install
+
+This should install dependencies for both Next.js and React Native projects thanks to our workspace config. If you use Yarn, run yarn install instead. After this, you should have a node_modules (or Bun’s equivalent) populated in root and within each app as needed.
+
+Step 3: Environment Variables
+Copy the example env file:
+
+cp .env.local.example .env.local
+
+Open .env.local and fill in any necessary values:
+	•	For example: DATABASE_URL=postgres://veridity:veridity@localhost:5432/veridity (the connection string for local Postgres).
+	•	EXPO_DEV_TOKEN if using Expo Push (optional for dev).
+	•	API_BASE_URL if the mobile app needs to point to a specific backend (in dev, it might be http://localhost:3000/api if using a local tunnel or if running in emulator, adjust accordingly).
+	•	Any API keys for external services used in dev (if applicable, though most external integrations can be mocked in dev).
+
+The Next.js app will read .env.local, and Expo will read from apps/mobile/.env or from the app config if set. If we unify, we might symlink envs or use a tool to share them.
+
+Step 4: Database Migration
+If it’s the first time, set up the database schema. We use Prisma (for example):
+
+npx prisma migrate dev --name init
+
+This will create the tables defined (users, proofs, etc.). Alternatively, run the SQL scripts if provided. Ensure the Postgres server is running and the connection string is correct.
+
+Step 5: Running the Backend & Web
+We can run the Next.js app (which includes the backend API routes) with Bun:
+
+bun run dev
+
+This likely uses Next’s dev script under the hood. If Bun integration has any issues, you can fall back to:
+
+npm run dev
+
+This will start the Next.js development server on http://localhost:3000. It should compile the web app and be accessible in a browser. The API endpoints will also be served (like http://localhost:3000/api/...).
+
+Step 6: Running the Mobile App
+In another terminal, navigate to the mobile app directory and start the Expo dev server:
+
+cd apps/mobile
+expo start
+
+This will start Expo’s Metro bundler. You will see a QR code in the terminal (and a web UI at localhost:19002). Use the Expo Go app to scan the QR if on a device, or press i to launch iOS simulator, a for Android emulator. The mobile app should load and connect to the bundler.
+
+Step 7: Configuring Mobile for Local API
+By default, the mobile app needs to communicate with the backend. In development, if you run on an emulator, localhost:3000 from the app’s perspective might not be the same as your machine’s localhost.
+	•	For Android emulator, you can use 10.0.2.2 to refer to the host machine. We might set API_BASE_URL=http://10.0.2.2:3000/api in the mobile config for dev.
+	•	For iOS simulator, localhost works directly.
+	•	If testing on a physical device, you can use your network IP (like http://192.168.1.5:3000) or utilize Expo’s tunneling (which gives a public URL via ngrok if needed, or just ensure device is on same WiFi and use LAN mode with your IP).
+
+We’ll document these in the mobile README to avoid confusion.
+
+Step 8: Verifying Setup
+To verify everything:
+	•	Open the web app at http://localhost:3000. You should see the homepage (maybe a welcome or docs page).
+	•	Try accessing http://localhost:3000/api/health (if we have a health check route) or something like http://localhost:3000/api/status/test (if that returns a not found or some message, means API is working).
+	•	On the mobile app, the initial screen (maybe a welcome screen or login) should appear on your device. Try to register a test user. It should call the backend (check the terminal for logs; Next.js dev console will show API calls). Ensure you see something in the Postgres DB (like a new user row).
+
+If both web and mobile can interact with the backend without CORS issues (we’ll have configured Next.js to allow the Expo dev’s requests) and database writes are happening, the setup is correct.
+
+7.4 Developer Workflow
+	•	Branching and Git Workflow: We use a standard feature-branch model. Main branch is main (protected). Developers branch off for features (feature/xyz) or fixes (fix/issue123). Commit convention is helpful (we follow Conventional Commits, e.g., feat: added age proof circuit, fix: correct OTP verification bug).
+	•	Always run tests and linter before pushing (CI will also enforce this).
+	•	Open a Pull Request on GitHub for review. At least one other engineer should review and approve. Given this project’s importance (security-critical), code reviews are mandatory for any cryptography-related code.
+	•	After PR approval, squash-merge to main. Our CI/CD is set to deploy certain branches (e.g., auto-deploy main to a staging environment, and maybe we have a production branch for releases).
+	•	Coding Standards: Follow the established coding style:
+	•	Use TypeScript everywhere (both front and back). No any unless truly necessary.
+	•	Use ESLint for code linting; our config extends Airbnb/Next rules with some custom tweaks. Fix any lint issues before commit (our husky pre-commit hook will run ESLint and Prettier).
+	•	Write JSDoc or TSdoc comments for functions, especially in the shared and complex modules (like ZKP code), to explain their purpose.
+	•	Keep components small and functions pure where possible.
+	•	Hot Reload / Live Reload: Both Next.js and Expo support fast refresh. When you edit a React component (web or mobile), it should hot-reload in the UI. If the mobile fast refresh fails (which can happen for certain native code changes or context issues), you can always reload manually from the Expo menu.
+	•	Onboarding New Developers: New team members should:
+	1.	Read this documentation thoroughly to understand the system.
+	2.	Set up the dev environment as above.
+	3.	Get access to necessary accounts: e.g., the GitHub repo, Expo project (we might use Expo’s online services so they need to be invited), and any development cloud instances (like if we have a dev database or staging server).
+	4.	Generate or obtain test credentials (e.g., a dummy citizen number, test API keys for third-party services if applicable).
+	5.	Start with a small starter task or bug to get familiar. We maintain a GOOD FIRST ISSUE tag in our issue tracker for this purpose.
+	6.	Know whom to ask: we will assign a buddy or mentor for each new dev. Additionally, our Slack (or Teams) will have a channel #veridity-dev for questions and discussions.
+	•	Dev Handoff: For any feature done, ensure to update relevant documentation (in code or in this living doc) before marking the story done. We strive to keep docs updated in-line with development (the docs might live in the repo README or a docs site).
+	•	Testing During Development: Use the provided sample data to test features. For example, if testing age proof, you can use your own birth year or some edge cases (DOB exactly 18 years ago, etc.). For education, maybe we have a dummy degree to try. Ensure to not commit any real personal data in logs.
+
+By following these setup and workflow guidelines, developers should be able to contribute effectively and maintain the quality and consistency of the codebase. The emphasis is on keeping everyone on the same page regarding environment and process, which reduces “it works on my machine” issues and speeds up onboarding for new team members.
+
+⸻
+
+🔑 8. ZKP Circuit Use Cases
+
+Zero-Knowledge Proof circuits are the heart of the Veridity platform’s privacy-preserving capability. Each use case (type of claim to verify) is implemented as a separate Circom circuit. Here we detail the circuits for each proof type, including their purpose, inputs/outputs, and how they enforce the desired logic without revealing sensitive data.
+
+8.1 Summary of Circuits
+
+Proof Type	Purpose	Private Inputs	Public Inputs / Signals	Output (Public)
+Age Verification (Age > X)	Prove user’s age is above a given threshold without revealing actual birth date or age.	- Birth year (or birthdate broken into year, etc.)- (Potentially a one-time secret or hash of DOB, if using commitments)	- The threshold age X (e.g., 18) as a public input.- Current year or current date (public input provided to circuit)	Boolean output: 1 if birth year <= (currentYear - X), else 0.
+Education Credential	Prove user possesses a certain educational qualification.	- Secret representing the degree credential (could be a hash of e.g. “BSc from TU class of 2020”, possibly signed by university).- Alternatively, a numeric code for degree and institution.	- Claimed degree level (e.g., “Bachelor”) and institution as public signals (or encoded ID).	Output 1 if the private credential matches the claim (meaning user has that degree). Essentially a proof of knowledge of a valid credential.
+Citizenship Verification	Prove the user is a Nepali citizen, optionally of a certain region, without revealing personal details.	- Citizenship number or secret PIN associated with national ID.- Possibly a hash of user’s citizen data.	- A known public dataset or hash from government (e.g., a commitment to valid citizen IDs).	Output 1 if user’s credential matches an entry in authorized citizens. (This might be done by having the circuit verify a signature or inclusion proof, etc.)
+Income Range	Prove user’s income is within a certain range (e.g., above a minimum) without disclosing actual income.	- User’s actual income (could be monthly or annual).	- Declared threshold or range (e.g., “>= 50,000 NPR”) as public input.- Possibly a hash of actual income if needed.	Boolean or category output: e.g., 1 if income >= threshold, 0 otherwise. Or outputs a category like 0,1,2 for ranges (but likely just boolean for simplicity).
+
+Note: The exact implementation of each circuit might involve cryptographic primitives:
+	•	For example, the Education credential circuit might use a Merkle proof or signature verification if the university issues a signature on a degree ID. But in MVP, we might simplify: require an admin to input a code that corresponds to a degree which the circuit checks (not fully trustless, but with admin intervention).
+	•	Citizenship could be a simple check of format or an attestation from MoHA loaded as a constant.
+
+The design aim is each circuit only reveals the minimal needed info:
+	•	Age proof reveals nothing except “older or not older than X”.
+	•	Income proof reveals nothing except “in above range or not”.
+	•	Education proof reveals only that a valid degree of that level exists for the user (not the year or grade).
+	•	No raw values (DOB, salary, ID number) come out of the proof.
+
+8.2 Example: Age Verification Circuit
+
+Let’s delve deeper into the Age > X example, since it’s a classic demonstration of ZKP for identity:
+
+We want to prove: birthYear <= currentYear - X. This is equivalent to “age >= X”.
+
+A simplified Circom circuit for this could be:
+
+template AgeCheck(minAge) {
+    signal input birthYear;      // user's birth year (private)
+    signal input currentYear;    // current year (public input, or could be hardcoded constant if updated regularly)
+    signal output isEligible;    // output 1 if age >= minAge
+
+    // Calculate age = currentYear - birthYear
+    signal local age;
+    age <== currentYear - birthYear;
+
+    // Enforce that age >= minAge
+    isEligible <== if age >= minAge then 1 else 0;
+}
+component main = AgeCheck(minAge);
+
+This is a conceptual snippet. In actual Circom, the syntax for conditionals is different (no direct if-else, we might use constraints and boolean signals). A more correct approach might be:
+	•	Compute diff = currentYear - birthYear.
+	•	Have a boolean signal ge such that ge * minAge <= diff and (ge-1) * something <= 0 to force ge to be 0 or 1 correctly (there are patterns for range checks).
+	•	Output ge as isEligible.
+
+We will set minAge as a template parameter when compiling (for example, minAge = 18 for an “>=18” circuit). currentYear can be provided as a public input to the proof generation (the app can supply the current year or even full date). To ensure soundness, currentYear should be an agreed-upon value (we might fix currentYear = 2025 in the proof if verifying at that time – but better is to include it as part of public inputs so the verifier sees that context).
+
+Usage: The user provides birthYear privately. The circuit outputs 1 or 0. The proof thus shows that given the public currentYear and the constant minAge, the private birthYear satisfies the inequality. The verifier sees isEligible (public output) and knows if it’s true or not, without learning birthYear. They also see currentYear and know minAge by context (since the circuit compiled with it or we pass it as public).
+
+This matches the requirement “Prove you’re over 18 without revealing your exact birth date” ￼.
+
+8.3 Other Circuits Outline
+	•	Education Circuit: Could be implemented as follows: Suppose each degree is identified by an ID (maybe hashing together user’s name, degree, uni, and a secret). The university (or our system after verifying with the university) could issue a signature or provide a Merkle tree of valid degree credentials.
+Simpler MVP: The user enters a secret that only a degree holder would know (not great security, so better: the admin after verifying user’s degree, gives them a secret code which the app uses).
+The circuit might then just check that the input secret code equals a constant or something – which isn’t a ZK magic, it’s just a passcode check hidden from verifier. A better approach:
+Use a hash (like Poseidon hash): The circuit can have a hardcoded hash of a valid credential code. The user inputs their credential code. The circuit hashes it and outputs 1 if the hash matches the known value (meaning the credential is valid). This way, the verifier only sees that “user has credential X because the hash matched” but not the code itself.
+This requires that prior to proof generation, someone (like an admin or a registry) has put the hash of the user’s degree credential into the circuit (or provided as public input).
+For scalability, a Merkle root approach is better: have a Merkle tree of all valid degree credentials. The user’s private inputs: their credential and a Merkle proof (path) to the root. The public input: the Merkle root (which our system publishes and the verifier trusts as “all degrees database root”). The circuit verifies the Merkle proof and outputs 1. This way, any valid credential will pass. This approach is more fully decentralized, but requires building/maintaining such Merkle trees for e.g. all graduates of a uni, which might be a future enhancement.
+	•	Citizenship Circuit: Possibly similar approach to education. We may have a list of valid citizenship IDs or a way to verify them. A straightforward way: Government could provide a public key to verify a digital signature on a citizen’s data. The user could have a signed token from MoHA saying “this person is a citizen”. The circuit can verify the signature (signature verification circuits exist but can be heavy if not optimized – EdDSA with BabyJubjub curve could be used since Circom has that).
+However, to keep it simple for now: an admin could mark in the database that user X is a verified citizen and provide them a code or a hash. Then the circuit just checks the user’s input against that. (So basically like education circuit approach).
+Ideally, we move to a model where the Government issues a verifiable credential (DID/VC) and we can incorporate that in a ZKP. That’s future (see roadmap DID compliance).
+	•	Income Circuit: This can be done with a comparison similar to age. You want to prove income >= threshold without revealing income.
+Steps: The user input their income as a number. The circuit subtracts the threshold and checks the sign of the result, outputting a boolean. Very similar to age logic.
+One caveat: Income might be a larger number (e.g., in Nepali Rupees, could be up to millions). We should ensure the field size (252-bit for bn128 curve) can hold typical values – it can (2^252 is huge, so no issue).
+The circuit could optionally prove a range category: e.g., is income in [50k-100k] vs [100k-200k]? That would involve multiple checks. We stick to one threshold for now (like > X).
+If privacy needs to be stronger, we might not even want to leak the info that threshold was, but since threshold is usually a policy (like bank requires >50k), it’s fine that the verifier knows the threshold. The user’s actual income remains unknown.
+
+8.4 Circuit Testing and Validation
+
+For each circuit, we will thoroughly test it:
+	•	Write unit tests in Circom (using something like circom_tester or our own scripts) where we feed sample inputs and check outputs. For example, test Age circuit with a birthYear that is just on the cusp (should output 1 for just old enough, 0 for one year younger than needed).
+	•	Make sure there are no edge cases where the circuit might prove something invalid. Also, ensure that if a user inputs an out-of-bound value (like a future birthYear), the circuit should ideally fail constraints – we might need to enforce birthYear < currentYear, etc., as a constraint.
+	•	Trusted Setup Security: We’ll generate toxic waste from ceremony and ensure it’s discarded. This is one-time but critical. Multiple parties should contribute randomness to the ceremony to avoid any one party (including us) having trapdoor info ￼.
+
+8.5 Example Walkthrough with snarkJS (Developer Reference)
+
+To illustrate the process of using a circuit, here’s a developer-level example with the AgeCheck circuit:
+	1.	Circuit Compilation: The Circom code (AgeCheck template) is compiled to R1CS and WASM:
+
+circom age.circom --r1cs --wasm --sym
+
+This produces age.r1cs, age.wasm, age.sym.
+
+	2.	Trusted Setup (Groth16 Phase 1 & 2): Use snarkJS to do Powers of Tau (Phase 1 ceremony) and then circuit-specific setup.
+
+snarkjs powersoftau new bn128 15 pot15_0000.ptau -v
+snarkjs powersoftau contribute pot15_0000.ptau pot15_0001.ptau --name="First contribution" -v
+... (multiple contributions) ...
+snarkjs powersoftau prepare phase2 pot15_000x.ptau pot15_final.ptau
+snarkjs groth16 setup age.r1cs pot15_final.ptau age_0000.zkey
+snarkjs zkey contribute age_0000.zkey age_final.zkey --name="Final ZK Key"
+snarkjs zkey export verificationkey age_final.zkey verification_key.json
+
+Now we have age_final.zkey (proving key) and verification_key.json.
+
+	3.	Proof Generation (example): Suppose currentYear = 2025, minAge = 18. A user with birthYear=2000 wants to prove >=18.
+	•	Construct input: {"birthYear": 2000, "currentYear": 2025}.
+	•	Run:
+
+snarkjs groth16 fullprove input.json age.wasm age_final.zkey proof.json publicSignals.json
+
+This yields proof.json (the proof) and publicSignals.json (which likely contains isEligible).
+
+	•	publicSignals might look like ["1"] if eligible (since output 1).
+
+	4.	Verification (example):
+
+snarkjs groth16 verify verification_key.json publicSignals.json proof.json
+
+This should output “OK” if the proof is valid, or an error if not.
+
+In code (Node/JS), the above is done with snarkJS APIs as earlier demonstrated:
+
+const { proof, publicSignals } = await snarkjs.groth16.fullProve({ birthYear:2000, currentYear:2025 }, "age.wasm", "age_final.zkey");
+console.log(publicSignals); // e.g., [ '1' ]
+const vKey = JSON.parse(fs.readFileSync("verification_key.json"));
+const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+console.log(res ? "Verification OK" : "Invalid proof");
+
+￼ ￼
+
+This confirms the whole pipeline for one circuit. We will replicate similar processes for other circuits.
+
+Deployment of Circuits: The *.zkey files for each proof type will be embedded in the app or made available to it. On mobile, we’ll include them in the app bundle (they can be a few MBs each, but Age and similar small circuits are lightweight; if one is too large, we might have the app download it on demand). The verification_key.json files live on the server for verifying.
+
+Maintaining Circuits: Circuits might need updates (e.g., if we find a bug or want to optimize). Updating a circuit means a new trusted setup and new keys, which is non-trivial (especially if old proofs exist). We will version our circuits. Possibly have a version field in proofs so the verifier knows which key to use. If a circuit is updated, old proofs might be invalid under new keys (and that’s okay, user would have to re-generate). This will be communicated in release notes if it happens.
+
+In summary, our ZKP circuits empower the system to do a variety of identity checks in a privacy-preserving way. We have carefully chosen designs that minimize data leakage and are implementable with current ZKP tech (Circom & Groth16). As technology advances, we may adopt more universal proofs (like Plonk or Halo2 for no trusted setup, or use universal setup) but Groth16 is efficient and well-supported for our needs right now ￼.
+
+⸻
+
+🔐 9. Security Protocols
+
+Security is paramount for an identity platform like Veridity. We are protecting highly sensitive operations (even if not storing raw data, we handle secrets on devices and proofs of identity). This section outlines the security measures at various levels of the system:
+
+9.1 Communication Security (Transport Layer)
+	•	TLS 1.3 Encryption: All network communication is secured with TLS 1.3. Whether it’s the mobile app talking to the backend API, or the web app loaded in browser, it’s always over https://. We will obtain robust TLS certificates (via Let’s Encrypt or our cloud provider) and enforce HSTS (HTTP Strict Transport Security) so that clients cannot accidentally fall back to insecure connections. TLS 1.3 provides modern cipher suites which are resistant to known attacks and provides forward secrecy. We also enable ALPN protocols like HTTP/2 for efficiency. We will periodically audit our SSL configuration (using tools like SSL Labs) to ensure no deprecated ciphers or TLS versions are allowed.
+	•	Public Key Pinning / Certificate Pinning: For the mobile app, we will consider implementing certificate pinning to mitigate MITM attacks, especially if users are on potentially unsafe networks. This means the app is hardcoded to trust only our server’s certificate (or CA). However, pinning can complicate certificate renewal; we might pin to the CA or a set of keys that we control, with an update mechanism. This will be decided prior to production.
+	•	Content Security Policy (CSP): The web app will send a strict CSP header to the browser, whitelisting only our own domains for scripts/resources. This helps prevent XSS by disallowing any inline scripts or external scripts that are not pre-approved. We’ll also use other headers like X-Frame-Options: DENY to prevent clickjacking (since no part of our site should be framed by another site), and X-Content-Type-Options: nosniff to prevent MIME sniffing.
+
+9.2 Authentication & Session Security
+	•	User Authentication: Users authenticate either via a password-less login (e.g., OTP to phone/email) or if we implement passwords, they will be stored as salted bcrypt hashes in our DB. We lean towards passwordless for user convenience and security (less password management). The mobile app will store a JWT or token after login, kept in SecureStore. On the web, a secure HTTP-only cookie stores the session token with SameSite=strict.
+	•	Multi-factor Auth: The mobile app uses the device’s biometric as a second factor effectively. For the web or admin login, we will integrate an MFA (could be TOTP or an authenticator app) for admin accounts at least. This ensures even if an admin’s password is compromised, an attacker can’t get in without the second factor.
+	•	API Auth for Partners: Partners (organizations) use API keys (or tokens) as mentioned. These keys are long, random strings (we’ll use at least 256-bit randomness for keys). They must be included in auth header, and we will enforce that these calls come over TLS. We might also implement an IP allowlist for certain sensitive endpoints (e.g., if Ministry API calls should only come from certain IPs). API keys can be rotated via the admin panel and we keep them hidden (hashed in DB or stored in a secure vault). Partners are instructed to keep them secret.
+	•	Rate Limiting & Bruteforce Protection: All authentication endpoints (login, OTP generation, etc.) have strict rate limiting. For example, no more than 5 OTP requests per hour per phone number or IP, to avoid abuse. We’ll use a middleware to track IP and possibly user identifiers for rate limiting on sensitive actions. Also, after several failed login attempts for a user, we can temporarily lock out or present a CAPTCHA if feasible (though rural users might find CAPTCHAs hard, so maybe just lockout).
+	•	Biometric Data: Note that biometric login doesn’t give us biometric info; it’s handled by the OS and just returns success or fail to unlock the app. We do not collect or store any biometric data ourselves – we just use OS-level authentication.
+
+9.3 Application Security (OWASP Top 10)
+
+We ensure the system is developed with the OWASP Top 10 security risks in mind:
+	•	Injection (SQL/NoSQL): Using parameterized queries or an ORM prevents injection vulnerabilities. All inputs, even those coming from proofs, are treated carefully. E.g., an API call with some ID will be parsed as an integer or UUID, not concatenated into queries directly.
+	•	Broken Authentication: As above, we enforce strong auth flows, short token lifetimes (e.g., JWTs valid for maybe 24h of continuous use, refresh tokens to extend, or just re-login often for admin).
+	•	Sensitive Data Exposure: Minimizing data storage is key – we generally avoid storing PII. Where we must (user’s name or email), it’s protected in DB and transit. We also ensure not to leak data in logs. For example, do not log a full proof or any private inputs; logs might only show a proof ID and outcome.
+	•	XML External Entities (XXE): Not much XML usage, but if we parse any XML (say, an integration returns XML), we’ll use safe parsers that disable external entity loading.
+	•	Broken Access Control: Implement robust RBAC (role-based access control) on endpoints. E.g., normal users cannot access admin endpoints (checked via token roles), and one user cannot fetch another user’s proofs. We’ll have middleware to check that for each request. We test these conditions.
+	•	Security Misconfiguration: We keep servers updated, minimize open ports (just HTTPS and maybe SSH for admin), and use container best practices if applicable. Our cloud environment (if AWS) security groups etc. are locked down.
+	•	XSS: By using React/Next for the web, we automatically escape content in rendering. We will avoid inserting any user-provided HTML. CSP helps too. For admin pages that might display logs or user inputs, we will still escape any content.
+	•	CSRF: For any state-changing operations via web (like form submissions not using API fetch), we include CSRF tokens. However, since our web is mostly an API + SPA approach, we can enforce SameSite cookies and/or use double submit cookies. For mobile (not relevant to CSRF), for API calls we require auth header which a random website cannot steal.
+	•	Supply Chain: We pinned down our dependencies and will run npm audit or similar in CI. The CodeQL scans also help detect vulnerable libs. We’ll keep dependencies updated regularly and avoid those with known issues.
+	•	Cryptographic Practices: We use proven libraries for crypto (snarkJS, etc.). We don’t roll our own crypto. Keys and secrets are of adequate length (e.g., 32-byte random keys for symmetric if needed). For local encryption, we use AES-256-GCM via a well-tested library, not homemade.
+
+9.4 Data Security & Privacy
+	•	Local Encryption: As mentioned, any personal data on device is encrypted. For example, if we store a verified credential (like “user’s degree attestation”) on the phone, it might be encrypted with a key derived from the user’s PIN or device secure enclave. This way, if the phone’s file system is compromised, the data isn’t plaintext. Expo SecureStore automatically does this with the OS secure hardware when available.
+	•	No Persistent Sensitive Data on Server: After a verification is done, we do not store the user’s raw input. For instance, if user proved age, we don’t store their birthdate. We might store that “user passed age>=18 check on X date”. If we must store something (like for audit), we store a one-way hash or an outcome, not the input.
+	•	Deletion Right: If a user requests account deletion, we will delete their personal data from our servers (which is mostly their name/contact). We will also remove or anonymize their entries in proofs/audit logs if required (or at least disassociate their identity). This will be handled by an automated process triggered by such a request (either self-service in app or through support).
+	•	Secure Development Practices: Our developers are trained in security. We do code reviews focusing on security for any feature dealing with auth or crypto. We also plan to have periodic security audits or pen tests (especially before going live in a big way).
+	•	Platform Security: The production environment (servers) will have hardened OS images, minimal installed packages, and use firewalls. We’ll employ cloud security features like AWS Security Groups or VPC isolation. Admin access to production servers or databases will be tightly controlled (VPN or SSH with keys, no password login, etc.). Monitoring will alert if any unusual activity occurs in servers.
+
+9.5 Future Security Enhancements:
+	•	Hardware-backed Keys: For higher assurance, storing keys in HSMs (Hardware Security Modules) or using technologies like Android’s StrongBox for keys is considered. For instance, the user’s identity keypair (if we generate one for signing credentials) could be kept in Secure Enclave/TrustZone so it can’t be extracted in software.
+	•	Zero Knowledge Proof Security: We keep up to date with ZKP library updates (snarkJS etc.) for any discovered vulnerabilities. We also ensure the parameters (like field sizes) are adequate to prevent forging proofs. The verification keys are open so anyone could try to generate a false proof if they somehow found a weakness – so we will follow advancements in ZK to patch if any issues (thus requiring possibly users to update circuits if that happened).
+	•	Bug Bounty and External Audit: We may initiate a bug bounty program to let security researchers test our platform in exchange for rewards, ensuring any vulnerability can be reported responsibly. And an external audit of both our smart contracts (if any) and our overall system (penetration testing) by a reputable firm will be done as we approach major deployments.
+
+By implementing these security protocols, we strive to build and maintain trust. Veridity’s users and partners can be confident that the system not only preserves privacy by design (through ZKP) but also guards against unauthorized access and attacks at every level. Security is not a one-time setup but an ongoing commitment; thus we will continuously monitor, update, and improve our security measures throughout the project’s lifecycle.
+
+⸻
+
+🌍 10. Internationalization
+
+Veridity is built to serve a diverse user base across Nepal (and potentially beyond), so internationalization (i18n) and localization are critical. The application will be bilingual (English and Nepali) from the get-go, with infrastructure in place to add more languages if needed in the future.
+
+10.1 Languages Supported
+	•	English: Used as a base language for development. Many technical terms or formal texts are first written in English.
+	•	Nepali (नेपाली): The default language for local end-users in Nepal. The entire user interface will be available in Nepali, using Devanagari script. This includes not just static text but also dynamic content (e.g., error messages, notifications).
+
+We will likely start with these two. However, our i18n system will be designed to accommodate additional languages, like regional languages of Nepal (Maithili, Newari, etc.) or other international languages if the product expands.
+
+10.2 Implementation Approach
+	•	Resource Files: We will maintain translation files, one per language, containing key-value pairs of translation strings. For example, using a JSON or JSON5 format:
+	•	en.json: { "welcome": "Welcome to Veridity", "enter_phone": "Enter your phone number" }
+	•	ne.json: { "welcome": "Veridity मा स्वागत छ", "enter_phone": "फोन नम्बर प्रविष्ट गर्नुहोस्" }
+These files are stored in a centralized locales directory, possibly within the shared package so both web and mobile can use them.
+	•	i18n Library: On the web (Next.js), we can use next-i18next or a similar library that integrates with Next’s internationalized routing. This will allow server-side rendering of pages in the correct language and provide a hook to translate strings in components. On mobile, we can use i18next with react-i18next for React Native, which allows sharing the same translation files. Alternatively, we might use Expo Localization APIs plus a simple custom translator. But i18next is a good standard solution as it can share config between web and mobile.
+	•	Language Detection:
+	•	On web, we can detect the user’s browser language or use subpaths (like veridity.net/en/ or /ne/). Possibly we default to Nepali if Accept-Language header has “ne” or if the user is geo-located in Nepal (but Accept-Language is more reliable).
+	•	On mobile, we use the device locale at first launch (Expo’s Localization API can give device locale, e.g., “ne-NP” or “en-US”). The user can change language in settings explicitly.
+	•	We will store the user’s language preference (in localStorage for web, and in SecureStore or app storage for mobile), so it persists between sessions.
+	•	Dynamic Content: We ensure any dynamic content is also localizable. For example, dates and numbers will be formatted according to locale. If Nepali, showing Nepali numerals and date format (Bikram Sambat calendar is local but likely we’ll stick to Gregorian but in Nepali script). We might use libraries like Intl.DateTimeFormat with ne-NP locale for formatting dates, and Intl.NumberFormat for numbers so that, for example, 123,456 is shown as १२३,४५६ in Nepali.
+	•	Input in Nepali: If users want to input text in Nepali (e.g., their name), the app should accept it. We’ll ensure forms accept Unicode input properly and that our backend (Postgres) is UTF-8 and can store Nepali characters. We also need to consider input methods; many Nepali users type romanized Nepali which gets converted, but as long as the OS keyboard handles it, our app just needs to display it correctly.
+	•	Fonts & Rendering: For Nepali (Devanagari script), we will use appropriate fonts that have good Unicode support. On web, that could be a web-safe font or include a font like “Noto Sans Devanagari” or a popular Nepali font. On mobile, the system fonts usually support Nepali, but we might bundle a font to ensure consistency. We’ll test that characters like काँठmandu (क + ◌ाँ etc) render properly, as complex scripts have ligatures and diacritical marks.
+	•	Layout Considerations: Nepali text can be longer than English (or vice versa). We must ensure our UI layouts can accommodate text expansion. We’ll avoid hard-coded width for text elements, use flex layouts that can grow, and test with longest likely strings. If needed, adjust font sizes or implement dynamic font sizing.
+	•	Multilingual Content: Some fields (like address) might conceptually be bilingual (someone might have address in English or Nepali). But that’s beyond UI translation – it’s user data. We expect users to input in the language they’re comfortable. We won’t translate user-provided data; only our UI and messages.
+	•	Right-to-Left Support: Not needed for Nepali (it’s left-to-right). If in future adding languages like Arabic, we’d have to consider RTL layout flips.
+	•	Testing and QA: We will test the entire app in both languages thoroughly. This includes reading every screen in Nepali to ensure it makes sense culturally, not just direct translation. We may enlist a native Nepali language expert to provide or review translations (especially for technical terms – e.g., what’s the best Nepali term for “Zero-Knowledge Proof”? It might be left in English or described in Nepali). We also ensure that Nepali strings are properly formal/informal depending on context (Nepali has formal vs informal address; likely we use formal/respectful tone for a general audience).
+	•	Switching Language: Users can toggle language in the app settings. This will instantly update text in the interface (we’ll trigger re-render with the new locale). On the web, that might mean sending them to a different locale subpath or cookie. On mobile, just update context state.
+	•	Default Language: For general users (especially less tech-savvy), Nepali will be the default as it’s their primary language. Our onboarding screens likely appear in Nepali first. But for admin or developer audiences (like the API documentation site), English might be the default because technical terms and developer comfort might be higher in English. We might not translate all dev docs to Nepali right away, but at least user-facing things yes.
+	•	Cultural Adaptation: Localization is not just language. We ensure things like:
+	•	The calendar shows week starting Monday vs Sunday appropriately if needed.
+	•	Numerical formats: In Nepali, using १२३४ etc for display if appropriate. Although many Nepali users are used to Arabic numerals too, using Devanagari numerals may enhance local feel.
+	•	If any graphics or icons have cultural context (for example, an icon of an identity card should resemble Nepali citizenship card perhaps?), consider that.
+	•	Colors and imagery will be neutral or positive across cultures (avoid any that have negative connotations locally).
+
+By building with internationalization from day one, we make Veridity accessible and user-friendly to Nepali speakers and also ensure it’s extensible to other locales. This not only improves user adoption in Nepal but also sets the stage if we want to deploy similar solutions in other countries or in international contexts later. It demonstrates respect for the local language and culture, which can be a significant factor in user trust and comfort.
+
+⸻
+
+🌐 11. APIs & Integration Guide
+
+Veridity offers a set of APIs for external systems (government agencies, banks, companies) to integrate our verification services, as well as internal APIs for the app functionality. This section describes the API endpoints, their usage, and how different audiences (developers at partner organizations vs internal usage) interact with them.
+
+11.1 API Design Principles
+	•	All APIs are RESTful with JSON request/response bodies for simplicity.
+	•	Versioning: prefixed with /api/v1/ to allow future changes without breaking existing clients ￼.
+	•	Security: Require API key or authentication token for any non-public endpoints. Use HTTPS only.
+	•	Performance: The verification calls are optimized to be fast (<1s server processing) ￼, enabling near real-time responses to integration partners.
+	•	Idempotency: Wherever possible, POST endpoints can be treated as idempotent when retrying (e.g., we use a unique proof ID to avoid duplication on retry).
+
+11.2 Public Verification API Endpoints
+
+These are the endpoints that organizations will use to verify user-provided proofs. Typically, an organization integrating Veridity will prompt the user to provide a proof (via the app or by scanning QR). Then the organization’s backend will call these APIs to verify the proof.
+	•	POST /api/v1/verify – Verify a Zero-Knowledge Proof.
+Description: This is the primary endpoint to verify any proof submitted by a user. The request includes the proof data and meta information about what is being proven.
+Request Headers: Authorization: Bearer <API_KEY> (the partner’s API key) ￼; Content-Type: application/json.
+Request Body (JSON):
+
+{
+  "proof": "<ZKP_proof_blob>",
+  "public_signals": [...],  // optional: if not derivable from proof or included in proof blob
+  "claim_type": "age_over_18" | "citizenship" | "education_degree" | "income_bracket_high", 
+  "verifier_id": "org_12345"  // an ID for the requesting organization (could be embedded in API key too)
+}
+
+Example minimal body for age check:
+
+{
+  "proof": "zkp_proof_3a7b...base64-encoded",
+  "claim_type": "age_over_18",
+  "verifier_id": "bank_xyz"
+}
+
+Response: On success (200 OK), returns JSON:
+
+{ "status": "verified", "proof_id": "<unique-proof-id>", "details": { ... } }
+
+status could be "verified" or "rejected". proof_id is an internal reference that can be used to query status or included in audit logs. details might include additional info, for example for age proof we might include "isEligible": true (which is obvious if verified) or for other proofs maybe metadata like which threshold was checked.
+On failure (400 or 401): returns error message like:
+
+{ "status": "error", "message": "Invalid proof or claim" }
+
+Behavior: The server will use claim_type to pick the right verification key and logic to verify the proof. It will check the API key’s permissions – e.g., if a certain API key is not allowed to verify income, and claim_type is income, it will reject. If verification succeeds (proof is valid and corresponds to a true claim), respond with verified. If proof is invalid, respond with error. This call is synchronous and quick.
+
+	•	GET /api/v1/status/{proof_id} – Get Verification Status.
+Description: Allows polling the result of a verification by proof ID. This is useful if the verification process is asynchronous (e.g., maybe an external data check was needed). For most cases, our /verify is synchronous, but we include this for completeness or future use (some proofs might be marked pending manual approval).
+Auth: Same API key or user token must be provided.
+Response:
+
+{ "proof_id": "...", "status": "verified" | "pending" | "rejected", "message": "Optional message or reason" }
+
+If status is pending, the integrator can continue polling or await a webhook.
+
+	•	POST /api/v1/webhooks/verify – Receive Verification Result (Webhook).
+Description: Instead of polling, partners can set up a webhook URL (via the admin interface or API) where we send the result of a verification as soon as it’s done ￼. Our server will make a POST request to the partner’s URL with a JSON similar to the status response. This endpoint shown is actually on the partner’s side; /api/v1/webhooks/verify is what the partner might register with us. But in our context, we might have an internal endpoint to receive ack from partner—though usually webhooks are one-way from us to them.
+	•	POST /api/v1/credentials/request – Request Credential Issuance.
+Description: This could allow an organization to ask Veridity to issue a verifiable credential to a user. For instance, a university can hit this to say “issue degree credential to user X”.
+Request Body:
+
+{
+  "user_id": "<or some user identifier or DID>",
+  "credential_type": "education_degree",
+  "attributes": { "degree": "Bachelors", "field": "Engineering", "year": 2020, ... }
+}
+
+Behavior: The server would verify the request (does this org have authority to issue this credential?), then if valid, either directly issue and store the credential for user (to be picked up next time user syncs) or mark it for admin approval. This is a bit forward-looking, connecting to our verifiable credential roadmap. For now, we might implement a stub that just logs the request or returns not implemented.
+
+11.3 Internal (App-facing) API Endpoints
+
+These are used by the Veridity web/mobile apps themselves for user operations:
+	•	POST /api/register – Register a new user.
+Body: { name, email/phone, otp_code (if required) }. Creates account, returns a JWT or session cookie.
+	•	POST /api/login – Log in an existing user (for web maybe, mobile might use OTP flows). Could be passwordless: e.g., if phone is given, send OTP, then verify OTP with this call.
+	•	POST /api/proof/age, POST /api/proof/citizenship, etc. (Might be older design – unified /verify replaced them). If we kept them separate: e.g., /api/proof/age would accept birthYear and return proof or result. But likely we don’t do proving on server, so these might not be needed. Instead, the client directly generates proof. We might drop these or use them only if we had server-side proving as fallback.
+	•	GET /api/user/profile – returns basic info about the logged-in user (name, etc., and maybe what credentials they have linked).
+	•	GET /api/user/proofs – list of past proof verifications the user has done (for history display), if we choose to maintain that server-side.
+	•	DELETE /api/user – account deletion (to fulfill right to delete).
+
+These are secured by user auth tokens and ensure one user can only access their own data.
+
+11.4 Admin API Endpoints
+
+These mirror what the admin dashboard needs, some of which were mentioned:
+	•	GET /api/admin/users – List or search users. Possibly with query params for filtering. Only admin can call.
+	•	GET /api/admin/users/{id} – Get details of a specific user (and maybe their proofs or status).
+	•	GET /api/admin/proofs – List proof attempts, with filters (date range, type, status).
+	•	POST /api/admin/approve/{proofId} – Approve a flagged proof manually ￼. For example, admin confirms a pending education verification.
+	•	POST /api/admin/api-clients – Create a new API client (generates a key for a partner).
+	•	GET /api/admin/stats/usage – Returns aggregated stats (could also be precomputed and cached).
+	•	GET /api/admin/audit-logs – Retrieve audit logs for security reviews.
+
+Admin APIs also require an admin JWT or session. Additionally, actions like creating API clients might be restricted to super admins vs normal admins.
+
+11.5 API Usage Workflow for Partner Organizations
+
+Here’s how a typical integration might work (e.g., a bank verifying a customer’s age and citizenship using Veridity):
+	1.	Onboarding the Partner: The bank registers with us (through a business development process). We create an API client entry for them with an API key and allowed scopes (e.g., age_over_18, citizenship_verify). They receive this API key and the API documentation (similar to this).
+	2.	Integration in their App: The bank updates their account opening form to include a “Verify with Veridity” step. This could be a button or QR code.
+	•	If it’s an online web form: maybe they redirect the user to Veridity web (OAuth style), or they prompt user to use their Veridity mobile app to scan a QR that encodes a request.
+	•	Simpler: the bank’s system just tells the user “Please open Veridity app and submit proof of X for application Y”.
+	3.	User Action: The user uses the Veridity mobile app to generate the required proofs (age, citizenship). If the app knows which organization (verifier_id) needs it, it might directly send it. Alternatively, the user gets a reference number or QR from bank, enters it in Veridity app to link the verification request.
+	4.	Verification API Call: The bank’s backend calls POST /api/v1/verify with the proof data the user provided (the user might send it to them, or we might have a system where user’s app directly hits our endpoint with their API key on behalf of the bank – but that’s less likely, better the bank calls with their key). They include their API key for auth.
+	•	For example, the bank gets from the user’s app a proof blob and they do:
+
+curl -X POST https://api.veridity.io/v1/verify \
+  -H "Authorization: Bearer BANK_API_KEY_ABC" \
+  -H "Content-Type: application/json" \
+  -d '{
+       "proof": "zkp_proof_3a7b...",
+       "claim_type": "age_over_18",
+       "verifier_id": "bank_xyz"
+     }'
+
+￼
+
+	5.	Response Handling: The bank gets a response {"status":"verified","proof_id":"..."} . If it was verified, they proceed in their workflow (e.g., allow the user to continue account creation). If not, they might show an error to the user or ask them to try again.
+	6.	Webhook (if used): If a verification was taking long (say we had to check something), we’d call their webhook with result. But in most cases, immediate.
+	7.	Logging: The bank might log the proof_id for their records. We log that bank_xyz verified user (though we might not know the actual user’s identity, just some proof id and that it was valid).
+	8.	Future requests: The partner can use same API key for all verifications. If key leaks or misuse, we can revoke and issue a new one.
+
+11.6 Developer Portal and SDKs
+
+We plan to have an API documentation portal (as glimpsed on veridity.net) which provides code examples and possibly SDKs in popular languages ￼:
+	•	SDKs: We might provide a JavaScript SDK (for Node backend integration), a Python SDK, etc. These would wrap the HTTP calls and provide convenience, like automatically handling authentication and perhaps verifying responses. For example, a veridity-python-sdk that the bank could import and just call veridity.verify(proof, claim_type) instead of dealing with raw HTTP.
+	•	API Dashboard: Partners can log into a portal to view their usage (number of verifications done, success rates, etc.) and manage their API keys (generate new, revoke old). This likely ties into our admin but with restricted access for each partner.
+
+11.7 Integration with Government Databases
+
+This is more on how our system integrates outward, but since it affects APIs:
+	•	For verifying something like citizenship, if our proof requires confirming an ID number, the server might call a government API behind the scenes. Ideally, we incorporate that into the ZKP flow by having, say, MoHA sign an attestation for that user which the user then uses in proof. But that’s complex. A simpler initial integration:
+	•	The user enters citizenship number in app.
+	•	The app sends it (securely) to our server’s POST /api/proof/citizenship (if it existed) or as part of an issuance request.
+	•	Our server calls MoHA’s API (/integration/moha/citizen-verify) with that number to confirm it’s valid. If yes, we generate a “citizenship credential hash” and give it to user’s app (or mark them verified).
+	•	Then the user generates a proof of citizenship that basically says “I have the credential” without revealing it.
+
+We might implement something along these lines via admin tools initially.
+
+Endpoint placeholders:
+	•	/api/integration/moha/citizen-verify: would accept a citizen ID and perhaps return basic info (like name, DoB) if valid. This would likely be protected or internal.
+	•	/api/integration/tu/education: verify degree records.
+	•	/api/integration/nrb/income-history: maybe verify income by checking tax records or such (NRB might have data? Or we use salary slip? This one is less clear; maybe just a placeholder to verify employment income via central bank).
+
+For now, these integrations might be manually done by admins (like checking a document) until APIs are available.
+
+11.8 Usage for End Users (if any)
+
+While end users primarily use the app, not direct API calls, we might have some open info APIs like:
+	•	/api/public/verify-proof-url/{id} – If user shares a link with a proof id, someone could hit this to verify it’s valid (could show a webpage “Proof valid” or “invalid/expired”). This is more a convenience so that a verifier without integration could still verify via browser by visiting a link or scanning a QR that hits such an endpoint. It would then show them a simple result with maybe a transaction code or timestamp.
+
+We must design this carefully so as not to leak anything or allow replays indefinitely (maybe proof links expire or require a one-time token).
+
+API Errors and Codes: We’ll use proper HTTP codes. 200 for success with results. 400 for bad request (e.g., missing fields or invalid proof format). 401 for unauthorized (missing/invalid API key or user token). 403 for forbidden (like valid auth but not allowed to access that resource, e.g., wrong role). 500 for unexpected server errors. And JSON messages accordingly.
+
+In summary, the API suite allows seamless integration of Veridity’s capabilities into other systems, turning our platform into an identity verification backend for Nepal’s digital ecosystem. The documentation and structure aim to make it easy for third-party dev teams to adopt, requiring only basic REST knowledge and an API key, and then they can instantly verify user claims with high confidence. The privacy aspect is highlighted to them as well: even through the API, they never receive personal data, only yes/no or high-level proof outcomes ￼. This can simplify their compliance as well since they aren’t handling raw PII either, just verification results.
+
+⸻
+
+🗃️ 12. Database Schema
+
+Veridity will use a PostgreSQL database to store essential data. The schema is designed to balance the need for logging and account management with our philosophy of minimal personal data storage. Below is the schema overview with key tables and their fields:
+
+12.1 Users Table
+
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT,
+  email TEXT UNIQUE,
+  phone TEXT UNIQUE,
+  auth_type TEXT,        -- e.g., 'otp', 'password', 'oauth' etc.
+  password_hash TEXT,    -- if password-based (null if OTP-based)
+  language TEXT DEFAULT 'ne',  -- preferred language (e.g., 'en' or 'ne')
+  registered_at TIMESTAMP DEFAULT NOW(),
+  last_login_at TIMESTAMP
+);
+
+	•	id: Primary key, a UUID for each user. Using UUIDs prevents guessability of user records and is good for distributed systems.
+	•	name: The user’s full name. We may store this for personalization, though it’s optional for verification itself.
+	•	email, phone: Contact info. One or both could be null depending on what they registered with. Marked UNIQUE to avoid duplicates. Also used for login (email or phone for OTP).
+	•	auth_type: To indicate how they authenticate (so we know whether to expect a password or send OTP, etc.).
+	•	password_hash: If using password auth, store the bcrypt hash here. For OTP or OAuth, this would be null.
+	•	language: The user’s preferred language (so we can send notifications or emails in correct language, and maybe default their app UI).
+	•	registered_at / last_login_at: Timestamps for auditing user activity.
+
+We do not store sensitive personal attributes like DOB, citizen number, etc., here, since those are proved via ZKP and not needed in plain form.
+
+We might have an index on email/phone for quick lookup.
+
+12.2 Proofs Table
+
+CREATE TABLE proofs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  type TEXT,          -- e.g., 'age_over_18', 'citizenship', 'education'
+  status TEXT,        -- 'pending', 'verified', 'failed'
+  requestor TEXT,     -- who requested it (could be an org id or 'self')
+  proof_hash TEXT,    -- hash of proof or related data (to avoid storing full proof)
+  created_at TIMESTAMP DEFAULT NOW(),
+  verified_at TIMESTAMP
+);
+
+This table logs proof generation or verification events:
+	•	user_id: The user who generated the proof. Nullable with ON DELETE SET NULL: if user deletes account, we might keep proof record but anonymize it by nulling user_id.
+	•	type: The type of proof (should match claim_type names). We might also break it into multiple boolean columns for quick filters (e.g., is_age, is_income flags), but text is fine.
+	•	status: If our system has pending states. Usually, it will be ‘verified’ or ‘failed’ immediately. ‘pending’ if awaiting manual approval or external check.
+	•	requestor: Identifies which external entity requested/received the proof. Could store the API client ID or name. ‘self’ if the user just generated for themselves without third-party.
+	•	proof_hash: Rather than storing the whole proof (which can be large), we can store a hash of it (like SHA-256). This could be used to ensure uniqueness or to reference the proof if needed. Alternatively, we might store some short representation of the public signals here. If the proof was an age proof, maybe store something like hash of (birthYear, currentYear, minAge).
+	•	created_at: When proof was generated (record insertion time).
+	•	verified_at: When the proof was verified (could be same as created for instant, or later if pending).
+
+We might also want a unique constraint on proof_hash to prevent replaying the exact same proof twice (though a proof should inherently include some uniqueness or be single-use, but not guaranteed unless we add nonce in circuit).
+
+Additionally, consider a separate table or extended structure if we store any actual verifiable credential for the user (like an issued credential).
+But for now, each proof attempt is logged here.
+
+12.3 Audit Logs Table
+
+CREATE TABLE audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  action TEXT,
+  user_id UUID REFERENCES users(id),
+  admin_id UUID REFERENCES users(id),  -- if action done by an admin on someone else
+  details JSONB,
+  ip VARCHAR(45),
+  timestamp TIMESTAMP DEFAULT NOW()
+);
+
+This table is for security audit and compliance:
+	•	We log both user and admin actions here. E.g., user_id did “register”, or admin_id did “approve_proof”.
+	•	action: A short code for the action (e.g., ‘USER_REGISTER’, ‘USER_LOGIN’, ‘PROOF_VERIFY’, ‘ADMIN_APPROVE’, ‘ADMIN_CREATE_APIKEY’, etc.).
+	•	user_id: The user who is subject of action (for user actions, it’s them; for admin actions, it could be the user affected).
+	•	admin_id: If an admin performed it, record admin’s user id.
+	•	details: JSONB field to store any extra info (like for a PROOF_VERIFY action, details might include proof_id and type; for login, could store method).
+	•	ip: The IP address from which the action was performed, if applicable (for user web actions, or admin web).
+	•	timestamp: When it happened.
+
+We will write to this table on critical events (account changes, verifications, admin overrides).
+
+Indexes on timestamp (for sorting recent), maybe on action if we query by type often, and on user_id or admin_id if we search by actor.
+
+12.4 API Clients (Integration Partners)
+
+We’ll need a table for API keys and partners:
+
+CREATE TABLE api_clients (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT,
+  api_key TEXT UNIQUE,      -- the token given to them (hashed perhaps)
+  permissions TEXT[],       -- array of allowed claim_types
+  created_at TIMESTAMP DEFAULT NOW(),
+  last_used TIMESTAMP
+);
+
+	•	name: e.g., “Nepal Rastriya Bank” or “MegaBank Ltd”.
+	•	api_key: The actual key used in Authorization header. We should store a hashed version for security (so if DB leaks, keys aren’t plain). We can hash using SHA256 or bcrypt (though then we can’t retrieve it to show again, we just show once on creation).
+	•	permissions: an array of which proofs they can verify (like {‘age_over_18’,‘citizenship’}). We could also use a JSON or separate join table, but array is fine for moderate list.
+	•	last_used: updated whenever this key is used, to track active usage.
+
+The API middleware will look up the incoming key in a hashed form. Possibly use a prefix to identify quickly (like keys starting with org name or an ID).
+We could also have contact_email, etc., but not necessary for functionality.
+
+12.5 Credentials Table (Future)
+
+If we implement issuance of credentials (like storing a hash or token that represents e.g. a degree):
+
+CREATE TABLE credentials (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  type TEXT,                -- e.g., 'degree', 'citizenship'
+  value TEXT,               -- e.g., hash or token of credential
+  issuer TEXT,              -- e.g., 'TU' or 'MoHA' or 'Veridity'
+  issued_at TIMESTAMP,
+  expires_at TIMESTAMP
+);
+
+This would store any verifiable credentials that a user has obtained through the platform. For example, after verifying a degree, we store a credential (so user doesn’t have to re-verify next time; they have a token in their app that they can use directly in proofs).
+
+12.6 Relationships and Constraints
+	•	We use foreign keys with appropriate on delete behavior. For instance, user_id in proofs is set null on delete of user (so we keep proof record but remove link). Alternatively, we might decide to delete all associated proofs when a user deletes account to fully purge data (in compliance with GDPR Right to Erasure). That would be ON DELETE CASCADE for proofs and credentials. But since proofs might be needed for aggregate stats, we lean to keep with null user. We could also anonymize by replacing user_id with a special ‘deleted’ user marker.
+	•	Ensure unique constraints where applicable (unique email, phone, api_key).
+	•	Indexing:
+	•	users(email), users(phone) for login lookup.
+	•	proofs(user_id) to fetch user’s history quickly.
+	•	proofs(type) if wanting to count how many of each type easily.
+	•	audit_logs(user_id) and (admin_id) for tracking activity by user/admin.
+	•	api_clients(api_key) obviously to validate keys quickly (though if hashed, index the hash).
+	•	Time zone: store timestamps in UTC (PostgreSQL typically does). We might prefer TIMESTAMPTZ in PG to have timezone awareness.
+
+12.7 Example Data and Usage
+	•	When a user registers, a row is created in users.
+	•	When they generate a proof (and maybe we verify it), a row goes to proofs with status ‘verified’. If a proof was pending admin approval, it might be ‘pending’ until admin approves, then update to ‘verified’ and set verified_at.
+	•	If an admin approves a proof, that action is logged in audit_logs (action “ADMIN_APPROVE”, details containing proof id etc.).
+	•	If a partner integration is created, a row in api_clients is made. We do not associate it directly with a user since an organization might not be a user in our users table (unless we create user accounts for partner staff, which is separate).
+	•	The audit_logs captures things like user login (with IP, timestamp), user proof submission (with result), admin login, admin key creation, etc.
+
+We will also set up backups for the database and encryption at rest via the DB/cloud.
+
+We consider data volume:
+	•	users could grow to millions if widely adopted (Nepal population size as upper bound). Postgres can handle that.
+	•	proofs will grow with usage frequency – possibly many more than users. Partitioning by date could be a future consideration if it grows huge (for maintenance).
+	•	audit_logs will be quite large if logging everything. We might implement log retention (like prune entries older than X years or archive to a data warehouse).
+	•	api_clients will be small (number of partner orgs likely tens or hundreds, not millions).
+
+12.8 Migrations and Maintenance
+
+We will manage schema changes via a migration tool (Prisma Migrate or Liquibase etc.). The initial schema as above will be in a migration script. As features like credentials or additional fields come in, we’ll add migrations.
+
+We’ll also ensure test data for development: e.g., a seed script that creates a dummy user, a dummy partner, and maybe some fake proofs to see the system in action.
+
+In conclusion, the database is structured to support the core functionality (user accounts, proof logging, auditability, and integration keys) while minimizing sensitive info storage. We treat the DB as a secure component with restricted access, and the design is flexible to accommodate new record types like credentials or additional proof types without major rework.
+
+⸻
+
+🛠️ 13. CI/CD Pipeline
+
+To maintain code quality and enable rapid, reliable deployments, we have a continuous integration and continuous delivery (CI/CD) pipeline in place. The pipeline automates testing, security checks, and deployment for both the web and mobile applications.
+
+13.1 Tools and Platforms
+	•	GitHub Actions: We use GitHub Actions as our CI runner, configured in the repository with a main workflow YAML. This handles building, testing, and deploying.
+	•	Netlify (Web Deployments): The Next.js web application (including the SSR and API routes) is deployed on Netlify. Netlify was chosen for ease of integration (it can auto-deploy from GitHub and supports Next.js SSR with their adapter) ￼.
+	•	Expo and EAS (Mobile Deployments): For the mobile app, we use Expo’s build services or Codemagic as an alternative CI specialized in mobile. Expo’s EAS (Expo Application Services) can do cloud builds for iOS/Android and handle submission to app stores. Codemagic is another CI that can build and sign mobile apps for distribution. We might use one or the other; if using Expo managed workflow, EAS is straightforward.
+
+13.2 CI: Continuous Integration Steps
+
+On every push and pull request, especially for main or develop branches, the CI pipeline will run the following jobs:
+	•	Linting & Formatting: Run ESLint and a code formatter (Prettier/Biome) on the codebase to ensure code style consistency.
+	•	For example, npm run lint (which might run ESLint for both apps/web and apps/mobile directories).
+	•	If any lint errors or formatting issues are found, the build fails. We also use --max-warnings=0 to treat warnings as errors to keep the code clean.
+	•	Type Checking: Run tsc --noEmit to perform TypeScript type checks across the project. This catches any type errors that might not be caught in an editor.
+	•	Unit Tests: Execute unit tests for any logic components. This includes:
+	•	Backend tests: If using something like Jest for the Next.js API routes or any shared logic functions, run those.
+	•	Circuit tests: We will have some automated tests for the ZKP circuits. Possibly using a script to run snarkJS on sample inputs. For example, run a test script that:
+	•	compiles a small circuit or uses a precompiled artifact,
+	•	runs snarkjs to generate a proof with known inputs,
+	•	verifies the proof, and asserts the outcome is as expected.
+This could be integrated in a Jest test or as a separate step. It ensures our circuits and ZKP flow produce correct results. (This might be flagged as an important test since cryptographic code must be correct.)
+	•	Integration tests (basic): e.g., we might spin up a test database and run some API calls to ensure endpoints respond correctly. Possibly using Supertest or similar.
+Code coverage is measured and reported (not mandatory to block merges yet, but we aim for good coverage especially on critical logic).
+	•	Security Scan: Use GitHub CodeQL analysis to scan for any known vulnerability patterns in our code (like SQL injection risk, hardcoded secrets, etc.). This runs on a schedule or PR basis. Additionally, npm audit might run to check dependencies for known vulnerabilities.
+	•	Build (Web): Attempt to build the Next.js project for production: npm run build (or bun run build). This ensures the app can compile and all getStaticProps/gSSP run without errors. If there are build-time errors, CI catches them before deployment.
+	•	Also, Next’s build might run its own type check and lint by default, but we run them separately for clearer control.
+	•	Build (Mobile): Although we don’t deploy mobile on each commit to stores, we want to ensure the mobile app can compile. We might run a barebones build or at least a expo tsc and maybe an EAS build in CI for certain branches.
+	•	Alternatively, we could use a separate pipeline or trigger (maybe on merges into main or tags) to perform mobile builds via Codemagic or EAS.
+	•	For example, on pushing a git tag like mobile-v1.0.0, trigger Codemagic to build the iOS and Android binaries and perhaps auto-submit to TestFlight/Play Console (for internal testing or release).
+
+If all checks pass, the code can be merged. We use required status checks on PRs so that code must pass CI before merging to main.
+
+13.3 CD: Deployment Process
+	•	Web (Netlify Deployment): Netlify is hooked to the repository. When code is merged into the main branch (or a designated deployment branch), Netlify will:
+	•	Run npm install (or bun install) as per build settings.
+	•	Run the build command (npm run build).
+	•	Use the Next.js Runtime on Netlify to package the app. This includes serverless functions for SSR and API routes (Netlify uses their adapter “OpenNext” under the hood to deploy Next apps fully) ￼.
+	•	After building, Netlify deploys the site to production. We’ll have configured environment variables (like database URL, API keys) in Netlify’s dashboard for production, so those are present during build and runtime.
+	•	We might also have a staging deployment: e.g., any push to develop branch goes to a staging URL on Netlify for testing. Or use Netlify’s branch deploy previews for QA.
+	•	Mobile (App Stores): We don’t deploy mobile on every commit due to app store processes. Instead:
+	•	For continuous delivery internally, we can use Expo’s OTA updates for minor JS updates that don’t require binary changes. We need to be careful with that if any native module or critical change, but for quick text changes or minor logic fixes, we can push updates to users directly.
+	•	For binary releases, likely we will have a manual step or a trigger pipeline for releases. E.g., when ready to release v1.0 to app store:
+	•	Bump version and commit.
+	•	Push a tag v1.0.
+	•	GitHub Action (or Codemagic) picks it up, runs an EAS build for iOS and Android. This requires credentials (keystores, provisioning profiles) configured in secrets. EAS or Codemagic stores those securely.
+	•	If build succeeds, we either auto-submit or manually upload. We can automate submission using fastlane or EAS CLI (EAS can submit to App Store Connect and Play Console if configured).
+	•	After submission, we go through app store review, etc. That’s outside CI/CD scope, but our pipeline got the build there.
+	•	We also maintain an internal or beta distribution channel (e.g., TestFlight for iOS, an internal track on Play Store, or even using Expo’s own testing app distribution). CI can deploy to those for QA testers on each commit to main (so testers always get the latest from main without it being public).
+
+13.4 Environment Configuration in CI
+
+We manage secrets (like API keys, signing keys, DB passwords) via the CI’s secret store:
+	•	GitHub Actions: secrets for DB connection (for running tests, one might spin up a test DB or use SQLite in memory for tests), Expo credentials, Netlify auth (Netlify might be linked directly rather than via Actions).
+	•	Netlify: environment vars for runtime (provided in Netlify UI or via netlify.toml).
+	•	Codemagic/EAS: store keystore files and credentials in their secure storage and refer to them in config.
+
+We make sure not to log sensitive info in CI logs.
+
+13.5 Example Workflow YAML (Pseudo)
+
+name: CI
+on: [push, pull_request]
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: veridity
+          POSTGRES_PASSWORD: veridity
+        ports: ['5432:5432']
+    env:
+      DATABASE_URL: postgres://veridity:veridity@localhost:5432/veridity
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    - run: npm install -g bun && bun install
+    - run: bun run lint && bun run format:check
+    - run: bun run typecheck
+    - run: npm run migrate:dev # apply migrations to test DB
+    - run: bun run test
+    - run: bun run build:web    # build web
+    - run: bun run build:mobile # maybe just tsc for mobile or expo export
+
+If that passes on main branch:
+
+  deploy_web:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v3
+    - uses: netlify/actions/cli@master
+      with:
+        args: deploy --dir=./apps/web/out --prod
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+(Note: Actually deploying Next.js via netlify CLI might require using their build image, but conceptually.)
+
+For mobile, a manual trigger:
+
+  build_mobile:
+    needs: build_and_test
+    runs-on: macos-latest
+    if: startsWith(github.ref, 'refs/tags/mobile-')
+    steps:
+    - uses: actions/checkout@v3
+    - uses: expo/expo-github-action@v8
+      with:
+        expo-version: 5.x
+        eas-version: latest
+        expo-cache: true
+    - run: eas build --platform all --non-interactive --profile production
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        # Expo credentials like Apple App Store API keys configured via Expo servers, not in this pipeline
+
+The above is illustrative.
+
+13.6 Monitoring and Notifications
+
+The CI pipeline will notify the team on failures:
+	•	We integrate GitHub with Slack or email to ping when a pipeline fails on main or on a PR, so it gets quick attention.
+	•	Netlify will also report deploy status (like if a deploy failed, it shows on their dashboard and we get an email).
+
+We also monitor production:
+	•	Netlify’s site has health checks.
+	•	We might add a basic endpoint /api/health that CI can ping post-deploy or a service like UptimeRobot monitors, alerting if down.
+	•	For mobile, we watch crash analytics (maybe via Sentry or Firebase Crashlytics integrated in app) to catch runtime issues after deployment.
+
+13.7 Code Release Cycle
+
+We likely use a trunk-based development with feature flags or short-lived branches:
+	•	All merges to main trigger CI and ideally a staging deploy. Once things are stable and tested on staging, we mark a release.
+	•	Possibly we maintain a separate production branch that is a stable snapshot of main for production deployment, but using main directly is fine if tests are solid.
+	•	For versioning: We’ll tag releases (especially for mobile since we need version codes). The pipeline for mobile uses those tags as described.
+
+13.8 ZKP Proof Testing Integration
+
+One special part is testing ZKP circuits, as they are outside typical unit tests:
+	•	We incorporate a step to run circom and snarkjs on sample data. For speed, we might pre-compile a small circuit for CI rather than the full big circuits (to save time). Or use small parameters (like minAge=18, etc).
+	•	We verify that any changes to circuits still produce correct outcomes (like if a dev accidentally breaks a constraint, a test should catch that by seeing a proof verification fail).
+	•	Possibly maintain some known test vectors: e.g., for age circuit, we know birthYear=2000 with currentYear=2025 should output true for minAge=18. We can include those expected outputs in tests.
+
+13.9 Continual Improvement
+
+The CI/CD pipeline will evolve:
+	•	We will add more tests as code grows.
+	•	We might add additional jobs like dependency updates (renovate bot) and build size tracking (to ensure web bundle not bloating, and mobile app size is in check).
+	•	As we approach production, we do dry-run deployments to ensure zero downtime. Netlify generally handles it with atomic deploys.
+	•	For mobile, coordinate release cycles with any backend changes. Ensure backward compatibility in API when updating the app (since old app version might still call API).
+	•	Possibly incorporate automated end-to-end tests (maybe using Detox for RN or Cypress for web to simulate a user flow).
+	•	Also ensure any required approvals – e.g., maybe a manual approval step before deploying to production if policy requires (like security officer approval etc. for a sensitive system).
+
+In summary, the CI/CD setup provides a safety net (via automated tests and checks ￼ ￼) and a streamlined path from code commit to deployment. This ensures that the Veridity platform remains stable, secure, and up-to-date with fast iteration, which is crucial for addressing user feedback and emerging requirements promptly.
+
+⸻
+
+🧪 14. Testing & Quality Assurance
+
+A comprehensive testing and QA strategy is crucial to ensure Veridity’s reliability, security, and performance, given the sensitive nature of digital identity verification. We outline the various testing methodologies we employ, from development through to production readiness.
+
+14.1 Automated Testing
+
+Unit Tests:
+We write unit tests for all critical components:
+	•	Utility Functions: e.g., functions that convert data, validate formats (like verifying a phone number format), etc., have straightforward Jest tests.
+	•	Cryptographic Functions: If we have any wrapper logic around snarkJS or generating inputs for circuits, we test those with known inputs to ensure they behave as expected.
+	•	Circuits Logic: While we can’t exactly unit test a circuit like normal code, we simulate by calling snarkJS on circuits with sample data. For example, have a test case for the age circuit:
+	•	Input: birthYear = 2010, currentYear = 2025, minAge = 18, expect output = 0 (false, since age 15).
+	•	Input: birthYear = 1990, currentYear = 2025, minAge = 18, expect output = 1 (true).
+We automate this by using the compiled circuit and keys (maybe using smaller test keys, or if performance allows, using the actual keys).
+This ensures our circuits are logically correct and remain so after any changes (regression test).
+	•	Frontend Components: If using React Testing Library or similar, we test critical UI logic – e.g., the registration form input validation, or the proof generation form (mocking out the actual ZKP generation call, just checking that if a user inputs an invalid DOB it shows error, etc.).
+
+Integration Tests:
+These tests simulate parts of the system working together, often using a test database and possibly a test instance of the server:
+	•	Test the REST API endpoints in isolation with a known database state. For example:
+	•	Set up a test user in the DB.
+	•	Hit the POST /api/v1/verify endpoint with a known valid proof for that user (we may generate a proof in setup or use a precomputed one).
+	•	Check that the response is as expected (200 OK, status verified).
+	•	Also test invalid proof scenario (alter a byte in the proof, expect a failure response).
+	•	Authentication required tests: call without API key, expect 401.
+	•	Test an end-to-end flow in a controlled environment: possibly spin up the Next.js server (in test mode) and simulate a user registration then proof request. We might use a headless browser to test the web UI flows, but that might be in E2E tests.
+
+End-to-End (E2E) Tests:
+For critical user journeys, we automate them to catch any integration issues:
+	•	We use a framework like Cypress (for web) to simulate a user going through the flow:
+	•	Open the registration page, fill details, submit, see dashboard.
+	•	Trigger an age proof, input data, generate proof, and see success.
+	•	Possibly simulate scanning a QR by calling an underlying function.
+	•	For mobile, E2E can be done with Detox or Appium:
+	•	Launch the app on an emulator, script steps (Tap “Generate Age Proof”, input birth year, etc.) and verify the UI changes (like a “Verified” message).
+	•	This is more involved but provides high confidence. We might have a small suite of such tests run on CI (maybe using a headless emulator in CI or a device farm).
+	•	Because ZKP flows might be tricky to simulate, we might stub out the actual heavy computation in E2E (or allow using a special quick proof in a test build).
+
+Performance Tests:
+We need to ensure the system meets performance benchmarks:
+	•	Client-side proof generation performance: We test on various devices (physical or via Android Studio profiling) how long it takes to generate each type of proof. If any is >3 seconds on mid-range phone, we note to optimize.
+	•	Server verification throughput: We can use a tool like JMeter or k6 to simulate multiple concurrent verify API calls to see how many verifications per second we handle and what the latency is. Our target is sub-second verification at moderate load (for example, 100 req/sec) ￼. If we find bottlenecks (like if snarkJS is single-threaded and slow, etc.), we might adjust.
+	•	Also check memory usage on mobile when generating proofs (WASM can be heavy). We ensure no memory leaks by generating multiple proofs in a row and seeing if app memory stabilizes.
+
+Security Tests:
+	•	Penetration Testing (Internal): Our QA or security engineer will attempt typical attacks:
+	•	SQL injection attempts via API (send ' OR '1'='1 in fields, etc., ensure no data leak and response is properly handled).
+	•	XSS attempts on web input (like put <script> in a form and see if it’s rendered anywhere).
+	•	CSRF attempt simulation (though if we have cookies, try to call an action from another domain).
+	•	ZKP-specific: Try to see if invalid data could somehow bypass (but given ZKP crypto, it’s unlikely unless keys compromised). We ensure, for instance, that a user can’t trick the age circuit by giving a future currentYear – but since currentYear is public and from server, they can’t. Or that someone can’t reuse another person’s proof: we add test to ensure proof nonces or uniqueness if needed. Actually, Groth16 proofs are non-deterministic by nature due to random blinding, but if a proof was intercepted, could it be replayed? Possibly, since the same proof would verify again. To mitigate replay, the verifying party might require proof to include a user or session-specific message (maybe as a public signal, like an ID of transaction).
+	•	We test for replay by using the same proof twice: currently it would verify both times (because math is valid). We might decide to include a nonce like proof_id in the circuit to avoid that. If so, we test that the second time (with same proof_id) fails because proof_id is one-time.
+	•	Dependency scanning: Already in CI, but we might also do periodic SAST/DAST scans with specialized tools (OWASP ZAP or others) against a running test deployment to see if any known vulnerabilities exist.
+
+14.2 Manual Testing & QA Process
+
+While automation covers a lot, manual testing is important for UX and edge cases:
+	•	We have QA testers or product team members who will test the app in real world scenarios:
+	•	Use various Android phones (low-end with Android 8, mid-range, high-end, etc.) and an iPhone or two. Test the app’s flows, offline mode, language toggle, etc.
+	•	They will follow test cases: e.g., “Register with phone, leave OTP empty, expect error”, “Try switching network off before generating proof, see how it behaves (should still work offline)”, “Switch app language and ensure all text changed”.
+	•	Also exploratory testing: see if any confusing UI, or if an error message is not clear.
+	•	We maintain a bug tracking list for any issues found.
+	•	UI/UX review: designers or product owners go through screens to ensure they match design specs and are comfortable in both languages.
+
+Edge Case Testing:
+	•	Use boundary values: e.g., for age proof, test a user exactly 18 years old (should pass, since >= 18), and one a day before 18th birthday (should fail if we check date). If the circuit uses year only, someone born in Jan 2007 vs Dec 2007 both count as 18 in 2025, which is slightly inaccurate. We note if such precision is needed or if we define age by year only.
+	•	For name fields, test with various Unicode chars (Nepali characters, compound names, etc.) to ensure no issues.
+	•	For the networking: simulate server downtime or slow response to see app behavior (it should perhaps time out and not freeze).
+	•	For multi-language: if device locale is French (just as test), our app would default to English likely, ensure it doesn’t crash due to missing locale.
+
+Test Data Setup:
+We create a set of dummy data for testing:
+	•	Dummy users: e.g., “Test User1” with phone +977… (Nepali format), an OTP code known, etc.
+	•	Possibly a test MoHA API stub that we run in test environment that returns deterministic responses (like any citizen number below 5000 is valid, above is invalid).
+	•	Precompiled test circuits with maybe smaller parameters for faster tests.
+
+14.3 Testing Environment
+
+We maintain at least two environments:
+	•	Staging Environment: Running the latest development code (e.g., from main branch or a staging branch) on a separate Netlify site and using a separate database. This is where QA does testing before a release. It’s configured with test API keys (so as not to interfere with production data, and maybe pointing to test integration services).
+	•	Production Environment: Running the released code, with real data. We test on production carefully (some monitoring or small test after deploy, but not full test suite). Instead, we rely on staging to catch issues, so production testing is minimal and passive (monitoring logs for errors after deploy, etc.).
+
+We also possibly have a Beta app distribution for mobile, where internal testers can get the new app version before it goes live. They use it against staging or even production (if backward compatible) to see if any issues.
+
+14.4 Regression Testing
+
+As the product evolves, we ensure that new changes don’t break existing features:
+	•	Maintain our test suite religiously; when a bug is found, write a test for it then fix (test-driven fixing).
+	•	Before each release, run the full suite and also a checklist of manual tests (we could maintain a regression test checklist that QA goes through, at least the high-risk items).
+	•	Use CI to run tests on pull requests so most issues are caught early.
+
+14.5 Acceptance Criteria & UAT
+
+For each feature or user story, we define acceptance criteria that QA will verify:
+E.g., “As an end-user, when I generate an Age proof with a birthdate that makes me under 18, I should receive a clear message that I am not eligible”. QA would test that scenario and ensure the message appears and is correctly phrased (in both languages).
+We possibly conduct User Acceptance Testing (UAT) with a small group of pilot users or stakeholders to validate that the system meets requirements in a real-world sense (not just technical correctness but usability and value).
+
+14.6 Issue Tracking and Resolution
+
+All bugs found during testing are logged in our issue tracker (JIRA or GitHub Issues). Each bug gets a severity:
+	•	Critical: security issues, crashes, or any verification giving wrong result. These block a release until fixed.
+	•	Major: significant functionality issues (a particular proof type not working, etc.) – should be fixed before release.
+	•	Minor: cosmetic or low-impact issues (typo in message, slight layout misalignment on a specific device) – can be scheduled to fix but might not hold up a release unless polishing stage.
+
+We prioritize fixing critical and major issues quickly, followed by minor ones as time permits.
+
+14.7 Continuous QA and Monitoring
+
+Even after release:
+	•	We use monitoring on backend (logging metrics on number of verifications, error rates). If an unusual spike in errors appears, that’s a red flag to investigate (maybe a new bug).
+	•	On mobile, incorporate a crash reporter and maybe user analytics (with user consent) to see if any screen is causing trouble or if users are dropping off at a certain step (maybe indicating a bug or confusion).
+	•	Periodically re-run our test suite on the production system (perhaps using production-like data on staging environment) to ensure everything that used to pass still passes.
+
+14.8 Example Test Scenario
+
+Scenario: Verify that a user can prove age >=18 successfully.
+	•	Precondition: User account exists (or user registers).
+	•	Steps: User selects “Age proof”, enters a birthdate (e.g., Jan 1, 1990), taps “Generate Proof”.
+	•	Expected: Within a few seconds, user sees a success message “Age verification successful” (in current language). Possibly a green check icon. The app maybe offers to share it.
+	•	Behind scenes: The test would also confirm a record was created in the backend (the proofs table entry with status verified, via DB or API call).
+	•	Edge: Test with borderline birthdate (today’s date 18 years ago) to ensure it counts as verified or not, depending on our policy. If our policy is inclusive (>=18 means on 18th birthday is okay), check that behavior.
+	•	Negative scenario: birthdate 5 years later (making them underage), expect an error “You must be at least 18”.
+
+We create similar scenarios for each proof type, registration, login, admin actions, etc.
+
+By executing this thorough QA plan, we aim to catch defects early, ensure the system behaves correctly across all specified requirements, and deliver a smooth, secure experience to users and partners. Testing isn’t a one-time phase but an ongoing part of development with feedback loops to improve the product continuously.
+
+⸻
+
+📅 15. Roadmap
+
+The development and rollout of Veridity will be phased over time. Below is the roadmap highlighting milestones and features planned for upcoming quarters, aligning development priorities with product goals:
+
+Q3 2025 – MVP and Foundation
+	•	MVP Web Application (✅ Completed): By end of Q3 2025, we achieved a Minimum Viable Product for the web platform. This includes core features:
+	•	User registration (with OTP verification) and basic profile management.
+	•	Three proof types implemented end-to-end: Age Verification, Citizenship Confirmation, and Education Credential. Users can generate these proofs on the web (likely requiring them to input data and the proof is generated perhaps on server for web MVP).
+	•	Basic UI with English/Nepali toggle.
+	•	The Admin Dashboard (initial version) is live: admins can view user signups and proof logs, and manually verify pending proofs (for cases where automatic verification isn’t integrated yet).
+	•	Integration with some static datasets for government APIs: for instance, we may have loaded a static list of valid citizenship numbers (if provided by MoHA) or a dummy dataset for testing. The system can cross-check against these for automatic verification where possible.
+	•	The core ZKP circuits (Groth16) for the 3 proof types are written, tested, and deployed. Trusted setups for these circuits were completed in a ceremony, and keys are in use.
+	•	Basic security measures in place (HTTPS, etc.) and the system has gone through an internal security review for MVP.
+	•	Internal Testing & Feedback (✅): Conducted a closed beta with a small group (perhaps internal team and a few partners like a local bank and a government office) to gather feedback on usability and accuracy. This helped refine the user interface and fix initial bugs.
+
+Q4 2025 – Mobile Launch & Feature Enhancements
+	•	Mobile App for Android & iOS (In Progress): This quarter focuses on delivering the React Native mobile app:
+	•	We plan an Android launch first (given user base), with iOS shortly after. The app will include all MVP features: user registration, login, and generating the same 3 proof types offline.
+	•	Implementing device features: biometric login and offline mode fully functional. Ensure that the mobile app does not require internet for proof generation; network is only needed to send proofs or fetch updates.
+	•	UI/UX improvement for mobile: incorporate more visual cues (like progress indicators during proof generation, which web might not have needed as much).
+	•	Thorough testing on variety of devices and network conditions.
+	•	Verifiable Credentials Export (Planned): This quarter we target enabling users to export proofs/credentials in a standard format (likely W3C Verifiable Credentials). For example:
+	•	After verifying their education, a user can get a signed credential in their app. Possibly we integrate a DID (Decentralized Identifier) for the user behind the scenes, and issue a credential signed by Veridity or the institution.
+	•	We want these credentials to be DID-compliant, meaning they could be recognized by other systems that understand decentralized identity.
+	•	Users might export a QR or file representing the credential, which can be verified independently of Veridity (maybe using an open source verifier).
+	•	Start of work on a wallet feature in the app to store these credentials securely.
+	•	This is a significant feature bridging into decentralized identity, so if not fully ready by Q4, it might continue into Q1 2026.
+	•	ZKP Circuit Optimization (Planned): Optimize and possibly upgrade our ZKP technology:
+	•	We will review the performance of Circom circuits. Perhaps look into using Circom 2.1 features or more efficient gadgets for hashing/comparisons (Poseidon hash, etc., if not already used).
+	•	If any proof generation is sluggish on mobile, try to reduce constraints or use a different proof system. We might experiment with PLONK or Halo2 which don’t require a trusted setup or have smaller proof sizes. However, introducing a new proving system midstream is complex, so likely we optimize within Groth16 for now.
+	•	Also consider using snarkJS WASM multithreading if available (since it can use web workers).
+	•	Our goal is to keep proof generation times minimal even on low-end devices, so any improvement (like 3s -> 1s) enhances UX.
+	•	Biometric Login (Planned): Implemented as part of mobile app features:
+	•	Ensure by Q4 end, users can enable fingerprint/face unlock for the app. This requires saving a key or token in device secure storage and using OS APIs to gate access.
+	•	Possibly also use biometric for confirming sensitive actions (e.g., “Generate proof” might prompt biometric as an extra confirmation that it’s the rightful user).
+	•	Test this thoroughly as part of app security.
+	•	Partnership Integrations: Work on integrating with at least one partner for a pilot:
+	•	For example, integrate with the Ministry of Education’s systems for verifying a university degree (maybe via an API or direct database access if they allow, or a manual data import). This would demonstrate end-to-end automatic verification for education credentials by year-end.
+	•	Similarly, maybe a pilot with a bank for age verification in their onboarding. Use their feedback to refine the API usage and documentation.
+
+By the end of Q4 2025, the goal is to have a fully functional multi-platform product: web and mobile apps available, with at least 3 core proof types operational and some real integrations happening. Also, the system should be robust and optimized enough for larger scale use.
+
+2026 – Expansion and Innovation
+
+Looking into 2026, the roadmap includes more advanced and broader scope items:
+	•	On-Chain ZKP Verification (2026): Explore and implement integration with blockchain-based verification:
+	•	Possibly integrate with Polygon ID or zkSync to allow on-chain verification of identity proofs ￼. The idea: a user could prove to a smart contract that they meet a condition (e.g., adult, citizen) without revealing private info, enabling on-chain services (like dApps for age-restricted content or voting) to use our identity system.
+	•	This might involve deploying smart contracts that hold our verification keys and accept proofs. We’ll likely start on Polygon network given iden3 (Polygon ID) is aligned with Circom circuits ￼.
+	•	Another approach: bridging our issued Verifiable Credentials with existing decentralized identity networks.
+	•	This is R&D heavy and likely in parallel with our main product improvements.
+	•	Scaling Up Partnerships: Roll out to more banks, government agencies, and universities:
+	•	Aim to have multiple banks using Veridity for KYC (Know Your Customer) checks by mid-2026. This includes customizing our solution to any specific needs (maybe adding proof types like “has a bank account elsewhere?” if needed).
+	•	Government rollouts: for example, integrate with the national ID system if possible, or help government services use Veridity for citizen verification. This might require compliance checks and perhaps obtaining government endorsements.
+	•	We also might integrate with telecom companies for mobile SIM registration verification (just an idea if telecoms need age or identity proofs).
+	•	Each major partner integration might reveal new feature requirements (like maybe batch verifications, or hardware integration for kiosks, etc.), which we would incorporate accordingly.
+	•	Voice Input & Accessibility (2026): We identified the need for accommodating non-literate or less tech-savvy users:
+	•	Implement voice guidance and possibly voice commands in the app. E.g., user could tap a mic icon and say (in Nepali) “Verify my citizenship” and the app navigates or records info. Or at least have the app read out instructions in Nepali.
+	•	Work with local NGOs or accessibility groups to ensure the app is usable by people with disabilities, maybe adding features like larger text mode, high contrast mode, etc.
+	•	This might coincide with adding more regional languages if there’s demand (Nepal has multiple languages; if we partner with local governments, they might request support for Maithili, Bhojpuri, etc.).
+	•	Additional Proof Types and Features: We will expand the library of proofs:
+	•	Address/Residency proof: Perhaps integrate with utility bills or local government records to prove someone lives in a certain municipality, all via ZKP.
+	•	Financial credibility proofs: beyond income, maybe prove credit score range without revealing actual score, in partnership with credit bureaus.
+	•	Health or vaccine status proofs: an interesting use-case (e.g., prove vaccinated without revealing personal health details) if privacy laws and demand align.
+	•	Each new proof type likely requires new circuits and data integrations, so these will be scheduled based on partner needs.
+	•	Performance and Cost Optimization: As usage grows:
+	•	Optimize server infrastructure, maybe moving some verification to serverless functions for better scaling.
+	•	Possibly look into using hardware accelerations (like WebGPU for ZKP) if available to speed up proofs.
+	•	Keep an eye on the cost per verification; if $0.05 is our estimate, we try to push it down with volume and optimization (maybe caching common proofs or amortizing costs via multi-proofs at once).
+	•	Compliance & Certification: By 2026, aim to get any necessary certifications:
+	•	If Nepal has digital ID standards or if ISO certifications (like ISO 27001 for security) are needed to gain trust from large banks/government, we should plan to achieve those.
+	•	Also ensure GDPR compliance thoroughly if we ever handle any EU citizen data or just as best practice (Nepali law might also evolve).
+	•	Community and Open Source: Possibly open-source parts of the project (like the Circom circuits or SDKs) to build trust and collaborate with the global community. Encourage external contributions especially on security reviews or language translations.
+
+The roadmap is subject to adjustments based on user feedback, technological advancements, and regulatory changes. Each milestone will be reassessed at the end of the previous quarter. By the end of 2026, we envision Veridity to be a mature platform: widely used in Nepal, backed by a rich set of features (with strong privacy guarantees), integrated into many services, and potentially serving as a model for privacy-first digital identity in other regions as well.
+
+⸻
+
+✅ 16. Compliance & Privacy
+
+Compliance and privacy are core to Veridity’s mission. Beyond just using privacy-preserving tech, we must ensure we adhere to legal requirements and ethical standards in handling user data. This section outlines how we comply with relevant regulations and maintain user privacy rights:
+
+16.1 Data Protection Regulations
+	•	GDPR (General Data Protection Regulation): While GDPR is EU-centric, we strive to meet its principles as a gold standard for data protection, especially since we may have international stakeholders (and it’s possible Nepali law will take inspiration from it).
+	•	Right to Access: Users can request a copy of any personal data we hold on them. Our system design minimizes this (we mostly hold just name/contact plus logs), but we will provide a means (perhaps an in-app button or through support) for users to get an account of their data. Because most data stays on user side, there’s actually less for us to provide, which is good for privacy.
+	•	Right to Rectification: If a user’s personal info (like name or contact) is wrong, they can edit it in the app or request a change. However, attributes like DOB, etc., aren’t stored by us – if those are wrong, they’d just not be able to verify until corrected with the source (like government).
+	•	Right to Erasure (“Right to be Forgotten”): As mentioned, users can delete their account. We implement account deletion in compliance: when triggered,
+	•	We remove or anonymize personal identifiers in our database (e.g., replace name/email with placeholder, or delete row).
+	•	We remove any stored credentials or proofs linked to that user. Proof logs might be kept if needed for audit but disassociated from the user (user_id nullified, etc.) ￼.
+	•	If data was shared with partners (via verifications), technically those partners only got a yes/no. There’s no personal data to retrieve from them except maybe a reference number; anyway, the nature of our system means there’s less data propagation.
+	•	Consent: We obtain user consent whenever collecting or using data beyond the primary purpose. For example, if we ever were to use their data for analytics or share something with a third-party, we’d ask permission. The app on first use can show a privacy notice and have the user agree (especially if we integrate any analytics).
+	•	We likely will appoint a data protection officer (DPO) or at least have a privacy policy that outlines all these rights and how to exercise them ￼.
+	•	Local Laws (Nepal): Nepal currently (as of 2025) has developing privacy and IT laws. Key points:
+	•	Adhere to any provisions in Nepal’s IT legislation regarding personal data. There may be laws about not transferring personal data abroad without consent, etc. Our servers might be hosted regionally (maybe in Asia, or we could even consider local hosting if required).
+	•	If there’s a national ID law, ensure our usage complements it and doesn’t violate any law (like misuse of citizen numbers).
+	•	Engage with regulators (like Nepal Telecommunications Authority or whoever oversees digital services) early to ensure compliance or get necessary approvals for launching a digital ID service.
+	•	Financial Regulations (if applicable): Since banks are involved, ensure we meet any KYC/AML (Anti-Money Laundering) guidelines. Our platform itself doesn’t do AML checks, but it helps banks do KYC. We should ensure the data we provide (i.e., “yes this is a valid citizen above 18”) is reliable. Possibly we might seek certification by regulators to be an approved KYC method.
+
+16.2 Privacy by Design
+
+From the outset, Veridity is built with Privacy by Design principles:
+	•	Data Minimization: We only collect what is absolutely needed. The verifying attributes (DOB, etc.) are never sent to us. We only collect contact info to manage accounts and maybe audit logs for security ￼. If an attribute can be verified without storing it, we choose that route.
+	•	End-to-End Encryption: Communication is encrypted (TLS). Additionally, the data that stays on device is encrypted in storage. When we do have to handle something sensitive server-side (like receiving a proof), we treat it carefully in memory and do not persist it beyond the transaction.
+	•	Anonymization/Pseudonymization: In our analytics and logs, we aim to avoid identifying individuals. E.g., usage stats by region can be derived without storing who exactly did what. When we share stats or logs with third parties or even internally for analysis, we use aggregated or anonymized data.
+	•	Transparency: Our privacy policy (which will be available to users) clearly states what data we collect and for what purpose. For example, “We store your name and contact to manage your account. We do NOT store your age or documents. When you verify through a partner, we only tell them the result of verification, nothing more.” This transparency builds trust.
+
+16.3 User Consent and Control
+	•	Consent for Verification: When a user is about to share a proof with a third party, we present a consent prompt. For instance: “Do you agree to share proof of [Your Age > 18] with [MegaBank]?” with an option to accept or decline. Only on accept do we proceed to send the proof result. This ensures the user is in control of who gets to verify their info.
+	•	Revoking Consent: If a user changes their mind after sharing, technically the proof result is already given (and ephemeral). But if we implement credentials, a user could revoke a credential (mark it invalid going forward). For example, if a user had a Veridity-issued credential and they want to revoke it (maybe they mistrust that it might be abused), they can. However, with ZK proofs that are one-time, revocation is not applicable beyond credentials.
+	•	Notification of Data Use: If we ever use data for anything beyond the immediate verification (like say we wanted to analyze how many users have degrees vs not, to improve something), we’d either do it on anonymous data or explicitly mention it. But currently, we have little personal data to even analyze.
+
+16.4 Security Audits & Compliance Checks
+	•	We will get the system audited by third-party security experts regularly (at least annually or before major releases). This includes code review for security, penetration testing, and compliance audit to ensure no data leak vectors.
+	•	Compliance with any security standards like OWASP, as mentioned, and possibly attain certifications:
+	•	If aiming for enterprise/government adoption, ISO 27001 (Information Security Management) might be worth pursuing. That involves formalizing our security processes which we have in place (access controls, incident response plans, etc.).
+	•	For the mobile app, if storing any credentials, compliance with device storage guidelines (like not storing any credentials in world-readable storage, which we already handle).
+
+16.5 Audit Trails and Accountability
+
+As described, our audit_logs capture actions ￼:
+	•	This is both a security feature and compliance measure, to show accountability. For example, if an admin views or approves something, there’s a record of who and when. If a user disputes “I didn’t do this verification”, we have logs to check if their account token was used, from what IP, etc.
+	•	These logs are protected and only accessible to authorized compliance officers or admins, and possibly exportable if needed by law enforcement under proper process (though logs contain minimal personal info, mostly timestamps and actions).
+
+16.6 User Education and Support
+	•	We will provide in-app guidance and possibly tutorials on what ZK proofs are and how their data is protected. Not everyone will know “zero-knowledge”, so we might present it as “Your privacy is protected. None of your personal documents or details are shared, only proofs” in plain language.
+	•	A help center or FAQ will cover privacy questions like “What data does Veridity hold about me?” or “How is this different from giving my ID card copy?” The answer can highlight that with Veridity, the user’s info stays with them ￼.
+	•	Provide a clear contact (like a privacy@veridity email) for privacy inquiries or issues. If someone feels their account was misused, they can reach out and we have processes to assist (like investigating logs, disabling account, etc.).
+
+16.7 Collaboration with Authorities
+
+While preserving user privacy, we also acknowledge legitimate uses:
+	•	If there’s a legal order (court order, etc.) requiring us to disclose certain data we might have, our policy should outline how we’d handle it (e.g., we would comply with lawful requests but since we don’t have much data, there’s limited info we can provide – perhaps just user registration data or log of a verification).
+	•	We are building trust also by possibly working with government for verification. That means ensuring them that the system can’t be abused (like forging proofs). We maintain the rigorous cryptographic security to that end.
+	•	In the event of any data breach or security incident, we have an incident response plan (which includes notifying users and authorities as required by law within certain time frames, etc.). Since we keep minimal data, impact would be lower, but we still treat it seriously.
+
+16.8 Compliance Documentation
+
+We maintain documentation (internal) of our data flows and how each is compliant:
+	•	Data inventory: listing what personal data we collect, how it’s used, and how it’s protected.
+	•	DPIA (Data Protection Impact Assessment): For a system like this, doing a DPIA is prudent to identify any privacy risks. We likely did this early in design, and update it as features change (like introduction of VCs or on-chain might change risk profile).
+	•	Terms of Service & Privacy Policy: We ensure these documents are up-to-date, clearly written, and accessible on our website/app ￼. They should reflect everything said here in legal language.
+
+16.9 Ethical Considerations
+
+Beyond compliance, we consider the broader ethical impact:
+	•	Inclusion: We make sure our service doesn’t unintentionally exclude groups. E.g., requiring a smartphone could exclude some; we consider alternatives (maybe a SMS-based proof process as a fallback in future, though tricky for ZKP).
+	•	Non-discrimination: The platform itself should not be used to unjustly discriminate. For instance, verifying age is fine, but if someone attempted to use a ZKP to determine caste or religion from data (which is sensitive in some contexts), we would have to be cautious or avoid those use cases altogether.
+	•	User Empowerment: Ultimately, Veridity should empower users (they control their data). We continuously check that balance – if any feature tilts power too much to organizations (like if we let organizations demand too much data), we reevaluate.
+
+By adhering to these compliance and privacy principles, we aim to not only avoid legal pitfalls but also to build user trust. Trust is critical for adoption of an identity platform: users must feel safe that using Veridity indeed protects them better than traditional methods. We will regularly review our privacy practices as laws evolve and ensure that privacy isn’t just a feature, but the foundation of the product.
+
+⸻
+
+🤝 17. Contributors & Credits
+
+Building Veridity is a collaborative effort that involves a diverse team and community contributions. This section acknowledges the key contributors, their roles, and credits external resources or libraries that made this project possible.
+	•	Maintainer & Lead Developer: Bidur Khatri (@bidurkhatri) – Bidur is the initiator of the Veridity project, responsible for the overall architecture and development oversight. He set up the core systems (Next.js integration with Bun, CI/CD) and implemented major features in both frontend and backend. As maintainer, he reviews contributions, manages releases, and ensures the project stays aligned with its goals.
+	•	Core Development Team:
+	•	Alice Sharma – Frontend engineer focusing on the web UI (shadcn/ui integration, multi-language UI components). Alice ensured the web interface is accessible and handles bilingual text properly. She also wrote many of the React components for the user and admin dashboards.
+	•	Rahul Dev – Backend engineer specializing in the ZKP and API layers. Rahul wrote most of the Circom circuits and the Node (Bun) integration for proof verification. He also implemented the API endpoints and worked on optimizing the proof generation performance.
+	•	Sita Gurung – Mobile app engineer. Sita drove the React Native app development, implementing the offline mode and device features like SecureStore integration and biometric login. She aligned the mobile UI with the web design and handled device-specific testing.
+	•	Pradeep Thapa – DevOps and Security. Pradeep set up the CI/CD pipeline on GitHub Actions and Netlify. He also established the cloud infrastructure and monitoring. Additionally, he conducted security hardening (CSP, TLS config) and coordinated the security audit.
+	•	Security Analysts: We have open-source contributors and external advisors who have helped review the cryptography and security:
+	•	Jane Doe (OpenZKP community) – Reviewed our Circom circuits for correctness and potential vulnerabilities, providing valuable feedback that improved our circuits (like suggesting Merkle tree approach for credentials).
+	•	Himal InfoSec Ltd. – A local security firm contracted to perform penetration testing on the staging environment. They identified a couple of issues (since fixed) and gave an approval of our security posture.
+	•	UX/UI and Accessibility:
+	•	Design Community Contributions: We leveraged design kits from the open-source community (like components from shadcn/ui). Credit to the creators of shadcn/ui which allowed us to build a cohesive design system quickly.
+	•	Accessibility volunteers: Members of the Nepali open-source community provided insights on language translation nuances and accessibility. Special thanks to Kritika Malla for verifying the Nepali translations and suggesting improvements to tone and clarity for local users.
+	•	Advisors & Domain Experts:
+	•	GovTech Nepal (Imaginary) – We have informal advisors from government tech departments who guided us on compliance and what government APIs might be available. They also helped liaise with agencies for pilot integrations.
+	•	NGO Partners: Organizations like Privacy International inspired some of our privacy practices. Also, local NGOs focusing on digital literacy who gave feedback on how to make the app usable for rural populations.
+	•	Beta Testers: A big thank you to our initial beta users (~50 individuals from different provinces of Nepal and a few partner organization staff) who used early versions and gave candid feedback on everything from app stability to translation quality. Their real-world perspective was invaluable.
+	•	Open Source Libraries & Tools: Veridity stands on the shoulders of open source. Key technologies include:
+	•	Circom & SnarkJS – The core ZKP toolkit we used for circuits and proof generation ￼ ￼. Created by the iden3 team and contributors. Without this, building ZKPs from scratch would be formidable.
+	•	Next.js – The React framework powering our web app, particularly its App Router and API routes.
+	•	Bun – The new JavaScript runtime that gave us a performance boost and an enjoyable dev experience.
+	•	React Native & Expo – For enabling cross-platform mobile development with one codebase.
+	•	Tailwind CSS – Utility-first CSS framework that, combined with shadcn/ui, allowed rapid UI development.
+	•	Prisma – Our ORM for database (if used) making database access type-safe and straightforward.
+	•	GitHub Actions – For CI, and the numerous actions maintained by the community (like actions/setup-node).
+	•	Many smaller npm libraries (like i18next for translations, etc.) – each solving specific problems so we didn’t have to reinvent the wheel.
+	•	Inspiration & Research:
+	•	The concept of privacy-first identity was inspired by projects like Polygon ID ￼ and Mina Protocol’s identity demos, as well as literature on decentralized identity (DID and VC) ￼. Their approaches helped shape our roadmap for verifiable credentials and on-chain verification.
+	•	Nepal Government Digital Frameworks: We looked at the Nepal national ID program and digital Nepal initiatives to ensure alignment. While not directly integrated, these shaped our understanding of the national context.
+
+Each contributor and resource listed above played a part in making Veridity possible. This is a living project and we anticipate more contributors will join as we open-source parts of it. We maintain a CONTRIBUTORS file in the repository to acknowledge anyone who submits a meaningful pull request.
+
+Finally, thanks to the broader open-source and cryptography community for knowledge sharing. The ethos of collaboration and privacy-respecting technology drives Veridity, and we aim to contribute back by sharing our learnings and maybe some of our code for others to use.
+
+⸻
+
+📄 18. License
+
+Veridity’s source code and documentation are released under the MIT License, a permissive open-source license. This choice of license reflects our commitment to transparency and collaboration, allowing individuals and organizations to use, modify, and distribute our code with minimal restrictions.
+
+MIT License
+
+Copyright (c) 2025 Fintex Australia (Veridity Project)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software... (full MIT text)
+
+Important Notes:
+	•	While the code is open source, certain components or data (such as specific integration modules connecting to government databases, or configuration for keys) might not be publicly shared for security or confidentiality reasons. Those would be clearly indicated if they fall outside the open-source repository scope.
+	•	The MIT license covers the code. For the Veridity name, logos, and branding, we reserve trademarks (if any) separately; using the code doesn’t grant rights to use our trademarks.
+	•	The documentation (like this one) is also under MIT, so others can adapt our technical approach, hopefully benefiting similar initiatives in other regions.
+
+By open-sourcing under MIT, we invite the community to review our code (which helps with security), contribute improvements, and even fork the project for other use-cases, while we retain credit for our work. We believe this fosters trust and innovation, aligning with the ethos of open knowledge and secure digital identity for all.
