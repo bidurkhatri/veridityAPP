@@ -6,7 +6,10 @@ import { ZKPService } from "./services/zkpService";
 import { insertProofSchema, insertVerificationSchema, insertOrganizationSchema } from "@shared/schema";
 import { apiRateLimit, verifyRateLimit } from "./middleware/rateLimit";
 import { validateNonce, generateNonce } from "./middleware/nonce";
-import { zkVerifier } from "./zkp/verifier";
+import { zkVerifier, circuitBuilder } from "./zkp/verifier";
+import { verificationHandler } from "./websocket/verification-handler";
+import { biometricService } from "./auth/biometric-service";
+import { WebSocketServer } from "ws";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -352,7 +355,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // WebSocket server for real-time verification
   const httpServer = createServer(app);
+  const wss = new WebSocketServer({ 
+    server: httpServer, 
+    path: '/ws/verify'
+  });
+  
+  // Handle WebSocket connections
+  wss.on('connection', (ws, req) => {
+    const clientId = req.headers['sec-websocket-key'] || 
+                    `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    verificationHandler.handleConnection(ws, clientId);
+  });
+  
+  // ZK Circuit and verification status endpoints
+  app.get('/api/zk/status', async (req, res) => {
+    try {
+      const buildStatus = circuitBuilder.getBuildStatus();
+      const verificationStats = verificationHandler.getStats();
+      
+      res.json({
+        circuits: buildStatus,
+        realTimeVerification: verificationStats,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get ZK status' });
+    }
+  });
+  
+  // Build circuits endpoint (development only)
+  if (process.env.NODE_ENV === 'development') {
+    app.post('/api/zk/build-circuits', async (req, res) => {
+      try {
+        await circuitBuilder.buildAllCircuits();
+        res.json({ 
+          success: true, 
+          message: 'Circuits built successfully',
+          status: circuitBuilder.getBuildStatus()
+        });
+      } catch (error) {
+        res.status(500).json({ 
+          success: false, 
+          error: error.message 
+        });
+      }
+    });
+  }
+  
+  // Biometric authentication endpoints
+  app.post('/api/biometric/register/challenge', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const challenge = await biometricService.generateRegistrationChallenge(userId);
+      res.json(challenge);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to generate challenge' });
+    }
+  });
+  
+  app.post('/api/biometric/register', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const registration = {
+        userId,
+        ...req.body
+      };
+      
+      const success = await biometricService.registerBiometricCredential(registration);
+      
+      if (success) {
+        res.json({ success: true, message: 'Biometric credential registered' });
+      } else {
+        res.status(400).json({ error: 'Registration failed' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to register biometric credential' });
+    }
+  });
+  
+  app.post('/api/biometric/authenticate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const auth = {
+        userId,
+        ...req.body
+      };
+      
+      const isValid = await biometricService.authenticateBiometric(auth);
+      
+      if (isValid) {
+        res.json({ success: true, message: 'Biometric authentication successful' });
+      } else {
+        res.status(401).json({ error: 'Authentication failed' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Authentication error' });
+    }
+  });
+  
+  app.get('/api/biometric/devices', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const devices = await biometricService.getUserBiometricDevices(userId);
+      res.json(devices);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get devices' });
+    }
+  });
+  
+  console.log('🔐 Real-time verification WebSocket server running on /ws/verify');
+  console.log('📱 Biometric authentication endpoints enabled');
+  
   return httpServer;
 }
 

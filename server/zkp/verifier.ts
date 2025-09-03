@@ -1,13 +1,34 @@
 import * as snarkjs from "snarkjs";
 import fs from "fs";
 import path from "path";
+import { realVerifier } from "./real-verifier";
+import { realProver } from "./real-prover";
+import { circuitBuilder } from "./circuit-builder";
 
 // ZK Proof verification service
 export class ZKVerifier {
   private vKeys: Map<string, any> = new Map();
+  private useRealZK: boolean = false;
   
   constructor() {
-    this.loadVerificationKeys();
+    this.initializeVerifier();
+  }
+  
+  private async initializeVerifier() {
+    // Check if real ZK setup is available
+    this.useRealZK = realProver.isRealZKAvailable();
+    
+    if (this.useRealZK) {
+      console.log('✅ Real ZK verification enabled');
+      this.loadVerificationKeys();
+    } else {
+      console.log('⚠️ ZK verification keys not found - using mock verification');
+      const buildStatus = circuitBuilder.getBuildStatus();
+      console.log('Circuit build status:', buildStatus);
+      
+      // Try legacy key loading for backward compatibility
+      this.loadVerificationKeys();
+    }
   }
   
   private loadVerificationKeys() {
@@ -36,6 +57,21 @@ export class ZKVerifier {
     publicSignals: string[]
   ): Promise<boolean> {
     try {
+      // Try real ZK verification first
+      if (this.useRealZK) {
+        const circuitId = this.mapProofTypeToCircuit(proofType);
+        const result = await realVerifier.verifyProof({
+          circuitId,
+          proof,
+          publicSignals,
+          publicInputs: { proofType }
+        });
+        
+        console.log(`🔍 Real ZK verification result for ${proofType}:`, result.isValid);
+        return result.isValid;
+      }
+      
+      // Fallback to legacy verification
       const vKey = this.vKeys.get(proofType);
       
       if (!vKey) {
@@ -53,6 +89,17 @@ export class ZKVerifier {
       console.error("❌ ZK verification error:", error);
       return false;
     }
+  }
+  
+  private mapProofTypeToCircuit(proofType: string): string {
+    const mapping: Record<string, string> = {
+      'age_over_18': 'age_verification',
+      'age_over_21': 'age_verification',
+      'citizenship': 'citizenship_verification',
+      'citizenship_verification': 'citizenship_verification'
+    };
+    
+    return mapping[proofType] || 'age_verification';
   }
   
   private mockVerify(proofType: string, publicSignals: string[]): boolean {
@@ -89,3 +136,6 @@ export class ZKVerifier {
 }
 
 export const zkVerifier = new ZKVerifier();
+
+// Export real components and builder for direct access
+export { realVerifier, realProver, circuitBuilder };

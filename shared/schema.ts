@@ -216,6 +216,24 @@ export const insertAuditDigestSchema = createInsertSchema(auditDigests).omit({
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Biometric credentials table for WebAuthn support
+export const biometricCredentials = pgTable("biometric_credentials", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  deviceId: varchar("device_id").notNull(),
+  credentialId: varchar("credential_id").notNull().unique(),
+  publicKey: varchar("public_key").notNull(),
+  deviceName: varchar("device_name").notNull(),
+  platform: varchar("platform", { enum: ['android', 'ios', 'windows', 'macos', 'linux'] }).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  lastUsedAt: timestamp("last_used_at").defaultNow(),
+});
+
+export type BiometricCredential = typeof biometricCredentials.$inferSelect;
+export type InsertBiometricCredential = typeof biometricCredentials.$inferInsert;
 export type InsertProofType = z.infer<typeof insertProofTypeSchema>;
 export type ProofType = typeof proofTypes.$inferSelect;
 export type InsertProof = z.infer<typeof insertProofSchema>;
