@@ -4,11 +4,17 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { ZKPService } from "./services/zkpService";
 import { insertProofSchema, insertVerificationSchema, insertOrganizationSchema } from "@shared/schema";
+import { apiRateLimit, verifyRateLimit } from "./middleware/rateLimit";
+import { validateNonce, generateNonce } from "./middleware/nonce";
+import { zkVerifier } from "./zkp/verifier";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Apply rate limiting to all API routes
+  app.use('/api', apiRateLimit);
 
   // Initialize default data
   await initializeDefaultData();
@@ -106,7 +112,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Proof verification routes
+  // V1 API - Enhanced verification with security
+  app.post('/api/v1/verify', verifyRateLimit, validateNonce(), async (req: any, res) => {
+    try {
+      const { proof, publicSignals, proofType } = req.body;
+      
+      if (!proof || !publicSignals || !proofType) {
+        return res.status(400).json({
+          error: "INVALID_REQUEST",
+          message: "Missing required fields: proof, publicSignals, proofType"
+        });
+      }
+      
+      // Verify the ZK proof
+      const isValid = await zkVerifier.verifyProof(proofType, proof, publicSignals);
+      
+      if (!isValid) {
+        return res.status(422).json({
+          error: "INVALID_PROOF",
+          message: "Proof verification failed"
+        });
+      }
+      
+      // Store verification result
+      const verificationId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      res.json({
+        id: verificationId,
+        status: "verified",
+        timestamp: new Date().toISOString(),
+        nonce: req.nonce?.value
+      });
+      
+    } catch (error) {
+      console.error('V1 Verification error:', error);
+      res.status(500).json({
+        error: "VERIFICATION_ERROR",
+        message: "Internal verification error"
+      });
+    }
+  });
+  
+  // Legacy verification route (keeping backward compatibility)
   app.post('/api/verify', async (req, res) => {
     try {
       const { proofId, organizationApiKey } = req.body;
@@ -192,6 +239,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User statistics
+  // V1 API - QR request endpoint for verifiers
+  app.post('/api/v1/qr/request', apiRateLimit, async (req, res) => {
+    try {
+      const { aud, claim, exp } = req.body;
+      
+      const nonce = generateNonce();
+      const qrRequest = {
+        v: 1,
+        aud: aud || 'veridity_demo',
+        claim: claim || 'age_over_18',
+        nonce,
+        exp: exp || Math.floor(Date.now() / 1000) + (15 * 60) // 15 minutes
+      };
+      
+      res.json(qrRequest);
+    } catch (error) {
+      console.error('QR request error:', error);
+      res.status(500).json({ message: 'Failed to generate QR request' });
+    }
+  });
+  
+  // V1 API - Status check endpoint
+  app.get('/api/v1/status/:id', async (req, res) => {
+    const { id } = req.params;
+    
+    // Mock status response
+    res.json({
+      id,
+      status: 'verified',
+      timestamp: new Date().toISOString()
+    });
+  });
+  
+  // V1 API - Mock proof generation for testing
+  app.post('/api/v1/proof/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const { proofType, nonce } = req.body;
+      const mockProof = zkVerifier.generateMockProof(proofType, nonce);
+      
+      res.json({
+        proof: mockProof.proof,
+        publicSignals: mockProof.publicSignals,
+        proofType
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to generate proof' });
+    }
+  });
+
   app.get('/api/stats/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,9 +23,39 @@ export default function Share() {
   const { t } = useTranslation('en');
   const [activeTab, setActiveTab] = useState<'qr' | 'scan'>('qr');
   const [copying, setCopying] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+  const [brightness, setBrightness] = useState(1);
 
   // Mock sharing link for demonstration
   const mockSharingLink = "https://veridity.np/verify/abc123def456";
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (activeTab === 'qr' && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [activeTab, timeLeft]);
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Boost brightness for QR code
+  const boostBrightness = () => {
+    setBrightness(1.2);
+    document.body.style.filter = 'brightness(120%)';
+  };
+
+  const resetBrightness = () => {
+    setBrightness(1);
+    document.body.style.filter = '';
+  };
 
   const shareOptions = [
     {
@@ -142,21 +172,49 @@ export default function Share() {
                 <CardTitle className="text-center">Your Verification QR</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* QR Code Placeholder */}
+                {/* QR Code Display */}
                 <div className="flex justify-center">
-                  <div className="w-64 h-64 bg-white rounded-2xl flex items-center justify-center apple-shadow">
-                    <div className="w-56 h-56 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center">
-                      <QrCode className="h-24 w-24 text-gray-400" />
-                    </div>
+                  <div 
+                    className="w-72 h-72 bg-white rounded-2xl flex items-center justify-center apple-shadow cursor-pointer transition-transform hover:scale-105"
+                    style={{ filter: `brightness(${brightness})` }}
+                    onClick={boostBrightness}
+                    onMouseLeave={resetBrightness}
+                  >
+                    {timeLeft > 0 ? (
+                      <div className="w-64 h-64 border-4 border-gray-900 rounded-xl flex items-center justify-center bg-white">
+                        <div className="text-center">
+                          <QrCode className="h-32 w-32 text-gray-900 mx-auto mb-2" />
+                          <div className="text-xs text-gray-600 font-mono">
+                            {mockSharingLink.slice(-12)}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center text-gray-400">
+                        <Clock className="h-16 w-16 mx-auto mb-2" />
+                        <p className="text-sm">QR Code Expired</p>
+                        <Button size="sm" className="mt-2" onClick={() => setTimeLeft(15 * 60)}>
+                          Generate New
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* QR Info */}
                 <div className="text-center space-y-4">
-                  <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>Expires in 14:32</span>
+                  <div className="flex items-center justify-center space-x-2 text-sm">
+                    <Clock className={`h-4 w-4 ${timeLeft < 60 ? 'text-destructive' : 'text-muted-foreground'}`} />
+                    <span className={timeLeft < 60 ? 'text-destructive font-medium' : 'text-muted-foreground'}>
+                      Expires in {formatTime(timeLeft)}
+                    </span>
                   </div>
+                  
+                  {timeLeft < 60 && (
+                    <div className="p-2 bg-destructive/10 border border-destructive/20 rounded-lg">
+                      <p className="text-xs text-destructive">QR code expires soon! Generate a new one if needed.</p>
+                    </div>
+                  )}
                   
                   <div className="flex items-center justify-center space-x-2">
                     <Button

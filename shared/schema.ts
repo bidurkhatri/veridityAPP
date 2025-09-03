@@ -79,8 +79,56 @@ export const organizations = pgTable("organizations", {
   apiKey: varchar("api_key").unique(),
   isActive: boolean("is_active").default(true),
   allowedProofTypes: jsonb("allowed_proof_types").default([]), // Array of proof type IDs
+  ipAllowlist: jsonb("ip_allowlist").default([]), // Array of CIDR blocks
+  webhookUrl: varchar("webhook_url"),
+  webhookSecret: varchar("webhook_secret"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Status lists for credential revocation
+export const statusLists = pgTable("status_lists", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  listType: varchar("list_type").notNull(), // 'vc_statuslist', 'crl'
+  bitstring: text("bitstring").notNull(), // compressed bitstring as base64
+  version: integer("version").notNull().default(1),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Verifiable Credentials with status tracking
+export const credentials = pgTable("credentials", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  claimType: varchar("claim_type").notNull(),
+  vcJwt: text("vc_jwt"), // SD-JWT or JWS
+  status: varchar("status").notNull().default("active"), // active|revoked|expired
+  statusListId: varchar("status_list_id").references(() => statusLists.id),
+  statusIndex: integer("status_index"),
+  createdAt: timestamp("created_at").defaultNow(),
+  revokedAt: timestamp("revoked_at"),
+});
+
+// Nonce tracking for replay protection
+export const nonces = pgTable("nonces", {
+  id: varchar("id").primaryKey(),
+  partnerId: varchar("partner_id").notNull().references(() => organizations.id),
+  nonce: varchar("nonce").notNull(),
+  usedAt: timestamp("used_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+}, (table) => [
+  index("idx_nonce_partner").on(table.partnerId, table.nonce),
+  index("idx_nonce_expires").on(table.expiresAt),
+]);
+
+// Rate limiting tracking
+export const rateLimits = pgTable("rate_limits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  identifier: varchar("identifier").notNull(), // partner_id or IP
+  window: timestamp("window").notNull(),
+  count: integer("count").notNull().default(1),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_rate_limit_window").on(table.identifier, table.window),
+]);
 
 // Audit logs for compliance and monitoring
 export const auditLogs = pgTable("audit_logs", {
@@ -90,7 +138,19 @@ export const auditLogs = pgTable("audit_logs", {
   entityId: varchar("entity_id"),
   userId: varchar("user_id").references(() => users.id),
   organizationId: varchar("organization_id").references(() => organizations.id),
+  ipAddress: varchar("ip_address"),
+  userAgent: varchar("user_agent"),
   metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Signed audit digests for tamper-proof logs
+export const auditDigests = pgTable("audit_digests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fromTs: timestamp("from_ts").notNull(),
+  toTs: timestamp("to_ts").notNull(),
+  merkleRoot: varchar("merkle_root").notNull(),
+  signature: text("signature").notNull(), // GPG/ed25519
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -122,7 +182,33 @@ export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   createdAt: true,
 });
 
+export const insertCredentialSchema = createInsertSchema(credentials).omit({
+  id: true,
+  createdAt: true,
+  revokedAt: true,
+});
+
+ export const insertStatusListSchema = createInsertSchema(statusLists).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const insertNonceSchema = createInsertSchema(nonces).omit({
+  id: true,
+  usedAt: true,
+});
+
+export const insertRateLimitSchema = createInsertSchema(rateLimits).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAuditDigestSchema = createInsertSchema(auditDigests).omit({
   id: true,
   createdAt: true,
 });
@@ -138,5 +224,15 @@ export type InsertVerification = z.infer<typeof insertVerificationSchema>;
 export type Verification = typeof verifications.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 export type Organization = typeof organizations.$inferSelect;
+export type InsertCredential = z.infer<typeof insertCredentialSchema>;
+export type Credential = typeof credentials.$inferSelect;
+export type InsertStatusList = z.infer<typeof insertStatusListSchema>;
+export type StatusList = typeof statusLists.$inferSelect;
+export type InsertNonce = z.infer<typeof insertNonceSchema>;
+export type Nonce = typeof nonces.$inferSelect;
+export type InsertRateLimit = z.infer<typeof insertRateLimitSchema>;
+export type RateLimit = typeof rateLimits.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditDigest = z.infer<typeof insertAuditDigestSchema>;
+export type AuditDigest = typeof auditDigests.$inferSelect;

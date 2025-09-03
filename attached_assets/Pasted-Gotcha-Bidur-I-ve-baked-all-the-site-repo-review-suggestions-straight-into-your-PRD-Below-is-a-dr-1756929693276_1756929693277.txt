@@ -1,0 +1,252 @@
+Gotcha, Bidur. I’ve baked all the site/repo review suggestions straight into your PRD. Below is a drop-in PRD v1.1 addendum you can paste into your main doc, plus a ready-to-use prompt you can feed to your design/eng tools to implement it.
+
+⸻
+
+Prompt: Update the Veridity PRD to v1.1 (Security, ZK Realness, Enterprise Readiness)
+
+Role: You are a Staff Product/Engineering team updating the Veridity PRD.
+Context: The v1.0 PRD is done. We reviewed veridity.net + repo and are incorporating improvements for credibility, security, and partner readiness.
+Deliverable: Apply the following v1.1 Addendum sections into the PRD; preserve the original structure and merge these specs, KPIs, APIs, and acceptance criteria. Where there’s conflict, v1.1 supersedes v1.0.
+
+⸻
+
+Veridity — PRD v1.1 Addendum (Integrating Site/Repo Review)
+
+0) Executive deltas
+	•	Make ZK verifiable in public: publish minimal circuits + end-to-end proof/verify path.
+	•	Harden transport & abuse controls: strict CSP/HSTS, nonce replay guard, rate limits.
+	•	API discoverability: OpenAPI 3.1 + SDKs + Postman “Try it”.
+	•	User safety: wallet backup/restore with passkeys/mnemonic; no PII exfil.
+	•	Enterprise readiness: VC/SD-JWT selective disclosure, revocation lists, verifier SDK/QR, admin key rotation + IP allowlists, signed audit logs.
+	•	Ops: OTEL tracing, SLOs, dashboards.
+
+⸻
+
+1) Updated KPIs (add to §2)
+	•	Crypto credibility: public repo CI job zkp:test → 100% pass (proof verifies) on main.
+	•	Security headers: Mozilla Observatory grade A on web; CSP violations 0/week.
+	•	Abuse: replayed nonce 409 rate ≈100%; p95 /verify latency <200ms server-side.
+	•	API DX: OpenAPI coverage 100%; SDKs (TS/Python) published; Postman importable.
+	•	Wallet safety: successful restore on new device ≥99% test pass; backup opt-in >60%.
+	•	Revocation freshness: status list propagation <60s p95.
+	•	Observability: trace coverage >80% of verify path; webhook delivery success ≥99.5%.
+
+⸻
+
+2) Feature specs (new & changed)
+
+2.1 ZK pipeline (public, minimal)
+
+What: Ship Age ≥18 and Age ≥21 circuits publicly with build scripts, proving/verification keys (or checksummed remote), and client-side proving WASM.
+UX: “Creating a private proof on your device…” sheet; no raw DOB exposed.
+Acceptance: bun run zkp:test generates proof locally and server verifies via Groth16.
+
+Tech notes
+	•	Repo /circuits: age.circom, Powers of Tau transcript link, *.wasm, *.zkey, verification_key.json.
+	•	Client: witness gen → prove → send {proof, publicSignals} only.
+	•	Server: snarkjs.groth16.verify(vKey, publicSignals, proof); persist metadata + hash only.
+
+⸻
+
+2.2 Transport security & abuse controls
+
+What: Strict headers + replay guard + rate limiter.
+Acceptance: Observatory A; second use of {nonce, verifier} returns 409; over-limit returns 429.
+
+Tech notes
+	•	CSP: default-src 'self'; Next script hashes; frame-ancestors 'none'; connect only to API.
+	•	HSTS, COOP/COEP, Referrer-Policy, Permissions-Policy.
+	•	Redis/KV keys:
+	•	nonce:{partner_id}:{nonce} TTL 24h (SETNX)
+	•	Rate: rl:{partner_id}:{minute} + IP overlay
+
+⸻
+
+2.3 API discoverability
+
+What: OpenAPI 3.1 spec for /api/v1/verify, /api/v1/status/{id}, /api/admin/*, webhooks; auto-gen SDKs (TS/Python) and Postman collection.
+Acceptance: Docs site renders derived endpoints; cURL examples match schema; partners can npm i @veridity/sdk.
+
+⸻
+
+2.4 Wallet backup & recovery
+
+What: End-to-end encrypted backup using Passkeys (WebAuthn) with 12-word mnemonic fallback.
+UX: Settings → Security → “Enable Backup”; shows success state; restore on new device via passkey or mnemonic.
+Acceptance: QA proves restore works without server seeing plaintext.
+
+Tech notes
+	•	Derive vault key from platform credential; store encrypted blob in iCloud/Drive (user account), not on Veridity servers.
+
+⸻
+
+2.5 Verifier SDK & QR protocol
+
+What: A compact, signed QR request and offline verifier page/app.
+QR request (by verifier)
+
+{ "v":1, "aud":"org_abc", "claim":"age_over_18", "nonce":"base64url-16B", "exp": 1738371200 }
+
+QR response (by user)
+
+{ "proof":"<groth16>", "signals":["<hash(nonce|aud|claim|ver)>","1"], "sig":"userSig(payload)" }
+
+Acceptance: Offline verifier validates signature + proof without network; displays clear “Verified/Rejected”.
+
+⸻
+
+2.6 Verifiable Credentials (VC/SD-JWT)
+
+What: Wrap proofs as W3C VC; support SD-JWT (or BBS+) for selective disclosure; Presentation Exchange for verifiers.
+UX: Share → “As VC” option; History shows status (Active/Revoked/Expired).
+Acceptance: Verifier demo accepts VP with requested fields only.
+
+⸻
+
+2.7 Revocation & status lists
+
+What: Implement StatusList-style bitstring or CRL; Admin toggles credential status (Active/Revoked).
+Acceptance: Clients reflect changes <60s; verifiers reject revoked credentials.
+
+⸻
+
+2.8 Admin key management & audit
+
+What: Admin UI to create/rotate API keys with scopes + IP allowlists; append-only audit logs with signed digests; CSV/JSON export.
+Acceptance: Rotation does not break existing sessions; audit export contains actor, action, timestamp, IP.
+
+⸻
+
+2.9 Observability
+
+What: OTEL tracing for /verify path, Redis/DB calls; metrics dashboard for latency, webhook success, nonce replays.
+Acceptance: Traces viewable end-to-end; SLO alerts wired.
+
+⸻
+
+3) IA/UX adjustments (merge with §8–§12)
+	•	Share screen: primary “Show QR”, secondary “Copy link (expires in 15:00)” with live countdown; full-screen QR with brightness boost.
+	•	History: quick filters (All/Verified/Pending/Failed); empty state; export.
+	•	Settings: Security section with Passkey/Mnemonic backup; Danger Zone unchanged.
+	•	Onboarding: background pre-download of selected circuits; show “Preparing proof components…” once.
+	•	A11y: WCAG 2.2 AA pass; Nepali font fallback; focus order & SR labels audited.
+
+⸻
+
+4) Data model deltas (add to §11)
+
+ALTER TABLE api_clients ADD COLUMN ip_allowlist CIDR[] DEFAULT '{}';
+
+CREATE TABLE status_lists (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  list_type TEXT NOT NULL,                -- 'vc_statuslist', 'crl'
+  bitstring BYTEA NOT NULL,               -- compressed
+  version INT NOT NULL DEFAULT 1,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE credentials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id),
+  claim_type TEXT NOT NULL,
+  vc_jwt TEXT,                             -- SD-JWT or JWS
+  status TEXT NOT NULL DEFAULT 'active',   -- active|revoked|expired
+  created_at TIMESTAMPTZ DEFAULT now(),
+  revoked_at TIMESTAMPTZ
+);
+
+-- Signed audit digests (optional)
+CREATE TABLE audit_digests (
+  id BIGSERIAL PRIMARY KEY,
+  from_ts TIMESTAMPTZ, to_ts TIMESTAMPTZ,
+  merkle_root TEXT NOT NULL,
+  signature TEXT NOT NULL,                -- GPG/ed25519
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+
+⸻
+
+5) API changes (merge with §10)
+	•	New: POST /api/v1/qr/request (verifier issues nonce request)
+	•	New: POST /api/v1/verify (v1 already defined; enforce nonce replay & idempotency)
+	•	New: GET /api/v1/status/{proof_id}
+	•	New: POST /api/admin/clients (scoped keys, IP allowlist, webhook)
+	•	New: GET /api/admin/audit?from&to (export)
+	•	New: GET /api/v1/statuslist/{id} (VC status list fetch)
+	•	Docs: OpenAPI 3.1 published; SDKs generated; Postman collection included.
+
+Headers & controls
+	•	X-Api-Key (partners), Idempotency-Key (optional), HMAC for webhooks.
+	•	429 on limit; 409 on replay; 422 invalid proof.
+
+⸻
+
+6) Acceptance criteria (add to §18)
+
+Proof E2E (public)
+	•	When running bun run zkp:test, then CI prints VERIFIED: true and exits 0.
+
+Security headers
+	•	Lab scan shows CSP/HSTS/COOP/COEP present; Observatory grade A.
+
+Nonce replay
+	•	Given a used nonce, when re-submitted, then server returns 409 with NONCE_REPLAY.
+
+Backup/restore
+	•	Given a user enables backup, when reinstalling on new device, then wallet restores with passkey or mnemonic, without server plaintext.
+
+Revocation
+	•	Given a credential revoked in Admin, when verifier checks, then status reflects within 60s and verification fails.
+
+API DX
+	•	Given OpenAPI spec, when generating SDKs, then example code runs against the sandbox successfully.
+
+⸻
+
+7) Timeline (revise §21)
+	•	Next 30 days (P0): circuits + CI E2E; CSP/HSTS; replay/rate limit; OpenAPI + SDKs + Postman; backup/restore MVP.
+	•	60 days (P1): VC/SD-JWT + Presentation Exchange; revocation; QR protocol + offline verifier; admin key mgmt; signed audit logs.
+	•	90 days (P2): a11y pass; telemetry dashboards; additional proofs (Citizenship/Income); partner sandbox program.
+
+⸻
+
+8) Engineering backlog (copy/paste to GitHub)
+
+P0
+	•	ZK: Age circuits + client prove + server verify + CI zkp:test.
+	•	Security headers (CSP/HSTS/COOP/COEP/Referrer/Permissions).
+	•	Redis KV nonce replay guard + rate limiter.
+	•	OpenAPI 3.1 + SDKs (TS/Python) + Postman collection.
+	•	Wallet backup (Passkey + mnemonic) + restore flow.
+
+P1
+	•	VC/SD-JWT wrapping + VP flow + verifier request/definition.
+	•	Status list service + fetch endpoint + UI badges.
+	•	Verifier QR protocol + offline verifier web page/app.
+	•	Admin: API key scopes, rotation, IP allowlists; full audit trail; CSV/JSON export.
+	•	OTEL traces + metrics dashboard + webhook retry SLOs.
+
+P2
+	•	A11y audit fixes; Nepali typography polish.
+	•	Onboarding WASM prefetch + progress hints.
+	•	Cost transparency in Admin (usage→bill estimates).
+
+⸻
+
+9) Risks & mitigations (update §20)
+	•	“Crypto-theater” risk → Mitigate by open circuits + CI proof verification.
+	•	Backup misuse → Clear copy, user education, and PIN/biometric gate before showing mnemonic.
+	•	Regulatory shifts → Use VC/SD-JWT standards to remain interoperable.
+
+⸻
+
+Improvements (what changed & why)
+	•	Adds verifiable cryptography in public (trust).
+	•	Locks down abuse vectors (replay, rate) and transport (CSP/HSTS).
+	•	Makes API integrator-friendly (OpenAPI/SDKs/Postman).
+	•	Protects users with backup/restore; supports enterprise via VC/SD-JWT, revocation, and admin controls.
+	•	Enables operational insight (OTEL & SLOs).
+
+Techniques used
+	•	Role/context framing, explicit acceptance criteria, API/DB deltas, security constraints, and a time-phased roadmap.

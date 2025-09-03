@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@shared/schema";
 import { useTranslation } from "@/lib/i18n";
 import { AppHeader } from "@/components/AppHeader";
+import { WalletBackup } from "@/components/WalletBackup";
 import {
   Settings as SettingsIcon,
   User as UserIcon,
@@ -125,6 +126,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Wallet Backup */}
+        <WalletBackup />
 
         {/* Privacy Settings */}
         <Card className="apple-card apple-glass border-0 apple-shadow">
