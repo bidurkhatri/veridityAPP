@@ -73,12 +73,12 @@ export default function History() {
 
   const historyData = proofs.length > 0 ? proofs : mockProofs;
 
-  // Filter proofs based on search and status
-  const filteredProofs = historyData.filter(proof => {
-    const matchesSearch = proof.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proof.organization.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || proof.status === filterStatus;
-    return matchesSearch && matchesStatus;
+  // Filter and search functionality
+  const filteredData = historyData.filter(item => {
+    const matchesSearch = item.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.organization.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterStatus === 'all' || item.status === filterStatus;
+    return matchesSearch && matchesFilter;
   });
 
   const getStatusIcon = (status: string) => {
@@ -87,44 +87,53 @@ export default function History() {
         return <CheckCircle className="h-4 w-4 text-success" />;
       case 'failed':
         return <XCircle className="h-4 w-4 text-destructive" />;
-      case 'pending':
-        return <Clock className="h-4 w-4 text-accent" />;
       default:
-        return <Clock className="h-4 w-4 text-muted-foreground" />;
+        return <Clock className="h-4 w-4 text-warning" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const variant = status === 'verified' ? 'default' : status === 'failed' ? 'destructive' : 'secondary';
-    const text = language === 'np' ? 
-      (status === 'verified' ? 'प्रमाणित' : status === 'failed' ? 'असफल' : 'पेन्डिंग') :
-      status;
-    return <Badge variant={variant}>{text}</Badge>;
+    switch (status) {
+      case 'verified':
+        return <Badge className="bg-success/10 text-success border-success/20">{status}</Badge>;
+      case 'failed':
+        return <Badge variant="destructive">{status}</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const options: Intl.DateTimeFormatOptions = {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    };
-    
-    if (language === 'np') {
-      // For Nepali, show English date with Nepali label
-      return date.toLocaleDateString('en-US', options);
-    }
-    
-    return date.toLocaleDateString('en-US', options);
+    });
   };
 
-  const statsData = {
-    total: historyData.length,
-    verified: historyData.filter(p => p.status === 'verified').length,
-    pending: historyData.filter(p => p.status === 'pending').length,
-    failed: historyData.filter(p => p.status === 'failed').length
+  const exportToCSV = () => {
+    const headers = ['Type', 'Organization', 'Status', 'Created', 'Reference ID'];
+    const rows = historyData.map(item => [
+      item.type,
+      item.organization,
+      item.status,
+      formatDate(item.createdAt),
+      item.referenceId
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'proof-history.csv';
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -136,36 +145,40 @@ export default function History() {
       />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Stats Cards */}
+        {/* Overview Stats */}
         <div className="grid grid-cols-2 gap-4">
           <Card className="apple-card apple-glass border-0 apple-shadow">
-            <CardContent className="p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {language === 'np' ? 'कुल प्रमाणहरू' : 'Total Proofs'}
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Total Proofs
                   </p>
-                  <p className="text-xl font-bold apple-gradient-text" data-testid="stat-total-history">
-                    {statsData.total}
+                  <p className="text-2xl font-bold apple-gradient-text" data-testid="stat-total-history">
+                    {historyData.length}
                   </p>
                 </div>
-                <HistoryIcon className="h-8 w-8 text-primary" />
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-600 rounded-xl flex items-center justify-center apple-shadow">
+                  <HistoryIcon className="h-5 w-5 text-white" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="apple-card apple-glass border-0 apple-shadow">
-            <CardContent className="p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {language === 'np' ? 'प्रमाणित' : 'Verified'}
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Verified
                   </p>
-                  <p className="text-xl font-bold text-success" data-testid="stat-verified-history">
-                    {statsData.verified}
+                  <p className="text-2xl font-bold apple-gradient-text" data-testid="stat-verified-history">
+                    {historyData.filter(p => p.status === 'verified').length}
                   </p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-success" />
+                <div className="w-10 h-10 bg-gradient-to-br from-success to-emerald-500 rounded-xl flex items-center justify-center apple-shadow">
+                  <CheckCircle className="h-5 w-5 text-white" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -173,138 +186,115 @@ export default function History() {
 
         {/* Search and Filter */}
         <Card className="apple-card apple-glass border-0 apple-shadow">
-          <CardContent className="p-4 space-y-4">
+          <CardContent className="p-6 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={language === 'np' ? 'प्रमाण खोज्नुहोस्...' : 'Search proofs...'}
+                placeholder="Search proofs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 apple-input"
                 data-testid="input-search-history"
               />
             </div>
             
-            <div className="flex space-x-2">
-              {(['all', 'verified', 'pending', 'failed'] as const).map((status) => (
-                <Button
-                  key={status}
-                  variant={filterStatus === status ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setFilterStatus(status)}
-                  className={filterStatus === status ? 'apple-gradient apple-button border-0' : ''}
-                  data-testid={`filter-${status}`}
-                >
-                  {language === 'np' 
-                    ? (status === 'all' ? 'सबै' : status === 'verified' ? 'प्रमाणित' : status === 'pending' ? 'पेन्डिंग' : 'असफल')
-                    : status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)
-                  }
-                </Button>
-              ))}
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <div className="flex space-x-2">
+                {(['all', 'verified', 'failed', 'pending'] as const).map((status) => (
+                  <Button
+                    key={status}
+                    variant={filterStatus === status ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setFilterStatus(status)}
+                    className={filterStatus === status ? "apple-gradient apple-button border-0" : ""}
+                    data-testid={`filter-${status}`}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </Button>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* History List */}
-        <div className="space-y-3">
-          {filteredProofs.length === 0 ? (
-            <Card className="apple-card apple-glass border-0 apple-shadow">
-              <CardContent className="p-8 text-center">
-                <HistoryIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-medium text-foreground mb-2">
-                  {language === 'np' ? 'कुनै इतिहास फेला परेन' : 'No history found'}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {language === 'np' 
-                    ? 'तपाईंका प्रमाणीकरणहरू यहाँ देखाइनेछ'
-                    : 'Your verifications will appear here'
-                  }
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredProofs.map((proof) => (
+        {filteredData.length === 0 ? (
+          <Card className="apple-card apple-glass border-0 apple-shadow">
+            <CardContent className="p-12 text-center">
+              <HistoryIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No history found</h3>
+              <p className="text-muted-foreground mb-6">
+                You haven't generated any proofs yet.
+              </p>
+              <Button className="apple-gradient apple-button border-0" data-testid="button-create-first-proof">
+                Create Your First Proof
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {filteredData.map((proof) => (
               <Card key={proof.id} className="apple-card apple-glass border-0 apple-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-start space-x-3 flex-1">
-                      <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-4 flex-1">
+                      <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
                         <Shield className="h-5 w-5 text-primary" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">
-                          {proof.type}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {proof.organization}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Calendar className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(proof.createdAt)}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-semibold text-foreground">{proof.type}</h3>
+                          {getStatusBadge(proof.status)}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-1">{proof.organization}</p>
+                        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <span className="flex items-center space-x-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{formatDate(proof.createdAt)}</span>
                           </span>
+                          <span>ID: {proof.referenceId}</span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end space-y-2">
-                      {getStatusBadge(proof.status)}
-                      {getStatusIcon(proof.status)}
-                    </div>
-                  </div>
-                  
-                  <div className="border-t border-border/20 pt-3">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">ID:</span> {proof.referenceId}
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          data-testid={`button-view-${proof.id}`}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          {language === 'np' ? 'हेर्नुहोस्' : 'View'}
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          data-testid={`button-share-${proof.id}`}
-                        >
-                          <Share className="h-3 w-3 mr-1" />
-                          {language === 'np' ? 'साझेदारी' : 'Share'}
-                        </Button>
-                      </div>
+                    <div className="flex items-center space-x-2 ml-4">
+                      <Button variant="ghost" size="sm" data-testid={`button-view-${proof.id}`}>
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                      <Button variant="ghost" size="sm" data-testid={`button-share-${proof.id}`}>
+                        <Share className="h-4 w-4 mr-1" />
+                        Share
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Export Options */}
-        {filteredProofs.length > 0 && (
+        {historyData.length > 0 && (
           <Card className="apple-card apple-glass border-0 apple-shadow">
-            <CardContent className="p-4">
+            <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium text-foreground">
-                    {language === 'np' ? 'इतिहास निर्यात गर्नुहोस्' : 'Export History'}
-                  </h3>
+                  <CardTitle className="text-lg">Export History</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    {language === 'np' ? 'तपाईंको प्रमाणीकरण रेकर्ड डाउनलोड गर्नुहोस्' : 'Download your verification records'}
+                    Download your verification records
                   </p>
                 </div>
-                <Button 
-                  variant="outline"
-                  data-testid="button-export-history"
+                <Button
+                  onClick={exportToCSV}
+                  className="apple-gradient apple-button border-0"
+                  data-testid="button-export-csv"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  {language === 'np' ? 'PDF' : 'Export PDF'}
+                  Export PDF
                 </Button>
               </div>
-            </CardContent>
+            </CardHeader>
           </Card>
         )}
       </main>

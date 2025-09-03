@@ -7,150 +7,78 @@ import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@shared/schema";
 import { useTranslation } from "@/lib/i18n";
 import { AppHeader } from "@/components/AppHeader";
-import { 
+import {
   Settings as SettingsIcon,
   User as UserIcon,
-  Lock,
   Shield,
   Bell,
-  Globe,
-  Trash2,
-  LogOut,
   Fingerprint,
-  Key,
-  Eye,
+  Trash2,
   Download,
   HelpCircle,
+  LogOut,
   ChevronRight,
-  CheckCircle
+  Mail,
+  Calendar
 } from "lucide-react";
 
 export default function Settings() {
   const { user } = useAuth();
   const { t } = useTranslation('en');
-  
-  // Settings state
-  const [biometricEnabled, setBiometricEnabled] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [offlineMode, setOfflineMode] = useState(false);
+  const [notifications, setNotifications] = useState(true);
+  const [biometric, setBiometric] = useState(false);
+  const [autoDelete, setAutoDelete] = useState(30);
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
   };
 
-  const settingSections = [
+  const settingsOptions = [
     {
-      title: language === 'np' ? 'खाता' : 'Account',
-      items: [
-        {
-          icon: UserIcon,
-          title: language === 'np' ? 'प्रोफाइल जानकारी' : 'Profile Information',
-          description: language === 'np' ? 'तपाईंको व्यक्तिगत विवरण' : 'Your personal details',
-          action: () => console.log('Edit profile'),
-          testId: "setting-profile"
-        },
-        {
-          icon: Globe,
-          title: language === 'np' ? 'भाषा' : 'Language',
-          description: language === 'np' ? 'इन्टरफेस भाषा परिवर्तन गर्नुहोस्' : 'Change interface language',
-          action: () => console.log('Change language'),
-          testId: "setting-language",
-          rightElement: <Badge variant="secondary">{language === 'np' ? 'नेपाली' : 'English'}</Badge>
-        }
-      ]
+      title: 'Notifications',
+      description: 'Alerts for new verifications',
+      value: notifications,
+      onChange: setNotifications,
+      testId: "toggle-notifications"
     },
     {
-      title: language === 'np' ? 'सुरक्षा' : 'Security',
-      items: [
-        {
-          icon: Lock,
-          title: language === 'np' ? 'PIN परिवर्तन गर्नुहोस्' : 'Change PIN',
-          description: language === 'np' ? '६-अंकको सुरक्षा PIN' : '6-digit security PIN',
-          action: () => console.log('Change PIN'),
-          testId: "setting-pin"
-        },
-        {
-          icon: Fingerprint,
-          title: language === 'np' ? 'बायोमेट्रिक लक' : 'Biometric Lock',
-          description: language === 'np' ? 'फिंगरप्रिन्ट वा चेहरा ID' : 'Fingerprint or Face ID',
-          action: () => setBiometricEnabled(!biometricEnabled),
-          testId: "setting-biometric",
-          rightElement: <Switch checked={biometricEnabled} onCheckedChange={setBiometricEnabled} />
-        },
-        {
-          icon: Key,
-          title: language === 'np' ? 'डेटा निर्यात गर्नुहोस्' : 'Export Data',
-          description: language === 'np' ? 'तपाईंको प्रमाण डेटा डाउनलोड गर्नुहोस्' : 'Download your proof data',
-          action: () => console.log('Export data'),
-          testId: "setting-export"
-        }
-      ]
-    },
-    {
-      title: language === 'np' ? 'गोपनीयता' : 'Privacy',
-      items: [
-        {
-          icon: Bell,
-          title: language === 'np' ? 'सूचनाहरू' : 'Notifications',
-          description: language === 'np' ? 'प्रमाणीकरण अद्यावधिकहरू' : 'Verification updates',
-          action: () => setNotificationsEnabled(!notificationsEnabled),
-          testId: "setting-notifications",
-          rightElement: <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
-        },
-        {
-          icon: Shield,
-          title: language === 'np' ? 'अफलाइन मोड' : 'Offline Mode',
-          description: language === 'np' ? 'इन्टरनेट बिना प्रमाण उत्पन्न गर्नुहोस्' : 'Generate proofs without internet',
-          action: () => setOfflineMode(!offlineMode),
-          testId: "setting-offline",
-          rightElement: <Switch checked={offlineMode} onCheckedChange={setOfflineMode} />
-        },
-        {
-          icon: Eye,
-          title: language === 'np' ? 'डेटा दृश्यता' : 'Data Visibility',
-          description: language === 'np' ? 'के डेटा स्थानीय रूपमा भण्डारण गरिएको छ' : 'What data is stored locally',
-          action: () => console.log('View data'),
-          testId: "setting-data-visibility"
-        }
-      ]
-    },
-    {
-      title: language === 'np' ? 'सहायता' : 'Support',
-      items: [
-        {
-          icon: HelpCircle,
-          title: language === 'np' ? 'सहायता केन्द्र' : 'Help Center',
-          description: language === 'np' ? 'FAQ र गाइडहरू' : 'FAQs and guides',
-          action: () => window.open('/help', '_blank'),
-          testId: "setting-help"
-        },
-        {
-          icon: Download,
-          title: language === 'np' ? 'डेटा डाउनलोड गर्नुहोस्' : 'Download Data',
-          description: language === 'np' ? 'तपाईंको सम्पूर्ण डेटा निर्यात गर्नुहोस्' : 'Export all your data',
-          action: () => console.log('Download all data'),
-          testId: "setting-download-all"
-        }
-      ]
+      title: 'Biometric Security',
+      description: 'Face or fingerprint access',
+      value: biometric,
+      onChange: setBiometric,
+      testId: "toggle-biometric"
     }
   ];
 
-  const dangerZone = [
+  const menuItems = [
     {
-      icon: LogOut,
-      title: language === 'np' ? 'लगआउट' : 'Log Out',
-      description: language === 'np' ? 'सबै यन्त्रहरूबाट बाहिर निस्कनुहोस्' : 'Sign out from all devices',
-      action: handleLogout,
-      testId: "setting-logout",
-      variant: 'secondary' as const
+      title: 'Privacy Policy',
+      description: 'How we protect your data',
+      icon: Shield,
+      href: '/privacy',
+      testId: 'link-privacy'
     },
     {
+      title: 'Help & Support',
+      description: 'Get help and contact us',
+      icon: HelpCircle,
+      href: '/help',
+      testId: 'link-help'
+    },
+    {
+      title: 'Export Data',
+      description: 'Download your verification history',
+      icon: Download,
+      action: () => console.log('Export data'),
+      testId: 'button-export'
+    },
+    {
+      title: 'Delete Account',
+      description: 'Permanently remove your account',
       icon: Trash2,
-      title: language === 'np' ? 'खाता मेटाउनुहोस्' : 'Delete Account',
-      description: language === 'np' ? 'स्थायी रूपमा तपाईंको डेटा हटाउनुहोस्' : 'Permanently remove your data',
       action: () => console.log('Delete account'),
-      testId: "setting-delete-account",
-      variant: 'destructive' as const
+      destructive: true,
+      testId: 'button-delete-account'
     }
   ];
 
@@ -163,127 +91,149 @@ export default function Settings() {
       />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* User Profile Card */}
+        {/* User Profile */}
         <Card className="apple-card apple-glass border-0 apple-shadow">
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-600 rounded-2xl flex items-center justify-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center apple-shadow">
                 {(user as User)?.profileImageUrl ? (
                   <img 
                     src={(user as User).profileImageUrl!} 
                     alt="Profile" 
-                    className="w-full h-full rounded-2xl object-cover"
+                    className="w-16 h-16 rounded-full object-cover"
                   />
                 ) : (
                   <UserIcon className="h-8 w-8 text-white" />
                 )}
               </div>
               <div className="flex-1">
-                <h2 className="font-bold text-lg text-foreground">
-                  {(user as User)?.firstName ? `${(user as User).firstName} ${(user as User)?.lastName || ''}`.trim() : 'User'}
+                <h2 className="text-xl font-bold apple-gradient-text">
+                  {(user as User)?.firstName || (user as User)?.email?.split('@')[0] || 'User'}
                 </h2>
-                <p className="text-sm text-muted-foreground">{(user as User)?.email}</p>
-                <div className="flex items-center space-x-2 mt-2">
-                  <CheckCircle className="h-4 w-4 text-success" />
-                  <span className="text-xs text-success font-medium">
-                    {language === 'np' ? 'प्रमाणित खाता' : 'Verified Account'}
-                  </span>
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <Mail className="h-4 w-4" />
+                  <span>{(user as User)?.email}</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>Member since {new Date((user as User)?.createdAt || '').toLocaleDateString()}</span>
+                </div>
+              </div>
+              <Badge className="bg-success/10 text-success border-success/20">
+                Verified
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Privacy Settings */}
+        <Card className="apple-card apple-glass border-0 apple-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Shield className="h-5 w-5" />
+              <span>Privacy & Security</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {settingsOptions.map((option, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">{option.title}</h3>
+                  <p className="text-sm text-muted-foreground">{option.description}</p>
+                </div>
+                <Switch
+                  checked={option.value}
+                  onCheckedChange={option.onChange}
+                  data-testid={option.testId}
+                />
+              </div>
+            ))}
+            
+            {/* Auto Delete Setting */}
+            <div className="border-t pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Auto-delete proofs</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically remove proofs after {autoDelete} days
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAutoDelete(Math.max(7, autoDelete - 7))}
+                    disabled={autoDelete <= 7}
+                    className="apple-button"
+                  >
+                    -
+                  </Button>
+                  <span className="min-w-[3rem] text-center font-medium">{autoDelete}d</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAutoDelete(Math.min(365, autoDelete + 7))}
+                    disabled={autoDelete >= 365}
+                    className="apple-button"
+                  >
+                    +
+                  </Button>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Settings Sections */}
-        {settingSections.map((section, sectionIndex) => (
-          <Card key={sectionIndex} className="apple-card apple-glass border-0 apple-shadow">
-            <CardHeader>
-              <CardTitle className="text-lg">{section.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1">
-              {section.items.map((item, itemIndex) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={itemIndex}
-                    onClick={item.action}
-                    className="w-full flex items-center p-4 rounded-xl hover:bg-muted/50 transition-colors group text-left"
-                    data-testid={item.testId}
-                  >
-                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mr-4">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-foreground">
-                        {item.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {item.description}
-                      </p>
-                    </div>
-                    {item.rightElement || (
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                    )}
-                  </button>
-                );
-              })}
-            </CardContent>
-          </Card>
-        ))}
-
-        {/* Danger Zone */}
-        <Card className="apple-card apple-glass border-0 apple-shadow border-destructive/20">
-          <CardHeader>
-            <CardTitle className="text-lg text-destructive">
-              {language === 'np' ? 'खतरनाक क्षेत्र' : 'Danger Zone'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            {dangerZone.map((item, index) => {
+        {/* Menu Items */}
+        <Card className="apple-card apple-glass border-0 apple-shadow">
+          <CardContent className="p-6 space-y-1">
+            {menuItems.map((item, index) => {
               const Icon = item.icon;
-              const textColor = item.variant === 'destructive' ? 'text-destructive' : 'text-foreground';
               return (
                 <button
                   key={index}
                   onClick={item.action}
-                  className="w-full flex items-center p-4 rounded-xl hover:bg-muted/50 transition-colors group text-left"
+                  className={`w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors text-left ${
+                    item.destructive ? 'hover:bg-destructive/10' : ''
+                  }`}
                   data-testid={item.testId}
                 >
-                  <div className="w-10 h-10 bg-destructive/10 rounded-xl flex items-center justify-center mr-4">
-                    <Icon className={`h-5 w-5 ${item.variant === 'destructive' ? 'text-destructive' : 'text-muted-foreground'}`} />
+                  <div className="flex items-center space-x-3">
+                    <Icon className={`h-5 w-5 ${item.destructive ? 'text-destructive' : 'text-muted-foreground'}`} />
+                    <div>
+                      <h3 className={`font-medium ${item.destructive ? 'text-destructive' : ''}`}>
+                        {item.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className={`font-medium ${textColor}`}>
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {item.description}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </button>
               );
             })}
           </CardContent>
         </Card>
 
-        {/* App Information */}
-        <Card className="apple-glass border-0 apple-shadow bg-muted/20">
-          <CardContent className="p-6 text-center">
-            <div className="space-y-2">
-              <h3 className="font-medium text-foreground">Veridity</h3>
-              <p className="text-sm text-muted-foreground">
-                {language === 'np' ? 'संस्करण १.०.०' : 'Version 1.0.0'}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {language === 'np' 
-                  ? 'नेपालको लागि गोपनीयता-केन्द्रित डिजिटल पहिचान'
-                  : 'Privacy-first digital identity for Nepal'
-                }
-              </p>
-            </div>
+        {/* Logout */}
+        <Card className="apple-card apple-glass border-0 apple-shadow">
+          <CardContent className="p-6">
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="w-full apple-button border-destructive/20 text-destructive hover:bg-destructive/10"
+              data-testid="button-logout"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
           </CardContent>
         </Card>
+
+        {/* App Version */}
+        <div className="text-center text-sm text-muted-foreground">
+          <p>Veridity v1.0.0</p>
+          <p>Privacy-first digital identity platform</p>
+        </div>
       </main>
     </div>
   );

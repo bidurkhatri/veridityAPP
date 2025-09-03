@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,12 +8,13 @@ import {
   QrCode, 
   Share as ShareIcon, 
   Camera, 
-  Copy, 
+  Copy,
   Download,
-  Link2,
-  Eye,
   Clock,
-  Shield
+  Shield,
+  CheckCircle,
+  AlertCircle,
+  Eye
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -20,35 +22,29 @@ export default function Share() {
   const [location, navigate] = useLocation();
   const { t } = useTranslation('en');
   const [activeTab, setActiveTab] = useState<'qr' | 'scan'>('qr');
+  const [copying, setCopying] = useState(false);
 
-  // Check if we should show scan tab first
-  const shouldScan = new URLSearchParams(window.location.search).get('scan') === 'true';
-  
-  if (shouldScan && activeTab === 'qr') {
-    setActiveTab('scan');
-  }
-
-  const mockQRData = "veridity://proof/verify/abc123def456";
-  const mockSharingLink = "https://veridity.app/verify/abc123def456";
+  // Mock sharing link for demonstration
+  const mockSharingLink = "https://veridity.np/verify/abc123def456";
 
   const shareOptions = [
     {
-      title: t('share.qr'),
-      description: t('share.qrDesc'),
+      title: "Show QR Code",
+      description: "For offline verification",
       icon: QrCode,
       action: () => setActiveTab('qr'),
       testId: "option-show-qr"
     },
     {
-      title: t('share.link'),
-      description: t('share.linkDesc', { time: '15 min' }),
+      title: "Copy Link",
+      description: "Expires in 15 minutes",
       icon: Copy,
       action: () => navigator.clipboard.writeText(mockSharingLink),
       testId: "option-copy-link"
     },
     {
-      title: t('share.download'),
-      description: t('share.downloadDesc'),
+      title: "Download PDF",
+      description: "Save as receipt",
       icon: Download,
       action: () => console.log('Download PDF'),
       testId: "option-download-pdf"
@@ -58,18 +54,18 @@ export default function Share() {
   const scanSteps = [
     {
       step: 1,
-      title: t('common.allow') + ' camera access',
-      description: 'Required to scan QR codes'
+      title: "Allow camera access",
+      description: "Required to scan QR codes"
     },
     {
       step: 2,
-      title: 'Scan QR code',
-      description: 'Point at organization\'s request QR'
+      title: "Scan QR code",
+      description: "Point at organization's request QR"
     },
     {
       step: 3,
-      title: 'Provide proof',
-      description: 'Your proof will be sent automatically'
+      title: "Provide proof",
+      description: "Your proof will be sent automatically"
     }
   ];
 
@@ -83,174 +79,185 @@ export default function Share() {
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Tab Navigation */}
-        <div className="flex p-1 bg-muted/30 rounded-xl">
-          <Button
-            variant={activeTab === 'qr' ? 'default' : 'ghost'}
-            className={`flex-1 ${activeTab === 'qr' ? 'apple-gradient apple-button border-0' : ''}`}
-            onClick={() => setActiveTab('qr')}
-            data-testid="tab-share"
-          >
-            <ShareIcon className="h-4 w-4 mr-2" />
-            {t('common.share')}
-          </Button>
-          <Button
-            variant={activeTab === 'scan' ? 'default' : 'ghost'}
-            className={`flex-1 ${activeTab === 'scan' ? 'apple-gradient apple-button border-0' : ''}`}
-            onClick={() => setActiveTab('scan')}
-            data-testid="tab-scan"
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            Scan
-          </Button>
-        </div>
+        <Card className="apple-card apple-glass border-0 apple-shadow">
+          <CardContent className="p-4">
+            <div className="flex rounded-xl bg-muted/20 p-1 space-x-1">
+              <Button
+                variant={activeTab === 'qr' ? 'default' : 'ghost'}
+                className={`flex-1 ${activeTab === 'qr' ? 'apple-gradient apple-button border-0' : ''}`}
+                onClick={() => setActiveTab('qr')}
+                data-testid="tab-share"
+              >
+                <ShareIcon className="h-4 w-4 mr-2" />
+                Share
+              </Button>
+              <Button
+                variant={activeTab === 'scan' ? 'default' : 'ghost'}
+                className={`flex-1 ${activeTab === 'scan' ? 'apple-gradient apple-button border-0' : ''}`}
+                onClick={() => setActiveTab('scan')}
+                data-testid="tab-scan"
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Scan
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-        {activeTab === 'qr' && (
+        {activeTab === 'qr' ? (
           <>
-            {/* Current Proof QR */}
-            <Card className="apple-card apple-glass border-0 apple-shadow text-center">
+            {/* Share Options */}
+            <div className="grid gap-4">
+              {shareOptions.map((option, index) => {
+                const Icon = option.icon;
+                return (
+                  <Card key={index} className="apple-card apple-glass border-0 apple-shadow">
+                    <CardContent className="p-6">
+                      <button
+                        onClick={option.action}
+                        className="w-full flex items-center space-x-4 text-left hover:bg-muted/20 rounded-lg transition-colors"
+                        data-testid={option.testId}
+                      >
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-600 rounded-xl flex items-center justify-center apple-shadow">
+                          <Icon className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-foreground">
+                            {option.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {option.description}
+                          </p>
+                        </div>
+                      </button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* QR Code Display */}
+            <Card className="apple-card apple-glass border-0 apple-shadow">
               <CardHeader>
-                <CardTitle className="text-xl">
-                  {language === 'np' ? 'मेरो प्रमाण QR' : 'My Proof QR'}
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  {language === 'np' ? 'अफलाइन प्रमाणीकरणको लागि यो QR देखाउनुहोस्' : 'Show this QR for offline verification'}
-                </p>
+                <CardTitle className="text-center">Your Verification QR</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* QR Code Display */}
+                {/* QR Code Placeholder */}
                 <div className="flex justify-center">
-                  <div className="w-48 h-48 bg-white rounded-2xl p-4 apple-shadow flex items-center justify-center">
-                    <div className="w-full h-full bg-black/10 rounded-xl flex items-center justify-center">
-                      <QrCode className="h-24 w-24 text-black/50" />
+                  <div className="w-64 h-64 bg-white rounded-2xl flex items-center justify-center apple-shadow">
+                    <div className="w-56 h-56 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center">
+                      <QrCode className="h-24 w-24 text-gray-400" />
                     </div>
                   </div>
                 </div>
 
                 {/* QR Info */}
-                <div className="space-y-2">
-                  <Badge variant="secondary" className="text-xs">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {language === 'np' ? 'सक्रिय' : 'Active'}
-                  </Badge>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    {mockQRData}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Share Options */}
-            <Card className="apple-card apple-glass border-0 apple-shadow">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  {language === 'np' ? 'साझेदारी विकल्पहरू' : 'Sharing Options'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {shareOptions.map((option, index) => {
-                  const Icon = option.icon;
-                  return (
-                    <button
-                      key={index}
-                      onClick={option.action}
-                      className="w-full flex items-center p-4 rounded-xl border border-border/20 hover:bg-muted/50 transition-colors group text-left"
-                      data-testid={option.testId}
+                <div className="text-center space-y-4">
+                  <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>Expires in 14:32</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        setCopying(true);
+                        await navigator.clipboard.writeText(mockSharingLink);
+                        setTimeout(() => setCopying(false), 2000);
+                      }}
+                      className="apple-button"
+                      data-testid="button-copy-link"
                     >
-                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
-                        <Icon className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground">
-                          {option.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {option.description}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
+                      <Copy className="h-4 w-4 mr-2" />
+                      {copying ? 'Copied!' : 'Copy Link'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="apple-button"
+                      data-testid="button-share-qr"
+                    >
+                      <ShareIcon className="h-4 w-4 mr-2" />
+                      Share
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Privacy Notice */}
+                <div className="bg-accent/10 border border-accent/20 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <Shield className="h-5 w-5 text-accent mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-sm text-accent">Privacy Protected</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        This QR contains only verification tokens. Your actual data never leaves your device.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </>
-        )}
-
-        {activeTab === 'scan' && (
+        ) : (
           <>
-            {/* Camera View Placeholder */}
-            <Card className="apple-card apple-glass border-0 apple-shadow">
-              <CardContent className="p-8 text-center">
-                <div className="w-full h-64 bg-black/5 rounded-2xl flex items-center justify-center mb-6">
-                  <div className="space-y-4">
-                    <Camera className="h-16 w-16 text-muted-foreground mx-auto" />
-                    <p className="text-muted-foreground">
-                      {language === 'np' ? 'क्यामेरा दृश्य यहाँ देखाइनेछ' : 'Camera view will appear here'}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <Button 
-                    className="apple-gradient apple-button border-0 shadow-lg px-8"
-                    data-testid="button-start-camera"
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    {language === 'np' ? 'क्यामेरा सुरु गर्नुहोस्' : 'Start Camera'}
-                  </Button>
-                  
-                  <Button variant="outline" data-testid="button-enter-code">
-                    {language === 'np' ? 'कोड प्रविष्ट गर्नुहोस्' : 'Enter Code Manually'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* How to Scan */}
+            {/* Scan Instructions */}
             <Card className="apple-card apple-glass border-0 apple-shadow">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <Eye className="h-5 w-5 mr-2 text-primary" />
-                  {language === 'np' ? 'स्क्यान कसरी गर्ने' : 'How to Scan'}
-                </CardTitle>
+                <CardTitle>How to Scan</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {scanSteps.map((step, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-semibold text-primary">{step.step}</span>
+                {scanSteps.map((step) => (
+                  <div key={step.step} className="flex items-start space-x-4">
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm font-medium">
+                      {step.step}
                     </div>
                     <div>
                       <h4 className="font-medium text-sm">{step.title}</h4>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {step.description}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{step.description}</p>
                     </div>
                   </div>
                 ))}
               </CardContent>
             </Card>
+
+            {/* Camera Placeholder */}
+            <Card className="apple-card apple-glass border-0 apple-shadow">
+              <CardContent className="p-8">
+                <div className="aspect-square bg-black rounded-2xl flex items-center justify-center mb-6">
+                  <div className="text-center text-white">
+                    <Camera className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm opacity-75">Camera view will appear here</p>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center space-x-4">
+                  <Button
+                    className="apple-gradient apple-button border-0 flex-1"
+                    data-testid="button-enable-camera"
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Enable Camera
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Scan Results */}
+            <Card className="apple-card apple-glass border-0 apple-shadow">
+              <CardHeader>
+                <CardTitle className="text-lg">Recent Scans</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="text-center py-8">
+                  <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No recent scans</p>
+                </div>
+              </CardContent>
+            </Card>
           </>
         )}
-
-        {/* Security Notice */}
-        <Card className="apple-glass border-0 apple-shadow bg-accent/5">
-          <CardContent className="p-6">
-            <div className="flex items-start space-x-3">
-              <Shield className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-sm text-foreground mb-1">
-                  {language === 'np' ? 'सुरक्षा नोट' : 'Security Note'}
-                </h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {language === 'np' 
-                    ? 'तपाईंको व्यक्तिगत डेटा कहिल्यै साझेदारी हुँदैन। केवल प्रमाण मात्र प्रसारित हुन्छ।'
-                    : 'Your personal data is never shared. Only the proof is transmitted.'
-                  }
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </main>
     </div>
   );
