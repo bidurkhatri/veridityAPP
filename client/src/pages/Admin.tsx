@@ -24,7 +24,7 @@ export default function Admin() {
   const { t } = useTranslation(language);
 
   // Fetch organizations
-  const { data: organizations = [] } = useQuery({
+  const { data: organizations = [] } = useQuery<any[]>({
     queryKey: ['/api/organizations'],
   });
 
@@ -46,9 +46,9 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background apple-blur-bg">
       {/* Header */}
-      <header className="bg-card border-b border-border">
+      <header className="apple-glass border-b border-border/20 backdrop-blur-md">
         <div className="container mx-auto px-4 py-3">
           <nav className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -87,16 +87,18 @@ export default function Admin() {
         
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
+          <Card className="apple-card apple-glass border-0 apple-shadow">
+            <CardContent className="p-8">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Today's Verifications</p>
-                  <p className="text-2xl font-bold text-primary" data-testid="stat-today-verifications">
+                  <p className="text-3xl font-bold apple-gradient-text" data-testid="stat-today-verifications">
                     {mockOrgStats.todayVerifications}
                   </p>
                 </div>
-                <Activity className="h-8 w-8 text-primary" />
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center apple-shadow">
+                  <Activity className="h-6 w-6 text-white" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -148,9 +150,9 @@ export default function Admin() {
           
           {/* Recent Verifications */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="apple-card apple-glass border-0 apple-shadow apple-fade-in">
               <CardHeader>
-                <CardTitle>Recent Verification Requests</CardTitle>
+                <CardTitle className="text-2xl">Recent Verification Requests</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -198,10 +200,10 @@ export default function Admin() {
           {/* API Integration & Organizations */}
           <div className="space-y-6">
             {/* API Status */}
-            <Card>
+            <Card className="apple-card apple-glass border-0 apple-shadow">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Code className="mr-2 h-5 w-5" />
+                <CardTitle className="flex items-center text-xl">
+                  <Code className="mr-3 h-6 w-6" />
                   API Integration
                 </CardTitle>
               </CardHeader>
@@ -235,13 +237,13 @@ export default function Admin() {
             </Card>
 
             {/* Registered Organizations */}
-            <Card>
+            <Card className="apple-card apple-glass border-0 apple-shadow">
               <CardHeader>
-                <CardTitle>Registered Organizations</CardTitle>
+                <CardTitle className="text-xl">Registered Organizations</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {organizations.slice(0, 5).map((org: any) => (
+                  {(organizations as any[]).slice(0, 5).map((org: any) => (
                     <div key={org.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -273,9 +275,9 @@ export default function Admin() {
             </Card>
 
             {/* Quick Actions */}
-            <Card>
+            <Card className="apple-card apple-glass border-0 apple-shadow">
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle className="text-xl">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button variant="outline" className="w-full justify-start" data-testid="button-export-logs">

@@ -24,7 +24,7 @@ export default function Verification() {
   const [verificationResult, setVerificationResult] = useState<any>(null);
 
   // Fetch organizations
-  const { data: organizations = [] } = useQuery({
+  const { data: organizations = [] } = useQuery<any[]>({
     queryKey: ['/api/organizations'],
   });
 
@@ -83,9 +83,9 @@ export default function Verification() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background apple-blur-bg">
       {/* Header */}
-      <header className="bg-card border-b border-border">
+      <header className="apple-glass border-b border-border/20 backdrop-blur-md">
         <div className="container mx-auto px-4 py-3">
           <nav className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -117,10 +117,10 @@ export default function Verification() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Verification Form */}
           <div className="space-y-6">
-            <Card>
+            <Card className="apple-card apple-glass border-0 apple-shadow apple-fade-in">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Search className="mr-2 h-5 w-5 text-secondary" />
+                <CardTitle className="flex items-center text-2xl">
+                  <Search className="mr-3 h-6 w-6 text-secondary" />
                   {t('nav.verify')}
                 </CardTitle>
               </CardHeader>
@@ -160,7 +160,7 @@ export default function Verification() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">No organization (public verification)</SelectItem>
-                      {organizations.map((org: any) => (
+                      {(organizations as any[]).map((org: any) => (
                         <SelectItem key={org.id} value={org.apiKey || org.id}>
                           {language === 'np' ? org.nameNepali || org.name : org.name}
                         </SelectItem>
@@ -172,7 +172,7 @@ export default function Verification() {
                 <Button 
                   onClick={handleVerify}
                   disabled={verifyMutation.isPending}
-                  className="w-full"
+                  className="w-full apple-gradient apple-button border-0 shadow-lg py-3"
                   data-testid="button-verify-proof"
                 >
                   {verifyMutation.isPending ? t('common.loading') : t('form.verify')}
@@ -181,10 +181,10 @@ export default function Verification() {
             </Card>
 
             {/* Information Card */}
-            <Card className="bg-accent/5 border-accent/20">
+            <Card className="apple-glass border-0 apple-shadow">
               <CardContent className="p-6">
-                <h3 className="font-medium text-foreground mb-3 flex items-center">
-                  <Shield className="mr-2 h-5 w-5 text-accent" />
+                <h3 className="font-bold text-foreground mb-4 flex items-center text-lg">
+                  <Shield className="mr-3 h-6 w-6 text-accent" />
                   How Verification Works
                 </h3>
                 <div className="space-y-2 text-sm text-muted-foreground">
@@ -197,9 +197,9 @@ export default function Verification() {
             </Card>
 
             {/* Recent Verifications */}
-            <Card>
+            <Card className="apple-card apple-glass border-0 apple-shadow">
               <CardHeader>
-                <CardTitle>Recent Verifications</CardTitle>
+                <CardTitle className="text-xl">Recent Verifications</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -256,13 +256,13 @@ export default function Verification() {
             )}
 
             {/* Organization Info */}
-            <Card>
+            <Card className="apple-card apple-glass border-0 apple-shadow">
               <CardHeader>
-                <CardTitle>Trusted Organizations</CardTitle>
+                <CardTitle className="text-xl">Trusted Organizations</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {organizations.slice(0, 4).map((org: any) => (
+                  {(organizations as any[]).slice(0, 4).map((org: any) => (
                     <div key={org.id} className="flex items-center space-x-3 p-3 bg-muted rounded-lg">
                       <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                         <Shield className="h-4 w-4 text-primary" />

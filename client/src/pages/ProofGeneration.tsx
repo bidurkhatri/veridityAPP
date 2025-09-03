@@ -27,7 +27,7 @@ export default function ProofGeneration() {
   const [currentStep, setCurrentStep] = useState(1);
 
   // Fetch proof types
-  const { data: proofTypes = [] } = useQuery({
+  const { data: proofTypes = [] } = useQuery<any[]>({
     queryKey: ['/api/proof-types'],
   });
 
@@ -338,9 +338,9 @@ export default function ProofGeneration() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background apple-blur-bg">
       {/* Header */}
-      <header className="bg-card border-b border-border">
+      <header className="apple-glass border-b border-border/20 backdrop-blur-md">
         <div className="container mx-auto px-4 py-3">
           <nav className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -403,33 +403,33 @@ export default function ProofGeneration() {
         </div>
 
         {currentStep === 1 && (
-          <Card>
+          <Card className="apple-card apple-glass border-0 apple-shadow apple-fade-in">
             <CardHeader>
-              <CardTitle>{t('form.proofType')}</CardTitle>
+              <CardTitle className="text-2xl">{t('form.proofType')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {proofTypes.map((proofType: any) => {
+                {(proofTypes as any[]).map((proofType: any) => {
                   const IconComponent = proofIcons[proofType.circuitId as keyof typeof proofIcons] || Calendar;
                   return (
                     <Card 
                       key={proofType.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow border-2 border-transparent hover:border-primary/20"
+                      className="cursor-pointer apple-card apple-glass border-0 group"
                       onClick={() => handleProofTypeChange(proofType.id)}
                       data-testid={`card-proof-type-${proofType.circuitId}`}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <IconComponent className="h-5 w-5 text-primary" />
+                      <CardContent className="p-6">
+                        <div className="flex items-center space-x-4 mb-4">
+                          <div className="w-14 h-14 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center apple-shadow group-hover:scale-105 transition-transform">
+                            <IconComponent className="h-7 w-7 text-white" />
                           </div>
                           <div>
-                            <h3 className="font-medium text-foreground">
+                            <h3 className="font-bold text-foreground text-lg">
                               {language === 'np' ? proofType.nameNepali : proofType.name}
                             </h3>
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-muted-foreground leading-relaxed">
                           {language === 'np' ? proofType.descriptionNepali : proofType.description}
                         </p>
                       </CardContent>
@@ -442,10 +442,10 @@ export default function ProofGeneration() {
         )}
 
         {currentStep === 2 && selectedType && (
-          <Card>
+          <Card className="apple-card apple-glass border-0 apple-shadow apple-fade-in">
             <CardHeader>
-              <CardTitle>Enter Proof Details</CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <CardTitle className="text-2xl">Enter Proof Details</CardTitle>
+              <p className="text-muted-foreground">
                 Your data is processed locally and never shared in plaintext.
               </p>
             </CardHeader>
@@ -488,9 +488,9 @@ export default function ProofGeneration() {
         )}
 
         {currentStep === 3 && (
-          <Card>
+          <Card className="apple-card apple-glass border-0 apple-shadow apple-fade-in">
             <CardHeader>
-              <CardTitle>Generate Zero-Knowledge Proof</CardTitle>
+              <CardTitle className="text-2xl">Generate Zero-Knowledge Proof</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -525,6 +525,7 @@ export default function ProofGeneration() {
                   <Button 
                     onClick={handleGenerate}
                     disabled={generateProofMutation.isPending}
+                    className="apple-gradient apple-button border-0 shadow-lg px-8 py-3"
                     data-testid="button-generate-proof"
                   >
                     {generateProofMutation.isPending ? t('common.loading') : t('form.generate')}

@@ -8,28 +8,35 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-background apple-blur-bg relative overflow-hidden">
+      {/* Floating Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-40 right-20 w-48 h-48 bg-secondary/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-accent/5 rounded-full blur-3xl"></div>
+      </div>
+      
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center">
-              <Shield className="h-10 w-10 text-primary-foreground" />
+      <div className="container mx-auto px-4 py-16 relative z-10">
+        <div className="text-center mb-16 apple-fade-in">
+          <div className="flex justify-center mb-8">
+            <div className="w-24 h-24 apple-gradient rounded-3xl flex items-center justify-center apple-shadow apple-scale-in">
+              <Shield className="h-12 w-12 text-white" />
             </div>
           </div>
           
-          <h1 className="text-5xl font-bold text-foreground mb-4">
+          <h1 className="text-6xl font-bold apple-gradient-text mb-6">
             Veridity
           </h1>
-          <p className="text-xl text-muted-foreground mb-2">
+          <p className="text-2xl text-muted-foreground mb-3 font-medium">
             Privacy-First Digital Identity Platform
           </p>
-          <p className="text-lg text-muted-foreground mb-8 font-devanagari">
+          <p className="text-xl text-muted-foreground mb-12 font-devanagari font-medium">
             प्राइभेसी-केन्द्रित डिजिटल पहिचान प्लेटफर्म
           </p>
           
-          <div className="max-w-2xl mx-auto mb-8">
-            <p className="text-lg text-muted-foreground leading-relaxed">
+          <div className="max-w-3xl mx-auto mb-12">
+            <p className="text-xl text-muted-foreground leading-relaxed">
               Prove your identity attributes securely without revealing sensitive personal data. 
               Nepal's first zero-knowledge proof platform for secure digital verification.
             </p>
@@ -38,7 +45,7 @@ export default function Landing() {
           <Button 
             onClick={handleLogin}
             size="lg"
-            className="px-8 py-4 text-lg"
+            className="px-12 py-6 text-lg font-medium apple-gradient apple-button border-0 shadow-lg"
             data-testid="button-get-started"
           >
             Get Started
@@ -46,40 +53,40 @@ export default function Landing() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Lock className="h-6 w-6 text-primary" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 apple-fade-in">
+          <Card className="text-center apple-card apple-glass border-0">
+            <CardContent className="p-8">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-6 apple-shadow">
+                <Lock className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Zero-Knowledge Proofs</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-xl font-bold text-foreground mb-4">Zero-Knowledge Proofs</h3>
+              <p className="text-muted-foreground leading-relaxed">
                 Prove claims about yourself without revealing the underlying data. 
                 Your privacy is mathematically guaranteed.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Smartphone className="h-6 w-6 text-secondary" />
+          <Card className="text-center apple-card apple-glass border-0">
+            <CardContent className="p-8">
+              <div className="w-16 h-16 bg-gradient-to-br from-secondary to-accent rounded-2xl flex items-center justify-center mx-auto mb-6 apple-shadow">
+                <Smartphone className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Mobile-First Design</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-xl font-bold text-foreground mb-4">Mobile-First Design</h3>
+              <p className="text-muted-foreground leading-relaxed">
                 Works offline on typical Android devices. Perfect for Nepal's 
                 connectivity challenges with rural-friendly design.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="text-center hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Globe className="h-6 w-6 text-accent" />
+          <Card className="text-center apple-card apple-glass border-0">
+            <CardContent className="p-8">
+              <div className="w-16 h-16 bg-gradient-to-br from-accent to-primary rounded-2xl flex items-center justify-center mx-auto mb-6 apple-shadow">
+                <Globe className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Bilingual Support</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-xl font-bold text-foreground mb-4">Bilingual Support</h3>
+              <p className="text-muted-foreground leading-relaxed">
                 Full support for English and Nepali (Devanagari script) 
                 to serve all citizens of Nepal.
               </p>
