@@ -1,0 +1,924 @@
+Got it. Here’s a production-ready backend tech spec with: OpenAPI 3.1, database migrations (Postgres), queue/redis keys, webhook schema, and Terraform stubs for AWS (ECS Fargate + RDS + ElastiCache + S3 + CloudFront). Copy-paste friendly.
+
+⸻
+
+Veridity Backend Technical Specification (v1)
+
+0) Overview
+	•	Runtime: Bun + Fastify (TypeScript)
+	•	Core deps: Postgres 15, Redis 7, S3 (artifacts, receipts), CloudFront CDN
+	•	Key modules: Auth, Verify (Groth16), Webhooks, Admin, Integrations
+	•	Principles: client-side proving, domain-bound nonces, no PII at rest, append-only proof ledger
+
+⸻
+
+1) API — OpenAPI 3.1 (YAML)
+
+Save as openapi.yaml. Generate SDKs with openapi-generator.
+
+openapi: 3.1.0
+info:
+  title: Veridity API
+  version: 1.0.0
+  description: >
+    Privacy-preserving identity verification. Proofs are generated on-device
+    and verified server-side. No private inputs are transmitted or stored.
+servers:
+  - url: https://api.veridity.example
+security:
+  - ApiKeyAuth: []
+  - OAuth2ClientCredentials:
+      - age_over_18
+      - age_over_21
+      - citizenship
+      - education
+      - income_gte
+tags:
+  - name: Verify
+  - name: Status
+  - name: Webhooks
+  - name: Admin
+  - name: Health
+paths:
+  /api/v1/verify:
+    post:
+      tags: [Verify]
+      summary: Verify a ZK proof synchronously
+      operationId: verifyProof
+      security:
+        - ApiKeyAuth: []
+        - OAuth2ClientCredentials:
+            - age_over_18
+            - age_over_21
+            - citizenship
+            - education
+            - income_gte
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema: { type: string, format: uuid }
+          description: Prevents duplicate processing for 10 minutes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProofVerifyRequest'
+            examples:
+              example:
+                value:
+                  claim_type: age_over_18
+                  circuit_version: "1.0.3"
+                  proof: { pi_a: "...", pi_b: "...", pi_c: "..." }
+                  public_signals: ["0xabc123", "1"]
+                  request: { nonce: "O1H8e3...", verifier_domain: "bank.example" }
+      responses:
+        '200':
+          description: Verified
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProofVerifyResponse' }
+        '422':
+          description: Invalid proof or not eligible
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /api/v1/status/{proof_id}:
+    get:
+      tags: [Status]
+      summary: Get status of a proof by ID
+      parameters:
+        - name: proof_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Current status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [pending, verified, failed] }
+                  claim_type: { $ref: '#/components/schemas/ClaimType' }
+                  ts: { type: string, format: date-time }
+                  verifier_id: { type: string, format: uuid, nullable: true }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/webhooks/test:
+    post:
+      tags: [Webhooks]
+      summary: Send a test webhook to the caller's configured endpoint
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '202':
+          description: Enqueued
+
+  /api/admin/clients:
+    get:
+      tags: [Admin]
+      summary: List API clients
+      security: [ { BearerAuth: [] } ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ApiClient' }
+
+    post:
+      tags: [Admin]
+      summary: Create API client (key returned once)
+      security: [ { BearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApiClientCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiClient'
+                  - type: object
+                    properties:
+                      api_key: { type: string, description: "Shown once" }
+
+  /api/admin/circuits:
+    post:
+      tags: [Admin]
+      summary: Register a circuit artifact version
+      security: [ { BearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CircuitVersionCreate' }
+      responses:
+        '201':
+          description: Registered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CircuitVersion' }
+
+  /api/admin/usage:
+    get:
+      tags: [Admin]
+      summary: Usage analytics (multi-tenant aware)
+      security: [ { BearerAuth: [] } ]
+      parameters:
+        - in: query
+          name: from
+          schema: { type: string, format: date-time }
+        - in: query
+          name: to
+          schema: { type: string, format: date-time }
+        - in: query
+          name: claim_type
+          schema: { $ref: '#/components/schemas/ClaimType' }
+        - in: query
+          name: verifier_id
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Counts by day
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  series:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date: { type: string, format: date }
+                        verified: { type: integer }
+                        failed: { type: integer }
+
+  /healthz:
+    get:
+      tags: [Health]
+      summary: Liveness
+      responses: { '200': { description: OK } }
+  /readyz:
+    get:
+      tags: [Health]
+      summary: Readiness
+      responses: { '200': { description: OK } }
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+    OAuth2ClientCredentials:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.veridity.example/oauth/token
+          scopes:
+            age_over_18: Verify age >= 18
+            age_over_21: Verify age >= 21
+            citizenship: Verify citizenship
+            education: Verify education
+            income_gte: Verify income threshold
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: Too many requests
+      headers:
+        Retry-After:
+          schema: { type: integer }
+          description: Seconds to wait before retry
+  schemas:
+    ClaimType:
+      type: string
+      enum: [age_over_18, age_over_21, citizenship, education, income_gte]
+    ProofVerifyRequest:
+      type: object
+      additionalProperties: false
+      required: [claim_type, circuit_version, proof, public_signals, request]
+      properties:
+        claim_type: { $ref: '#/components/schemas/ClaimType' }
+        circuit_version: { type: string, pattern: '^[0-9]+\\.[0-9]+\\.[0-9]+$' }
+        proof:
+          description: Groth16 proof object (shape depends on snarkjs)
+          type: object
+        public_signals:
+          type: array
+          minItems: 1
+          items: { type: string }
+        request:
+          type: object
+          required: [nonce, verifier_domain]
+          properties:
+            nonce: { type: string, description: base64url nonce }
+            verifier_domain: { type: string, description: Domain binding (eTLD+1 preferred) }
+    ProofVerifyResponse:
+      type: object
+      properties:
+        status: { type: string, enum: [verified] }
+        proof_id: { type: string, format: uuid }
+        ts: { type: string, format: date-time }
+    ApiClient:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        scopes:
+          type: array
+          items: { $ref: '#/components/schemas/ClaimType' }
+        webhook_url: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        last_used: { type: string, format: date-time, nullable: true }
+    ApiClientCreate:
+      type: object
+      required: [name, scopes]
+      properties:
+        name: { type: string }
+        scopes:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ClaimType' }
+        webhook_url: { type: string, nullable: true }
+    CircuitVersion:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        claim_type: { $ref: '#/components/schemas/ClaimType' }
+        semver: { type: string }
+        vkey_s3: { type: string }
+        wasm_s3: { type: string }
+        zkey_s3: { type: string }
+        enabled: { type: boolean }
+        created_at: { type: string, format: date-time }
+    CircuitVersionCreate:
+      allOf:
+        - $ref: '#/components/schemas/CircuitVersion'
+      required: [claim_type, semver, vkey_s3, wasm_s3, zkey_s3, enabled]
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        error_code: { type: string }
+        request_id: { type: string }
+
+
+⸻
+
+2) Webhook event schema
+
+Event name: proof.verified
+Delivery: POST JSON, HMAC SHA-256 signature (X-Veridity-Signature: sha256=…) over raw body using partner’s webhook secret.
+
+{
+  "event": "proof.verified",
+  "proof_id": "9cd5c3e3-6a3a-4b8c-90c6-1a8d0a6fbf7e",
+  "claim_type": "age_over_18",
+  "status": "verified",
+  "ts": "2025-09-04T02:11:04Z"
+}
+
+Retry policy: exponential backoff (1m, 5m, 15m, 1h, 6h), 24h DLQ after 8 failures.
+
+⸻
+
+3) Redis keys (idempotency, replay protection)
+	•	Idempotency: idem:{partner_id}:{key} → value: proof_id, TTL: 600s
+	•	Nonce (single-use): nonce:{partner_id}:{nonce} → value: 1, TTL: 24h, set with SETNX
+	•	Rate limit: rl:{partner_id}:{minute} → counter, TTL: 120s
+	•	Outbox lock (webhook): lock:wh:{proof_id} → TTL: 60s
+
+⸻
+
+4) Database — initial migration (SQL)
+
+Save as migrations/0001_init.sql
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- USERS
+CREATE TABLE users(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT,
+  email TEXT UNIQUE,
+  phone TEXT UNIQUE,
+  auth_type TEXT NOT NULL DEFAULT 'otp',
+  password_hash TEXT,
+  lang TEXT NOT NULL DEFAULT 'ne',
+  registered_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_login_at TIMESTAMPTZ
+);
+
+-- API CLIENTS (PARTNERS)
+CREATE TABLE api_clients(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  key_hash TEXT UNIQUE NOT NULL,
+  scopes TEXT[] NOT NULL,
+  webhook_url TEXT,
+  webhook_secret TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_used TIMESTAMPTZ
+);
+
+-- CIRCUIT ARTIFACTS
+CREATE TABLE circuit_versions(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  claim_type TEXT NOT NULL,
+  semver TEXT NOT NULL,
+  vkey_s3 TEXT NOT NULL,
+  wasm_s3 TEXT NOT NULL,
+  zkey_s3 TEXT NOT NULL,
+  enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (claim_type, semver)
+);
+
+-- OPTIONAL JOURNAL OF REQUESTS
+CREATE TABLE proof_requests(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  verifier_id UUID REFERENCES api_clients(id) ON DELETE CASCADE,
+  claim_type TEXT NOT NULL,
+  nonce TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (verifier_id, nonce)
+);
+
+-- PROOFS (PARTITIONED BY MONTH)
+CREATE TABLE proofs(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  verifier_id UUID REFERENCES api_clients(id) ON DELETE SET NULL,
+  claim_type TEXT NOT NULL,
+  circuit_version TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('pending','verified','failed')),
+  public_hash TEXT NOT NULL,
+  request_nonce TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  verified_at TIMESTAMPTZ
+) PARTITION BY RANGE (created_at);
+
+-- Create current month partition (example Sep 2025); automate in cron/worker
+CREATE TABLE proofs_2025_09 PARTITION OF proofs
+  FOR VALUES FROM ('2025-09-01') TO ('2025-10-01');
+CREATE INDEX ON proofs_2025_09 (verifier_id, created_at);
+CREATE INDEX ON proofs_2025_09 (user_id);
+CREATE INDEX ON proofs_2025_09 (created_at);
+
+-- WEBHOOKS OUTBOX (EXACTLY-ONCE DELIVERY)
+CREATE TABLE webhooks_outbox(
+  id BIGSERIAL PRIMARY KEY,
+  proof_id UUID NOT NULL REFERENCES proofs(id) ON DELETE CASCADE,
+  target_url TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  secret TEXT NOT NULL,
+  attempt INT NOT NULL DEFAULT 0,
+  next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','delivered','dead'))
+);
+CREATE INDEX ON webhooks_outbox (status, next_attempt_at);
+
+-- AUDIT LOGS
+CREATE TABLE audit_logs(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor_type TEXT NOT NULL, -- 'admin'|'system'|'partner'
+  actor_id UUID,
+  action TEXT NOT NULL,
+  details JSONB,
+  ip INET,
+  at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX ON audit_logs (actor_type, at);
+
+-- ANALYTICS VIEW
+CREATE MATERIALIZED VIEW mv_usage_daily AS
+SELECT
+  date_trunc('day', created_at)::date AS day,
+  claim_type,
+  verifier_id,
+  sum((status='verified')::int) AS verified,
+  sum((status='failed')::int) AS failed
+FROM proofs
+GROUP BY 1,2,3;
+
+-- RLS placeholder (enable if multi-tenant analytics given to partners)
+-- ALTER TABLE proofs ENABLE ROW LEVEL SECURITY;
+-- CREATE POLICY proofs_partner ON proofs FOR SELECT
+--   USING (verifier_id::text = current_setting('app.verifier_id', true));
+
+Partition roll-forward (optional helper):
+
+-- migrations/0002_partitions_fn.sql
+CREATE OR REPLACE FUNCTION ensure_proofs_partition(target_month date) RETURNS void AS $$
+DECLARE
+  start_date date := date_trunc('month', target_month);
+  end_date date := (date_trunc('month', target_month) + interval '1 month')::date;
+  part_name text := format('proofs_%s', to_char(start_date, 'YYYY_MM'));
+  sql text;
+BEGIN
+  IF NOT EXISTS (
+    SELECT FROM pg_tables WHERE schemaname='public' AND tablename=part_name
+  ) THEN
+    sql := format($f$
+      CREATE TABLE %I PARTITION OF proofs
+      FOR VALUES FROM (%L) TO (%L);
+      CREATE INDEX ON %I (verifier_id, created_at);
+      CREATE INDEX ON %I (user_id);
+      CREATE INDEX ON %I (created_at);
+    $f$, part_name, start_date, end_date, part_name, part_name, part_name);
+    EXECUTE sql;
+  END IF;
+END; $$ LANGUAGE plpgsql;
+
+
+⸻
+
+5) Fastify/Bun service skeleton (TypeScript)
+
+Files: apps/api/src
+
+// server.ts
+import Fastify from 'fastify';
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
+import { z } from 'zod';
+import * as snarkjs from 'snarkjs';
+import { getVKey, assertScopes, idemGuard, nonceGuard } from './lib/security';
+import { db } from './lib/db';
+
+const VerifyReq = z.object({
+  claim_type: z.enum(['age_over_18','age_over_21','citizenship','education','income_gte']),
+  circuit_version: z.string(),
+  proof: z.any(),
+  public_signals: z.array(z.string()).min(1),
+  request: z.object({ nonce: z.string(), verifier_domain: z.string() })
+});
+
+const app = Fastify({ logger: true });
+await app.register(helmet);
+await app.register(rateLimit, { max: 120, timeWindow: '1 minute' });
+
+app.get('/healthz', async () => 'ok');
+app.get('/readyz', async () => 'ok');
+
+app.post('/api/v1/verify', async (req, rep) => {
+  const body = VerifyReq.parse(req.body);
+  const partner = await authPartner(req); // header X-Api-Key or OAuth
+  assertScopes(partner.scopes, body.claim_type);
+
+  await idemGuard(req);                         // Idempotency-Key
+  await nonceGuard(partner.id, body.request.nonce);
+
+  const vKey = await getVKey(body.claim_type, body.circuit_version);
+  const ok = await snarkjs.groth16.verify(vKey, body.public_signals, body.proof);
+  const proofId = crypto.randomUUID();
+
+  await db.tx(async (sql) => {
+    await sql`INSERT INTO proofs (id, verifier_id, claim_type, circuit_version, status, public_hash, request_nonce)
+      VALUES (${proofId}, ${partner.id}, ${body.claim_type}, ${body.circuit_version},
+              ${ok?'verified':'failed'}, ${hashSignals(body.public_signals)}, ${body.request.nonce})`;
+    if (ok) await enqueueWebhook(sql, proofId, partner);
+  });
+
+  if (!ok) return rep.code(422).send({ error: 'Invalid proof', error_code: 'INVALID_PROOF' });
+  return rep.send({ status: 'verified', proof_id: proofId, ts: new Date().toISOString() });
+});
+
+app.listen({ port: Number(process.env.PORT || 3000), host: '0.0.0.0' });
+
+
+⸻
+
+6) Terraform (AWS) — stubs
+
+Structure:
+
+infra/
+  main.tf
+  variables.tf
+  outputs.tf
+  network.tf
+  rds.tf
+  redis.tf
+  s3_cdn.tf
+  ecs_cluster.tf
+  ecs_service_api.tf
+
+Note: Replace placeholder values; these are minimal, secure defaults (SSE, SGs).
+
+main.tf
+
+terraform {
+  required_version = ">= 1.6.0"
+  required_providers {
+    aws = { source = "hashicorp/aws", version = "~> 5.0" }
+  }
+}
+provider "aws" {
+  region = var.aws_region
+}
+
+locals {
+  name = "veridity"
+  tags = { Project = "Veridity", Env = var.env }
+}
+
+module "network" {
+  source = "./network.tf"
+}
+
+variables.tf
+
+variable "aws_region" { type = string, default = "ap-south-1" }
+variable "env"        { type = string, default = "prod" }
+variable "db_username" { type = string, default = "veridity" }
+variable "db_password" { type = string, sensitive = true }
+variable "cidr_block"  { type = string, default = "10.0.0.0/16" }
+variable "artifact_bucket_name" { type = string, default = "veridity-artifacts" }
+
+network.tf (module-style inline for brevity)
+
+resource "aws_vpc" "main" {
+  cidr_block = var.cidr_block
+  tags = { Name = "veridity-vpc" }
+}
+
+resource "aws_internet_gateway" "gw" { vpc_id = aws_vpc.main.id }
+
+resource "aws_subnet" "public_a" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  availability_zone = "${var.aws_region}a"
+}
+resource "aws_subnet" "public_b" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = "10.0.2.0/24"
+  map_public_ip_on_launch = true
+  availability_zone = "${var.aws_region}b"
+}
+resource "aws_subnet" "private_a" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = "10.0.101.0/24"
+  availability_zone = "${var.aws_region}a"
+}
+resource "aws_subnet" "private_b" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = "10.0.102.0/24"
+  availability_zone = "${var.aws_region}b"
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+  route { cidr_block = "0.0.0.0/0"; gateway_id = aws_internet_gateway.gw.id }
+}
+resource "aws_route_table_association" "pub_a" { route_table_id = aws_route_table.public.id  subnet_id = aws_subnet.public_a.id }
+resource "aws_route_table_association" "pub_b" { route_table_id = aws_route_table.public.id  subnet_id = aws_subnet.public_b.id }
+
+s3_cdn.tf
+
+resource "aws_s3_bucket" "artifacts" {
+  bucket = var.artifact_bucket_name
+  force_destroy = false
+}
+resource "aws_s3_bucket_server_side_encryption_configuration" "artifacts" {
+  bucket = aws_s3_bucket.artifacts.id
+  rule { apply_server_side_encryption_by_default { sse_algorithm = "AES256" } }
+}
+resource "aws_cloudfront_distribution" "artifacts_cdn" {
+  enabled = true
+  origin {
+    domain_name = aws_s3_bucket.artifacts.bucket_regional_domain_name
+    origin_id   = "s3-artifacts"
+    s3_origin_config { origin_access_identity = "" }
+  }
+  default_cache_behavior {
+    target_origin_id = "s3-artifacts"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods = ["GET","HEAD"]
+    cached_methods  = ["GET","HEAD"]
+  }
+  restrictions { geo_restriction { restriction_type = "none" } }
+  viewer_certificate { cloudfront_default_certificate = true }
+}
+output "artifacts_cdn_url" { value = aws_cloudfront_distribution.artifacts_cdn.domain_name }
+
+rds.tf
+
+resource "aws_db_subnet_group" "db" {
+  name       = "veridity-db-subnets"
+  subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+}
+resource "aws_security_group" "db" {
+  name   = "veridity-db-sg"
+  vpc_id = aws_vpc.main.id
+}
+resource "aws_db_instance" "postgres" {
+  identifier = "veridity-postgres"
+  engine = "postgres"
+  engine_version = "15"
+  instance_class = "db.t4g.medium"
+  username = var.db_username
+  password = var.db_password
+  db_subnet_group_name = aws_db_subnet_group.db.name
+  vpc_security_group_ids = [aws_security_group.db.id]
+  allocated_storage = 50
+  backup_retention_period = 7
+  multi_az = true
+  publicly_accessible = false
+  storage_encrypted = true
+  deletion_protection = true
+}
+output "db_endpoint" { value = aws_db_instance.postgres.address }
+
+redis.tf
+
+resource "aws_elasticache_subnet_group" "redis" {
+  name       = "veridity-redis-subnets"
+  subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+}
+resource "aws_security_group" "redis" {
+  name   = "veridity-redis-sg"
+  vpc_id = aws_vpc.main.id
+}
+resource "aws_elasticache_replication_group" "redis" {
+  replication_group_id          = "veridity-redis"
+  description                   = "Idempotency, rate limit, queues"
+  engine                        = "redis"
+  engine_version                = "7.0"
+  node_type                     = "cache.t4g.small"
+  number_cache_clusters         = 2
+  automatic_failover_enabled    = true
+  multi_az_enabled              = true
+  subnet_group_name             = aws_elasticache_subnet_group.redis.name
+  security_group_ids            = [aws_security_group.redis.id]
+  at_rest_encryption_enabled    = true
+  transit_encryption_enabled    = true
+}
+output "redis_endpoint" { value = aws_elasticache_replication_group.redis.primary_endpoint_address }
+
+ecs_cluster.tf
+
+resource "aws_ecs_cluster" "this" { name = "veridity-ecs" }
+
+resource "aws_iam_role" "task_exec" {
+  name = "veridity-task-exec"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{ Effect="Allow", Principal={ Service="ecs-tasks.amazonaws.com" }, Action="sts:AssumeRole" }]
+  })
+}
+resource "aws_iam_role_policy_attachment" "task_exec_policy" {
+  role = aws_iam_role.task_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_lb" "api" {
+  name = "veridity-alb"
+  load_balancer_type = "application"
+  subnets = [aws_subnet.public_a.id, aws_subnet.public_b.id]
+}
+
+resource "aws_lb_target_group" "api" {
+  name     = "veridity-api-tg"
+  port     = 3000
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+  health_check { path = "/healthz" }
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.api.arn
+  port = 80
+  protocol = "HTTP"
+  default_action { type = "forward"; target_group_arn = aws_lb_target_group.api.arn }
+}
+
+ecs_service_api.tf
+
+resource "aws_ecs_task_definition" "api" {
+  family                   = "veridity-api"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu    = 512
+  memory = 1024
+  execution_role_arn = aws_iam_role.task_exec.arn
+  container_definitions = jsonencode([
+    {
+      name      = "api",
+      image     = "ghcr.io/veridity/api:latest",
+      essential = true,
+      portMappings = [{ containerPort = 3000, hostPort = 3000 }],
+      environment = [
+        { name="DATABASE_URL", value="postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:5432/postgres" },
+        { name="REDIS_URL", value="rediss://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379" }
+      ],
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = { awslogs-region = var.aws_region, awslogs-group = "/ecs/veridity-api", awslogs-stream-prefix = "ecs" }
+      }
+    }
+  ])
+}
+
+resource "aws_ecs_service" "api" {
+  name            = "veridity-api"
+  cluster         = aws_ecs_cluster.this.id
+  task_definition = aws_ecs_task_definition.api.arn
+  desired_count   = 2
+  launch_type     = "FARGATE"
+  network_configuration {
+    assign_public_ip = false
+    subnets          = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+    security_groups  = [aws_security_group.db.id, aws_security_group.redis.id]
+  }
+  load_balancer {
+    target_group_arn = aws_lb_target_group.api.arn
+    container_name   = "api"
+    container_port   = 3000
+  }
+  depends_on = [aws_lb_listener.http]
+}
+output "alb_dns" { value = aws_lb.api.dns_name }
+
+
+⸻
+
+7) CI/CD — GitHub Actions (Bun + tests + deploy)
+
+.github/workflows/api.yml
+
+name: api
+on:
+  push:
+    branches: [ main ]
+    paths: [ "apps/api/**", "packages/**", "openapi.yaml", "migrations/**" ]
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with: { bun-version: "1.1.20" }
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Typecheck
+        run: bun run tsc -b
+      - name: Lint
+        run: bun run lint
+      - name: Unit tests
+        run: bun test
+  docker-push:
+    needs: build-test
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t ghcr.io/veridity/api:sha-${{ github.sha }} -f apps/api/Dockerfile .
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push
+        run: |
+          docker push ghcr.io/veridity/api:sha-${{ github.sha }}
+          docker tag ghcr.io/veridity/api:sha-${{ github.sha }} ghcr.io/veridity/api:latest
+          docker push ghcr.io/veridity/api:latest
+  deploy:
+    needs: docker-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Terraform Apply (stub)
+        run: echo "Use your CD to trigger ECS new task set via terraform or aws-cli"
+
+
+⸻
+
+8) Dockerfile (Bun)
+
+apps/api/Dockerfile
+
+FROM oven/bun:1.1.20 as deps
+WORKDIR /app
+COPY package.json bun.lockb ./
+RUN bun install --frozen-lockfile
+
+FROM oven/bun:1.1.20 as build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN bun run tsc -b
+
+FROM oven/bun:1.1.20
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+EXPOSE 3000
+CMD ["bun", "dist/apps/api/server.js"]
+
+
+⸻
+
+9) Operational runbook (essentials)
+	•	Secrets: store in AWS SSM Parameter Store (KMS encrypted). App reads on boot.
+	•	Migrations: run bun run migrate on each deploy (guard with --safe).
+	•	Partitions: nightly cron invokes SELECT ensure_proofs_partition(now() + interval '1 month');
+	•	Backups: RDS PITR enabled; verify monthly by restore drill.
+	•	Monitoring:
+	•	Metrics: verify_latency_ms, webhook_success_rate, redis_latency_ms, db_conn_usage.
+	•	Logs: redact headers Authorization, X-Api-Key, body fields proof, public_signals.
+	•	Rate limits: default 120 rpm per API key; adjustable by plan.
+	•	Key rotation: admin UI can create/disable keys; hash stored (key_hash = sha256(key|salt)).
+
+⸻
+
+10) Acceptance tests (backend)
+	•	Verify happy path: valid Groth16 proof → 200 verified; proof row + webhook enqueued.
+	•	Replay nonce: same nonce within 24h → 409 with NONCE_REPLAY.
+	•	Bad scope: API key without claim scope → 403 UNAUTHORIZED_SCOPE.
+	•	Idempotency: same payload + same Idempotency-Key → exact same response.
+	•	Webhooks: 500 from partner → retries escalate; moves to DLQ after 8 attempts.
+
+⸻
+
+That’s the full backend package
+
+If you want, I can also generate:
+	•	Drizzle ORM migration files matching the SQL,
+	•	Postman collection from the OpenAPI,
+	•	Typed SDK (TypeScript) for verifiers using openapi-typescript + a thin client.
