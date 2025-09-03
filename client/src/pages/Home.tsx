@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@shared/schema";
 import { AppHeader } from "@/components/AppHeader";
+import { TrustIndicators } from "@/components/TrustIndicators";
 import { useTranslation } from "@/lib/i18n";
 import { 
   Shield, 
@@ -103,6 +104,9 @@ export default function Home() {
       />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Trust Indicators */}
+        <TrustIndicators variant="compact" showStats={true} />
+        
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-4">
           <Card className="apple-card apple-glass border-0 apple-shadow">

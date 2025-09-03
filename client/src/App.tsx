@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import MobileNav from "@/components/MobileNav";
+import { useState, useEffect } from "react";
+import { Onboarding } from "@/components/Onboarding";
 
 // Pages
 import Landing from "@/pages/Landing";
@@ -19,6 +21,25 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Check if user has seen onboarding
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('veridity-onboarding-complete');
+    if (!hasSeenOnboarding && isAuthenticated && !isLoading) {
+      setShowOnboarding(true);
+    }
+  }, [isAuthenticated, isLoading]);
+  
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('veridity-onboarding-complete', 'true');
+    setShowOnboarding(false);
+  };
+  
+  const handleOnboardingSkip = () => {
+    localStorage.setItem('veridity-onboarding-complete', 'true');
+    setShowOnboarding(false);
+  };
 
   if (isLoading || !isAuthenticated) {
     return (
@@ -31,6 +52,12 @@ function Router() {
 
   return (
     <>
+      {showOnboarding && (
+        <Onboarding 
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+        />
+      )}
       <Switch>
         {/* Mobile-first navigation structure as per PRD */}
         <Route path="/" component={Home} />
