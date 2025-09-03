@@ -7,6 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import MobileNav from "@/components/MobileNav";
 import { useState, useEffect } from "react";
 import { Onboarding } from "@/components/Onboarding";
+import { ContextualThemeProvider, useAutoThemeDetection } from "@/components/ContextualTheme";
+import { VoiceNavigation } from "@/components/VoiceNavigation";
+import { PWACapabilities } from "@/components/PWACapabilities";
 
 // Pages
 import Landing from "@/pages/Landing";
@@ -80,13 +83,21 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ContextualThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+          <VoiceNavigation />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ContextualThemeProvider>
   );
 }
 
-export default App;
+function AppWithTheme() {
+  useAutoThemeDetection();
+  return <App />;
+}
+
+export default AppWithTheme;
