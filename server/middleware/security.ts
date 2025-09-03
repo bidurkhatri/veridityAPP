@@ -8,13 +8,29 @@ export function setupSecurityHeaders(app: Express) {
       "'sha256-xyz'", // Add actual script hashes from Vite build
     ];
     
-    const csp = [
+    // Relaxed CSP for development to allow Vite HMR and React development
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
+    const csp = isDevelopment ? [
       "default-src 'self'",
-      `script-src 'self' ${scriptHashes.join(' ')} 'unsafe-eval'`, // unsafe-eval needed for dev
-      "style-src 'self' 'unsafe-inline'", // unsafe-inline needed for CSS-in-JS
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:", // Vite needs these for dev
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data: https://fonts.gstatic.com",
+      "connect-src 'self' ws: wss: https:",
+      "worker-src 'self' blob:",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "media-src 'self' data: blob:",
+    ].join('; ') : [
+      "default-src 'self'",
+      `script-src 'self' ${scriptHashes.join(' ')}`,
+      "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
-      "connect-src 'self' ws: wss:", // WebSocket for dev HMR
+      "connect-src 'self' ws: wss:",
       "frame-ancestors 'none'",
       "form-action 'self'",
       "base-uri 'self'",
@@ -27,11 +43,11 @@ export function setupSecurityHeaders(app: Express) {
     // HTTP Strict Transport Security (HSTS)
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     
-    // Cross-Origin Embedder Policy
-    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-    
-    // Cross-Origin Opener Policy  
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    // Cross-Origin policies - relaxed for development
+    if (!isDevelopment) {
+      res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    }
     
     // Referrer Policy
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');

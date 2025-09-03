@@ -81,23 +81,25 @@ function Router() {
   );
 }
 
+function AppWithTheme() {
+  useAutoThemeDetection();
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+        <VoiceNavigation />
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
+
 function App() {
   return (
     <ContextualThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-          <VoiceNavigation />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <AppWithTheme />
     </ContextualThemeProvider>
   );
 }
 
-function AppWithTheme() {
-  useAutoThemeDetection();
-  return <App />;
-}
-
-export default AppWithTheme;
+export default App;
