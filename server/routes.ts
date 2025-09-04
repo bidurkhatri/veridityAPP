@@ -12,6 +12,11 @@ import { validateNonce, generateNonce } from "./middleware/nonce";
 import { zkVerifier, circuitBuilder } from "./zkp/verifier";
 import { verificationHandler } from "./websocket/verification-handler";
 import { biometricService } from "./auth/biometric-service";
+import { multiSigService } from "./services/multiSigService";
+import { fraudDetectionService } from "./services/fraudDetectionService";
+import { blockchainService } from "./blockchain/blockchain-service";
+import { aiDocumentVerificationService } from "./ai/document-verification";
+import { marketExpansionService } from "./internationalization/market-expansion";
 import { WebSocketServer } from "ws";
 import { z } from "zod";
 
@@ -367,9 +372,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // WebSocket server for real-time verification
   const httpServer = createServer(app);
+  
+  // Enhanced WebSocket server with better error handling
   const wss = new WebSocketServer({ 
     server: httpServer, 
-    path: '/ws/verify'
+    path: '/ws/verify',
+    perMessageDeflate: false, // Disable for better compatibility
+    clientTracking: true
   });
   
   // Handle WebSocket connections
@@ -378,6 +387,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     verificationHandler.handleConnection(ws, clientId);
   });
+
+  // Enhanced WebSocket error handling
+  wss.on('error', (error) => {
+    console.error('WebSocket Server Error:', error);
+  });
+
+  // Graceful WebSocket shutdown
+  const originalShutdown = httpServer.close.bind(httpServer);
+  httpServer.close = function(callback?: (err?: Error) => void) {
+    console.log('🔌 Closing WebSocket connections...');
+    
+    // Close all WebSocket connections
+    wss.clients.forEach((ws) => {
+      if (ws.readyState === ws.OPEN) {
+        ws.close();
+      }
+    });
+    
+    // Close WebSocket server
+    wss.close(() => {
+      console.log('✅ WebSocket server closed');
+      // Call original close method
+      originalShutdown(callback);
+    });
+  };
   
   // ZK Circuit and verification status endpoints
   app.get('/api/zk/status', async (req, res) => {
@@ -780,9 +814,236 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('🏢 Organization dashboard endpoints enabled');
   console.log('🔗 Proof sharing endpoints enabled');
   
+  // Multi-signature proof endpoints
+  app.post('/api/multisig/initiate', isAuthenticated, async (req: any, res) => {
+    try {
+      const { proofId } = req.body;
+      const multiSigProofId = await multiSigService.initiateMultiSigProof(proofId);
+      res.json({ multiSigProofId, status: 'initiated' });
+    } catch (error) {
+      console.error('Error initiating multi-sig proof:', error);
+      res.status(500).json({ message: 'Failed to initiate multi-sig proof' });
+    }
+  });
+
+  app.post('/api/multisig/sign', isAuthenticated, async (req: any, res) => {
+    try {
+      const { multiSigProofId, entityId, signature, metadata } = req.body;
+      const result = await multiSigService.addSignature(multiSigProofId, entityId, signature, metadata);
+      res.json(result);
+    } catch (error) {
+      console.error('Error adding signature:', error);
+      res.status(500).json({ message: 'Failed to add signature' });
+    }
+  });
+
+  app.get('/api/multisig/requirements', isAuthenticated, async (req, res) => {
+    try {
+      const requirements = await multiSigService.getAllRequirements();
+      res.json(requirements);
+    } catch (error) {
+      console.error('Error fetching multi-sig requirements:', error);
+      res.status(500).json({ message: 'Failed to fetch requirements' });
+    }
+  });
+
+  // Fraud detection endpoints
+  app.post('/api/fraud/analyze', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { proofTypeId, organizationId } = req.body;
+      
+      const riskScore = await fraudDetectionService.analyzeProofGeneration(userId, proofTypeId, organizationId);
+      
+      // Update user profile
+      await fraudDetectionService.updateUserProfile(userId, proofTypeId);
+      
+      res.json(riskScore);
+    } catch (error) {
+      console.error('Error analyzing fraud risk:', error);
+      res.status(500).json({ message: 'Failed to analyze risk' });
+    }
+  });
+
+  app.get('/api/fraud/alerts', isAuthenticated, async (req, res) => {
+    try {
+      const { severity } = req.query;
+      const alerts = await fraudDetectionService.getAlerts(severity as any);
+      res.json(alerts);
+    } catch (error) {
+      console.error('Error fetching fraud alerts:', error);
+      res.status(500).json({ message: 'Failed to fetch alerts' });
+    }
+  });
+
+  app.get('/api/fraud/statistics', isAuthenticated, async (req, res) => {
+    try {
+      const stats = await fraudDetectionService.getStatistics();
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching fraud statistics:', error);
+      res.status(500).json({ message: 'Failed to fetch statistics' });
+    }
+  });
+
+  // SDK API endpoints for third-party integrations
+  app.post('/api/sdk/proof/request', async (req, res) => {
+    try {
+      const { type, requiredFields, organizationId, callbackUrl, metadata } = req.body;
+      
+      // Generate proof request
+      const proofId = `sdk-proof-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      
+      res.json({
+        proofId,
+        status: 'pending',
+        qrCode: `veridity://verify/${proofId}`,
+        expiresAt: expiresAt.toISOString()
+      });
+    } catch (error) {
+      console.error('Error creating SDK proof request:', error);
+      res.status(500).json({ message: 'Failed to create proof request' });
+    }
+  });
+
+  app.get('/api/sdk/proof/verify/:proofId', async (req, res) => {
+    try {
+      const { proofId } = req.params;
+      
+      // Mock verification result
+      res.json({
+        proofId,
+        verified: true,
+        claims: { age_over_18: true },
+        confidence: 0.95,
+        timestamp: new Date().toISOString(),
+        organizationId: 'sdk-org'
+      });
+    } catch (error) {
+      console.error('Error verifying SDK proof:', error);
+      res.status(500).json({ message: 'Failed to verify proof' });
+    }
+  });
+
+  app.get('/api/sdk/proof/types', async (req, res) => {
+    try {
+      const proofTypes = await storage.getProofTypes();
+      res.json({ proofTypes });
+    } catch (error) {
+      console.error('Error fetching proof types for SDK:', error);
+      res.status(500).json({ message: 'Failed to fetch proof types' });
+    }
+  });
+
+  // Blockchain integration endpoints
+  app.post('/api/blockchain/store', isAuthenticated, async (req: any, res) => {
+    try {
+      const { proofId, proofData } = req.body;
+      const transactionHash = await blockchainService.storeProofOnChain(proofId, proofData);
+      res.json({ transactionHash, status: 'pending' });
+    } catch (error) {
+      console.error('Error storing proof on blockchain:', error);
+      res.status(500).json({ message: 'Failed to store proof on blockchain' });
+    }
+  });
+
+  app.get('/api/blockchain/verify/:proofId', isAuthenticated, async (req, res) => {
+    try {
+      const { proofId } = req.params;
+      const result = await blockchainService.verifyProofOnChain(proofId);
+      res.json(result);
+    } catch (error) {
+      console.error('Error verifying proof on blockchain:', error);
+      res.status(500).json({ message: 'Failed to verify proof on blockchain' });
+    }
+  });
+
+  app.get('/api/blockchain/stats', isAuthenticated, async (req, res) => {
+    try {
+      const stats = await blockchainService.getNetworkStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching blockchain stats:', error);
+      res.status(500).json({ message: 'Failed to fetch blockchain stats' });
+    }
+  });
+
+  // AI Document verification endpoints
+  app.post('/api/ai/analyze-document', isAuthenticated, async (req: any, res) => {
+    try {
+      const { documentData, documentType } = req.body;
+      
+      // Convert base64 to buffer (in real implementation)
+      const documentBuffer = Buffer.from(documentData || '', 'base64');
+      
+      const analysis = await aiDocumentVerificationService.analyzeDocument(documentBuffer, documentType);
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error analyzing document:', error);
+      res.status(500).json({ message: 'Failed to analyze document' });
+    }
+  });
+
+  app.get('/api/ai/document-templates', isAuthenticated, async (req, res) => {
+    try {
+      const templates = await aiDocumentVerificationService.getDocumentTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching document templates:', error);
+      res.status(500).json({ message: 'Failed to fetch document templates' });
+    }
+  });
+
+  app.post('/api/ai/validate-template', isAuthenticated, async (req: any, res) => {
+    try {
+      const { analysis, templateId } = req.body;
+      const validation = await aiDocumentVerificationService.validateAgainstTemplate(analysis, templateId);
+      res.json(validation);
+    } catch (error) {
+      console.error('Error validating against template:', error);
+      res.status(500).json({ message: 'Failed to validate against template' });
+    }
+  });
+
+  // International expansion endpoints
+  app.get('/api/expansion/opportunities', isAuthenticated, async (req, res) => {
+    try {
+      const opportunities = await marketExpansionService.getMarketOpportunities();
+      res.json(opportunities);
+    } catch (error) {
+      console.error('Error fetching market opportunities:', error);
+      res.status(500).json({ message: 'Failed to fetch market opportunities' });
+    }
+  });
+
+  app.get('/api/expansion/countries', isAuthenticated, async (req, res) => {
+    try {
+      const countries = await marketExpansionService.getAllCountryConfigs();
+      res.json(countries);
+    } catch (error) {
+      console.error('Error fetching country configs:', error);
+      res.status(500).json({ message: 'Failed to fetch country configs' });
+    }
+  });
+
+  app.get('/api/expansion/progress', isAuthenticated, async (req, res) => {
+    try {
+      const progress = await marketExpansionService.trackExpansionProgress();
+      res.json(progress);
+    } catch (error) {
+      console.error('Error fetching expansion progress:', error);
+      res.status(500).json({ message: 'Failed to fetch expansion progress' });
+    }
+  });
+
   // Add health monitoring endpoints
   await addHealthEndpoints(app);
   console.log('💊 Health monitoring endpoints enabled');
+  console.log('🔐 Multi-signature proof endpoints enabled');
+  console.log('🛡️ Fraud detection endpoints enabled');
+  console.log('🛠️ SDK API endpoints enabled');
+  console.log('🌍 International expansion endpoints enabled');
   
   return httpServer;
 }

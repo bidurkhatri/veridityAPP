@@ -27,19 +27,20 @@ export function getSession() {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
+    createTableIfMissing: true, // Auto-create session table
     ttl: sessionTtl,
     tableName: "sessions",
   });
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: process.env.SESSION_SECRET || 'fallback-dev-secret-key-change-in-production',
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // Only secure in production HTTPS
       maxAge: sessionTtl,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Allow cross-site in production
     },
   });
 }
@@ -68,6 +69,19 @@ async function upsertUser(
 
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
+  
+  // Environment validation
+  if (!process.env.DATABASE_URL) {
+    console.error('❌ DATABASE_URL environment variable is required');
+    throw new Error('DATABASE_URL environment variable is required');
+  }
+  
+  if (!process.env.REPL_ID) {
+    console.error('❌ REPL_ID environment variable is required');
+    throw new Error('REPL_ID environment variable is required');
+  }
+  
+  console.log('🔐 Setting up authentication...');
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
@@ -101,15 +115,33 @@ export async function setupAuth(app: Express) {
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
+  // Helper function to get the correct strategy name
+  const getStrategyName = (hostname: string) => {
+    const domains = process.env.REPLIT_DOMAINS!.split(",");
+    const matchedDomain = domains.find(domain => 
+      hostname.includes(domain.replace('https://', '').replace('http://', ''))
+    );
+    const targetDomain = matchedDomain || domains[0];
+    
+    console.log(`🔗 Using domain: ${targetDomain} for hostname: ${hostname}`);
+    return `replitauth:${targetDomain}`;
+  };
+
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    const strategyName = getStrategyName(req.hostname);
+    console.log(`🚪 Login attempt with strategy: ${strategyName}`);
+    
+    passport.authenticate(strategyName, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    const strategyName = getStrategyName(req.hostname);
+    console.log(`🔙 Callback with strategy: ${strategyName}`);
+    
+    passport.authenticate(strategyName, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     })(req, res, next);
@@ -130,7 +162,22 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  // Enhanced logging for debugging authentication issues
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔐 Auth check:', {
+      isAuthenticated: req.isAuthenticated(),
+      hasUser: !!user,
+      userExpiry: user?.expires_at,
+      sessionID: req.sessionID
+    });
+  }
+
+  if (!req.isAuthenticated() || !user?.expires_at) {
+    console.log('❌ Authentication failed:', {
+      authenticated: req.isAuthenticated(),
+      hasUser: !!user,
+      hasExpiry: !!user?.expires_at
+    });
     return res.status(401).json({ message: "Unauthorized" });
   }
 

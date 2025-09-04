@@ -87,15 +87,20 @@ app.use((req, res, next) => {
   
   server.on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') {
-      log(`Port ${port} is already in use. Trying to find alternative...`);
-      // Try alternative ports
-      const altPort = port + Math.floor(Math.random() * 1000) + 1;
-      server.listen({
-        port: altPort,
-        host: "0.0.0.0",
-        reusePort: true,
-      }, () => {
-        log(`serving on alternative port ${altPort}`);
+      log(`Port ${port} is already in use. Attempting cleanup and retry...`);
+      
+      // Try to close any existing server first
+      server.close(() => {
+        log('Existing server closed, retrying...');
+        setTimeout(() => {
+          server.listen({
+            port,
+            host: "0.0.0.0",
+            reusePort: true,
+          }, () => {
+            log(`serving on port ${port} after retry`);
+          });
+        }, 1000);
       });
     } else {
       log(`Server error: ${err.message}`);
