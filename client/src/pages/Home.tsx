@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +8,8 @@ import type { User } from "@shared/schema";
 import { AppHeader } from "@/components/AppHeader";
 import { TrustIndicators } from "@/components/TrustIndicators";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, Language } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { 
   Shield, 
   Plus, 
@@ -25,7 +27,21 @@ import verificationTypesImage from "@assets/generated_images/Identity_verificati
 
 export default function Home() {
   const { user } = useAuth();
-  const { t } = useTranslation('en');
+  const [language, setLanguage] = useState<Language>('en');
+  const { t } = useTranslation(language);
+
+  // Load language from localStorage
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('veridity-language') as Language;
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'np')) {
+      setLanguage(savedLanguage);
+    }
+  }, []);
+
+  // Save language to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('veridity-language', language);
+  }, [language]);
 
   // Fetch user stats
   const { data: stats } = useQuery<{totalProofs: number; verifiedProofs: number; recentProofs: any[]}>({
@@ -92,6 +108,11 @@ export default function Home() {
         title={greeting}
         type="root"
         actions={[
+          <LanguageSwitcher 
+            key="language-switcher"
+            currentLanguage={language}
+            onLanguageChange={setLanguage}
+          />,
           <ThemeToggle key="theme-toggle" />,
           <Button 
             key="logout"

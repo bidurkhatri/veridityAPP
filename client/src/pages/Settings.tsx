@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@shared/schema";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, Language } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { AppHeader } from "@/components/AppHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StatusPill } from "@/components/StatusPill";
@@ -28,8 +29,22 @@ import {
 
 export default function Settings() {
   const { user } = useAuth();
-  const { t } = useTranslation('en');
+  const [language, setLanguage] = useState<Language>('en');
+  const { t } = useTranslation(language);
   const [notifications, setNotifications] = useState(true);
+
+  // Load language from localStorage
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('veridity-language') as Language;
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'np')) {
+      setLanguage(savedLanguage);
+    }
+  }, []);
+
+  // Save language to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('veridity-language', language);
+  }, [language]);
   const [biometric, setBiometric] = useState(false);
   const [autoDelete, setAutoDelete] = useState(30);
 
@@ -92,6 +107,11 @@ export default function Settings() {
         title={t('nav.settings')}
         type="root"
         actions={[
+          <LanguageSwitcher 
+            key="language-switcher"
+            currentLanguage={language}
+            onLanguageChange={setLanguage}
+          />,
           <ThemeToggle key="theme-toggle" />
         ]}
         sticky

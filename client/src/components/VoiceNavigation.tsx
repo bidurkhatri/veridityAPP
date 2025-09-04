@@ -282,19 +282,31 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
     synthesis.speak(utterance);
   };
 
-  const startListening = () => {
+  const startListening = async () => {
     if (recognition && settings.enabled) {
       try {
+        // Request microphone permission first
+        await navigator.mediaDevices.getUserMedia({ audio: true });
         recognition.start();
         console.log('Voice recognition started');
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error starting voice recognition:', error);
-        speak('Voice recognition is not available on this device or browser.');
+        if (error.name === 'NotAllowedError' || error.message === 'service-not-allowed') {
+          const permissionText = settings.language === 'np'
+            ? "कृपया माइक्रोफोन अनुमति दिनुहोस्। ब्राउजर सेटिङ्समा जानुहोस् र यो साइटका लागि माइक्रोफोन सक्षम पार्नुहोस्।"
+            : "Please allow microphone access. Go to browser settings and enable microphone for this site.";
+          speak(permissionText);
+        } else {
+          speak('Voice recognition is not available on this device or browser.');
+        }
       }
     } else {
       console.warn('Voice recognition not available or not enabled');
       if (!recognition) {
-        speak('Voice recognition is not supported on this browser.');
+        const errorText = settings.language === 'np'
+          ? "यो ब्राउजरमा आवाज पहिचान समर्थित छैन।"
+          : "Voice recognition is not supported on this browser.";
+        speak(errorText);
       }
     }
   };
