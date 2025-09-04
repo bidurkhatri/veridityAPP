@@ -60,6 +60,12 @@
     "tipLocal": "Your data stays on your device.",
     "tipInstant": "Organizations can verify instantly."
   },
+  "message": {
+    "dataStaysLocal": "Your data never leaves your device"
+  },
+  "form": {
+    "proofType": "Proof Type"
+  },
   "prove": {
     "title": "Generate Proof",
     "subtitle": "Create zero-knowledge proof",
