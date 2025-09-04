@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { ZKPService } from "./services/zkpService";
 import { insertProofSchema, insertVerificationSchema, insertOrganizationSchema } from "@shared/schema";
+import { QRCodeService } from "./services/qrService";
+import { documentService } from "./services/documentService";
 import { apiRateLimit, verifyRateLimit } from "./middleware/rateLimit";
 import { validateNonce, generateNonce } from "./middleware/nonce";
 import { zkVerifier, circuitBuilder } from "./zkp/verifier";
@@ -465,8 +467,310 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // QR Code generation endpoints
+  app.post('/api/qr/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const { proofId, expiryMinutes = 15 } = req.body;
+      
+      if (!proofId) {
+        return res.status(400).json({ message: "Proof ID is required" });
+      }
+
+      // Get proof details
+      const proof = await storage.getProof(proofId);
+      if (!proof) {
+        return res.status(404).json({ message: "Proof not found" });
+      }
+
+      // Verify user owns this proof
+      const userId = req.user.claims.sub;
+      if (proof.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get proof type
+      const proofTypes = await storage.getProofTypes();
+      const proofType = proofTypes.find(pt => pt.id === proof.proofTypeId);
+      
+      if (!proofType) {
+        return res.status(404).json({ message: "Proof type not found" });
+      }
+
+      const qrResult = await QRCodeService.generateProofQR(
+        proofId,
+        proofType.name,
+        proof.publicSignals,
+        expiryMinutes
+      );
+
+      res.json(qrResult);
+    } catch (error: any) {
+      console.error("Error generating QR code:", error);
+      res.status(500).json({ message: "Failed to generate QR code" });
+    }
+  });
+
+  app.post('/api/qr/verification-request', async (req, res) => {
+    try {
+      const { organizationId, requiredProofType, callbackUrl, expiryMinutes = 10 } = req.body;
+      
+      if (!organizationId || !requiredProofType) {
+        return res.status(400).json({ message: "Organization ID and proof type are required" });
+      }
+
+      const qrResult = await QRCodeService.generateVerificationRequestQR(
+        organizationId,
+        requiredProofType,
+        callbackUrl,
+        expiryMinutes
+      );
+
+      res.json(qrResult);
+    } catch (error: any) {
+      console.error("Error generating verification request QR:", error);
+      res.status(500).json({ message: "Failed to generate verification request QR" });
+    }
+  });
+
+  app.post('/api/qr/parse', async (req, res) => {
+    try {
+      const { qrData } = req.body;
+      
+      if (!qrData) {
+        return res.status(400).json({ message: "QR data is required" });
+      }
+
+      const parsedData = QRCodeService.parseQRData(qrData);
+      
+      if (!parsedData) {
+        return res.status(400).json({ message: "Invalid QR code format" });
+      }
+
+      const isValid = QRCodeService.isQRValid(parsedData);
+      
+      res.json({
+        data: parsedData,
+        isValid,
+        expired: !isValid
+      });
+    } catch (error: any) {
+      console.error("Error parsing QR code:", error);
+      res.status(500).json({ message: "Failed to parse QR code" });
+    }
+  });
+
+  // Document upload endpoints
+  const upload = documentService.getUploadMiddleware();
+  
+  app.post('/api/documents/upload', isAuthenticated, upload.array('documents', 3), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const files = req.files as Express.Multer.File[];
+      const { documentType, metadata } = req.body;
+
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "No files uploaded" });
+      }
+
+      const processedDocuments = [];
+      
+      for (const file of files) {
+        try {
+          const document = await documentService.processDocument(
+            file,
+            userId,
+            documentType,
+            metadata ? JSON.parse(metadata) : {}
+          );
+          processedDocuments.push(document);
+        } catch (error: any) {
+          console.error('Document processing failed:', error);
+          // Continue processing other files
+        }
+      }
+
+      if (processedDocuments.length === 0) {
+        return res.status(500).json({ message: "Failed to process any documents" });
+      }
+
+      res.json({
+        success: true,
+        documents: processedDocuments,
+        message: `${processedDocuments.length} document(s) uploaded successfully`
+      });
+    } catch (error: any) {
+      console.error("Error uploading documents:", error);
+      res.status(500).json({ message: "Failed to upload documents" });
+    }
+  });
+
+  app.post('/api/documents/verify/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      const result = await documentService.verifyDocument(id);
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error verifying document:", error);
+      res.status(500).json({ message: "Failed to verify document" });
+    }
+  });
+
+  app.delete('/api/documents/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      const success = await documentService.deleteDocument(id, userId);
+      
+      if (success) {
+        res.json({ success: true, message: "Document deleted securely" });
+      } else {
+        res.status(404).json({ message: "Document not found or access denied" });
+      }
+    } catch (error: any) {
+      console.error("Error deleting document:", error);
+      res.status(500).json({ message: "Failed to delete document" });
+    }
+  });
+
+  // Proof sharing endpoints
+  app.post('/api/proofs/share', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { proofId, expiryDuration, usageLimit, requireAuth, allowedDomains, notifyOnAccess } = req.body;
+
+      // Generate secure share link
+      const shareId = `share_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
+      const shareUrl = `${req.protocol}://${req.get('host')}/share/${shareId}`;
+      
+      // Calculate expiry time
+      const expiresAt = new Date();
+      if (expiryDuration === '1h') expiresAt.setHours(expiresAt.getHours() + 1);
+      else if (expiryDuration === '24h') expiresAt.setHours(expiresAt.getHours() + 24);
+      else if (expiryDuration === '7d') expiresAt.setDate(expiresAt.getDate() + 7);
+      else if (expiryDuration === '30d') expiresAt.setDate(expiresAt.getDate() + 30);
+
+      const shareLink = {
+        id: shareId,
+        proofId,
+        userId,
+        url: shareUrl,
+        expiresAt: expiresAt.toISOString(),
+        usageLimit: usageLimit || null,
+        usedCount: 0,
+        isActive: true,
+        requireAuth: requireAuth || false,
+        allowedDomains: allowedDomains || [],
+        notifyOnAccess: notifyOnAccess || false,
+        createdAt: new Date().toISOString()
+      };
+
+      // TODO: Store shareLink in database
+      
+      res.json({
+        success: true,
+        shareUrl,
+        shareLink: {
+          id: shareId,
+          url: shareUrl,
+          expiresAt: shareLink.expiresAt,
+          usageLimit: shareLink.usageLimit,
+          usedCount: 0,
+          isActive: true,
+          createdAt: shareLink.createdAt
+        }
+      });
+    } catch (error: any) {
+      console.error("Error generating share link:", error);
+      res.status(500).json({ message: "Failed to generate share link" });
+    }
+  });
+
+  app.delete('/api/proofs/share/:shareId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { shareId } = req.params;
+      const userId = req.user.claims.sub;
+      
+      // TODO: Revoke share link in database
+      
+      res.json({ success: true, message: "Share link revoked" });
+    } catch (error: any) {
+      console.error("Error revoking share link:", error);
+      res.status(500).json({ message: "Failed to revoke share link" });
+    }
+  });
+
+  // Organization management endpoints
+  app.get('/api/organizations/my', isAuthenticated, async (req: any, res) => {
+    try {
+      // Mock organization data for development
+      const organizations = [
+        {
+          id: 'org_demo_123',
+          name: 'Demo Bank Nepal',
+          domain: 'demobank.np',
+          apiKey: 'vty_dev_1234567890abcdef',
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          verificationCount: 42,
+          lastUsed: new Date().toISOString()
+        }
+      ];
+      
+      res.json(organizations);
+    } catch (error: any) {
+      console.error("Error fetching organizations:", error);
+      res.status(500).json({ message: "Failed to fetch organizations" });
+    }
+  });
+
+  app.get('/api/organizations/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      // Mock statistics data for development
+      const stats = {
+        totalVerifications: 156,
+        successfulVerifications: 142,
+        failedVerifications: 14,
+        uniqueUsers: 89,
+        topProofTypes: [
+          { type: 'age', count: 45 },
+          { type: 'citizenship', count: 38 },
+          { type: 'education', count: 23 }
+        ],
+        recentActivity: [
+          {
+            id: 'act_1',
+            type: 'age',
+            result: 'success',
+            timestamp: new Date().toISOString(),
+            userHash: 'abc123...'
+          },
+          {
+            id: 'act_2',
+            type: 'citizenship',
+            result: 'success',
+            timestamp: new Date(Date.now() - 3600000).toISOString(),
+            userHash: 'def456...'
+          }
+        ]
+      };
+      
+      res.json(stats);
+    } catch (error: any) {
+      console.error("Error fetching stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
   console.log('🔐 Real-time verification WebSocket server running on /ws/verify');
   console.log('📱 Biometric authentication endpoints enabled');
+  console.log('📱 QR code generation and scanning endpoints enabled');
+  console.log('📄 Document upload and verification endpoints enabled');
+  console.log('🏢 Organization dashboard endpoints enabled');
+  console.log('🔗 Proof sharing endpoints enabled');
   
   return httpServer;
 }

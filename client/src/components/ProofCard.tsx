@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarCheck, Flag, GraduationCap, Banknote, MapPin, Share, Download, QrCode } from "lucide-react";
 import { useTranslation, type Language } from "@/lib/i18n";
+import { QRGenerator } from "./QRGenerator";
 
 interface ProofCardProps {
   proof: {
@@ -29,6 +31,7 @@ const proofIcons = {
 
 export function ProofCard({ proof, language }: ProofCardProps) {
   const { t } = useTranslation(language);
+  const [showQRGenerator, setShowQRGenerator] = useState(false);
   const IconComponent = proofIcons[proof.proofType.circuitId as keyof typeof proofIcons] || CalendarCheck;
 
   const getStatusColor = (status: string) => {
@@ -82,18 +85,50 @@ export function ProofCard({ proof, language }: ProofCardProps) {
           )}
 
           <div className="flex space-x-2 pt-2">
-            <Button size="sm" variant="outline" className="flex-1" data-testid="button-share-proof">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="flex-1" 
+              onClick={() => setShowQRGenerator(true)}
+              data-testid="button-share-proof"
+            >
               <Share className="h-4 w-4 mr-1" />
               Share
             </Button>
-            <Button size="sm" variant="outline" className="flex-1" data-testid="button-download-proof">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="flex-1" 
+              onClick={() => {
+                // TODO: Implement PDF download
+                console.log('Download PDF for proof:', proof.id);
+              }}
+              data-testid="button-download-proof"
+            >
               <Download className="h-4 w-4 mr-1" />
               Download
             </Button>
-            <Button size="sm" variant="outline" data-testid="button-qr-proof">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setShowQRGenerator(true)}
+              data-testid="button-qr-proof"
+            >
               <QrCode className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* QR Generator Modal */}
+          {showQRGenerator && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <QRGenerator
+                proofId={proof.id}
+                proofType={proof.proofType.name}
+                language={language}
+                onClose={() => setShowQRGenerator(false)}
+              />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

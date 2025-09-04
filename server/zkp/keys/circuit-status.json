@@ -1,0 +1,31 @@
+{
+  "compiledAt": "2025-09-04T08:29:50.134Z",
+  "circuits": {
+    "age_verification": {
+      "name": "age_verification",
+      "compiled": false,
+      "setup": false,
+      "ready": false,
+      "files": {
+        "r1cs": false,
+        "wasm": false,
+        "zkey": false,
+        "vkey": false
+      },
+      "error": "Command failed: cd /home/runner/workspace/server/zkp/keys/age_verification && circom /home/runner/workspace/server/circuits/age_verification.circom --r1cs --wasm --sym\n\u001b[0m\u001b[1m\u001b[38;5;9merror[P1008]\u001b[0m\u001b[1m: Missing semicolon\u001b[0m\n   \u001b[0m\u001b[34m┌─\u001b[0m \"/home/runner/workspace/server/circuits/age_verification.circom\":10:20\n   \u001b[0m\u001b[34m│\u001b[0m\n\u001b[0m\u001b[34m10\u001b[0m \u001b[0m\u001b[34m│\u001b[0m     signal private \u001b[0m\u001b[31minput\u001b[0m birthYear;      // User's birth year\n   \u001b[0m\u001b[34m│\u001b[0m                    \u001b[0m\u001b[31m^^^^^\u001b[0m \u001b[0m\u001b[31mA semicolon is needed here\u001b[0m\n\n\u001b[0m\u001b[1m\u001b[38;5;9merror[P1012]\u001b[0m\u001b[1m: illegal expression\u001b[0m\n   \u001b[0m\u001b[34m┌─\u001b[0m \"/home/runner/workspace/server/circuits/age_verification.circom\":10:35\n   \u001b[0m\u001b[34m│\u001b[0m\n\u001b[0m\u001b[34m10\u001b[0m \u001b[0m\u001b[34m│\u001b[0m     signal private input birthYear\u001b[0m\u001b[31m;\u001b[0m      // User's birth year\n   \u001b[0m\u001b[34m│\u001b[0m                                   \u001b[0m\u001b[31m^\u001b[0m \u001b[0m\u001b[31mhere\u001b[0m\n\n\u001b[31mprevious errors were found\u001b[0m\n"
+    },
+    "citizenship_verification": {
+      "name": "citizenship_verification",
+      "compiled": false,
+      "setup": false,
+      "ready": false,
+      "files": {
+        "r1cs": false,
+        "wasm": false,
+        "zkey": false,
+        "vkey": false
+      },
+      "error": "Command failed: cd /home/runner/workspace/server/zkp/keys/citizenship_verification && circom /home/runner/workspace/server/circuits/citizenship_verification.circom --r1cs --wasm --sym\n\u001b[0m\u001b[1m\u001b[38;5;9merror[P1012]\u001b[0m\u001b[1m: UnrecognizedToken { token: (1954, Token(70, \"signal\"), 1960), expected: [\"\\\"component\\\"\", \"\\\"function\\\"\", \"\\\"template\\\"\"] }\u001b[0m\n   \u001b[0m\u001b[34m┌─\u001b[0m \"/home/runner/workspace/server/circuits/citizenship_verification.circom\":47:5\n   \u001b[0m\u001b[34m│\u001b[0m\n\u001b[0m\u001b[34m47\u001b[0m \u001b[0m\u001b[34m│\u001b[0m     \u001b[0m\u001b[31msignal\u001b[0m digitSum;\n   \u001b[0m\u001b[34m│\u001b[0m     \u001b[0m\u001b[31m^^^^^^\u001b[0m \u001b[0m\u001b[31mhere\u001b[0m\n\n\u001b[31mprevious errors were found\u001b[0m\n"
+    }
+  }
+}

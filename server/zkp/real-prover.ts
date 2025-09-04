@@ -57,9 +57,9 @@ export class RealZKProver {
         publicSignals,
         nullifierHash
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Proof generation failed:', error);
-      throw new Error(`Failed to generate proof: ${error.message}`);
+      throw new Error(`Failed to generate proof: ${error?.message || error}`);
     }
   }
 

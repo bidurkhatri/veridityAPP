@@ -1,18 +1,150 @@
 import crypto from 'crypto';
+import { realProver } from '../zkp/real-prover';
+import { realVerifier } from '../zkp/real-verifier';
+import { nepalGovIntegration } from '../integrations/nepal-government';
 
-// Mock ZKP Service for demonstration purposes
-// In a real implementation, this would use actual ZKP libraries like snarkjs
+// Real ZKP Service using snarkjs implementation
 export class ZKPService {
-  // Mock proof generation
+  // Real proof generation with fallback to mock
   static async generateProof(proofType: string, privateInputs: any): Promise<{
     proof: string;
     publicSignals: any;
     success: boolean;
   }> {
-    // Simulate proof generation time
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+    try {
+      // Check if real ZK setup is available
+      if (realProver.isRealZKAvailable()) {
+        console.log(`🔐 Generating real ZK proof for ${proofType}`);
+        
+        // Prepare public inputs based on proof type
+        const publicInputs = await this.preparePublicInputs(proofType, privateInputs);
+        
+        const result = await realProver.generateProof({
+          circuitId: proofType,
+          privateInputs,
+          publicInputs
+        });
 
-    const success = Math.random() > 0.1; // 90% success rate
+        return {
+          proof: JSON.stringify(result.proof),
+          publicSignals: result.publicSignals,
+          success: true
+        };
+      } else {
+        // Fallback to enhanced mock for development
+        console.log(`🧪 Generating mock proof for ${proofType} (real ZK not available)`);
+        return this.generateEnhancedMockProof(proofType, privateInputs);
+      }
+    } catch (error: any) {
+      console.error('Proof generation failed:', error);
+      return {
+        proof: '',
+        publicSignals: {},
+        success: false
+      };
+    }
+  }
+
+  // Real proof verification with fallback to mock
+  static async verifyProof(proof: string, publicSignals: any, proofType: string): Promise<{
+    valid: boolean;
+    details: any;
+  }> {
+    try {
+      if (realProver.isRealZKAvailable()) {
+        console.log(`🔍 Verifying real ZK proof for ${proofType}`);
+        
+        const result = await realVerifier.verifyProof({
+          circuitId: proofType,
+          proof: typeof proof === 'string' ? JSON.parse(proof) : proof,
+          publicSignals: Array.isArray(publicSignals) ? publicSignals : [publicSignals],
+          publicInputs: { proofType }
+        });
+
+        return {
+          valid: result.isValid,
+          details: {
+            proofType,
+            verificationTime: result.verifiedAt,
+            algorithm: 'Groth16 (Real)',
+            circuitHash: this.generateCircuitHash(proofType),
+            nullifierHash: result.nullifierHash
+          }
+        };
+      } else {
+        // Enhanced mock verification
+        console.log(`🧪 Mock verification for ${proofType} (real ZK not available)`);
+        return this.mockVerifyProof(proof, publicSignals, proofType);
+      }
+    } catch (error: any) {
+      console.error('Proof verification failed:', error);
+      return {
+        valid: false,
+        details: {
+          proofType,
+          verificationTime: new Date().toISOString(),
+          algorithm: 'Error',
+          error: error?.message || 'Verification failed'
+        }
+      };
+    }
+  }
+
+  private static async preparePublicInputs(proofType: string, privateInputs: any): Promise<any> {
+    switch (proofType) {
+      case 'age_verification':
+        return {
+          ageThreshold: privateInputs.minimumAge || 18,
+          currentTimestamp: Math.floor(Date.now() / 1000)
+        };
+      
+      case 'citizenship_verification':
+        // Get merkle root from Nepal government integration
+        const merkleData = await nepalGovIntegration.generateCitizenshipMerkleTree();
+        return {
+          merkleRoot: merkleData.root,
+          districtFilter: privateInputs.district || 0
+        };
+      
+      case 'education_verification':
+        return {
+          minimumLevel: this.mapEducationLevel(privateInputs.educationLevel),
+          currentTimestamp: Math.floor(Date.now() / 1000)
+        };
+      
+      case 'income_verification':
+        return {
+          minimumIncome: privateInputs.minimumIncome || 50000, // NPR per month
+          currentTimestamp: Math.floor(Date.now() / 1000)
+        };
+      
+      default:
+        return { timestamp: Math.floor(Date.now() / 1000) };
+    }
+  }
+
+  private static mapEducationLevel(level: string): number {
+    const levels: Record<string, number> = {
+      'primary': 1,
+      'secondary': 2,
+      'higher_secondary': 3,
+      'bachelor': 4,
+      'master': 5,
+      'doctorate': 6
+    };
+    return levels[level] || 1;
+  }
+
+  // Enhanced mock proof generation with realistic structure
+  private static async generateEnhancedMockProof(proofType: string, privateInputs: any): Promise<{
+    proof: string;
+    publicSignals: any;
+    success: boolean;
+  }> {
+    // Simulate realistic proof generation time
+    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+
+    const success = Math.random() > 0.05; // 95% success rate (more realistic)
 
     if (!success) {
       return {
@@ -22,9 +154,9 @@ export class ZKPService {
       };
     }
 
-    // Generate mock proof data
-    const proof = this.generateMockProof();
-    const publicSignals = this.generatePublicSignals(proofType, privateInputs);
+    // Generate realistic mock proof data
+    const proof = this.generateRealisticProof();
+    const publicSignals = this.generateEnhancedPublicSignals(proofType, privateInputs);
 
     return {
       proof,
@@ -33,30 +165,28 @@ export class ZKPService {
     };
   }
 
-  // Mock proof verification
-  static async verifyProof(proof: string, publicSignals: any, proofType: string): Promise<{
+  private static mockVerifyProof(proof: string, publicSignals: any, proofType: string): Promise<{
     valid: boolean;
     details: any;
   }> {
-    // Simulate verification time
-    await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 500));
+    // Enhanced mock verification with more realistic validation
+    const valid = proof.length > 0 && 
+                  publicSignals && 
+                  Math.random() > 0.02; // 98% success rate
 
-    // Mock verification logic - in reality this would validate the cryptographic proof
-    const valid = proof.length > 0 && publicSignals && Math.random() > 0.05; // 95% success rate
-
-    return {
+    return Promise.resolve({
       valid,
       details: {
         proofType,
         verificationTime: new Date().toISOString(),
-        algorithm: 'Groth16 (Mock)',
+        algorithm: 'Groth16 (Enhanced Mock)',
         circuitHash: this.generateCircuitHash(proofType)
       }
-    };
+    });
   }
 
-  private static generateMockProof(): string {
-    // Generate a mock cryptographic proof
+  private static generateRealisticProof(): string {
+    // Generate a realistic mock cryptographic proof structure
     const components = {
       pi_a: this.generateMockG1Point(),
       pi_b: this.generateMockG2Point(),
@@ -66,7 +196,7 @@ export class ZKPService {
     return JSON.stringify(components);
   }
 
-  private static generatePublicSignals(proofType: string, privateInputs: any): any {
+  private static generateEnhancedPublicSignals(proofType: string, privateInputs: any): any {
     switch (proofType) {
       case 'age_verification':
         return {

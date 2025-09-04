@@ -12,6 +12,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation, type Language } from "@/lib/i18n";
 import { Shield, Search, QrCode, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { QRScanner } from "@/components/QRScanner";
 
 export default function Verification() {
   const { toast } = useToast();
@@ -22,6 +23,7 @@ export default function Verification() {
   const [proofId, setProofId] = useState('');
   const [organizationApiKey, setOrganizationApiKey] = useState('');
   const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [showQRScanner, setShowQRScanner] = useState(false);
 
   // Fetch organizations
   const { data: organizations = [] } = useQuery<any[]>({
@@ -75,11 +77,46 @@ export default function Verification() {
   };
 
   const handleScanQR = () => {
-    // In a real implementation, this would open camera for QR scanning
-    toast({
-      title: "QR Scanner",
-      description: "QR code scanning not implemented in demo",
-    });
+    setShowQRScanner(true);
+  };
+
+  const handleQRScanSuccess = async (qrData: string) => {
+    try {
+      // Parse QR data using the backend
+      const response = await apiRequest('POST', '/api/qr/parse', { qrData });
+      const result = await response.json();
+      
+      if (!result.isValid) {
+        toast({
+          title: "Invalid QR Code",
+          description: result.expired ? "QR code has expired" : "Invalid QR code format",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check if it's a proof QR or verification request
+      if (result.data.proofId) {
+        // It's a proof QR - auto-fill the proof ID
+        setProofId(result.data.proofId);
+        toast({
+          title: "QR Code Scanned",
+          description: `Proof ID loaded: ${result.data.proofType}`
+        });
+      } else if (result.data.requiredProofType) {
+        // It's a verification request - show info
+        toast({
+          title: "Verification Request",
+          description: `Requesting: ${result.data.requiredProofType}`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Scan Error",
+        description: error.message || "Failed to process QR code",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -281,6 +318,14 @@ export default function Verification() {
           </div>
         </div>
       </main>
+
+      {/* QR Scanner Modal */}
+      <QRScanner
+        isOpen={showQRScanner}
+        onClose={() => setShowQRScanner(false)}
+        onScanSuccess={handleQRScanSuccess}
+        language={language}
+      />
     </div>
   );
 }

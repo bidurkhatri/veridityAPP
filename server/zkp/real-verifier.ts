@@ -135,7 +135,7 @@ export class RealZKVerifier {
     // from the Nepal government's citizenship database
     
     // For now, accept any non-empty merkle root
-    return merkleRoot && merkleRoot.length > 0;
+    return typeof merkleRoot === 'string' && merkleRoot.length > 0;
   }
 
   // Batch verification for multiple proofs

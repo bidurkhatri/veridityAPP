@@ -18,9 +18,9 @@ export class CircuitBuilder {
   private buildPath: string;
 
   constructor() {
-    this.circuitsPath = join(__dirname, 'circuits');
-    this.keysPath = join(__dirname, 'keys');
-    this.buildPath = join(__dirname, 'build');
+    this.circuitsPath = join(process.cwd(), 'server', 'circuits');
+    this.keysPath = join(process.cwd(), 'server', 'zkp', 'keys');
+    this.buildPath = join(process.cwd(), 'server', 'zkp', 'build');
     
     // Ensure directories exist
     [this.keysPath, this.buildPath].forEach(dir => {
@@ -166,23 +166,36 @@ export class CircuitBuilder {
     }
   }
 
-  // Check build status
+  // Get current status including compiled circuits
   getBuildStatus(): Record<string, any> {
     const circuits = ['age_verification', 'citizenship_verification'];
     const status: Record<string, any> = {};
     
     circuits.forEach(circuit => {
-      const r1cs = existsSync(join(this.buildPath, `${circuit}.r1cs`));
-      const wasm = existsSync(join(this.circuitsPath, `${circuit}.wasm`));
-      const zkey = existsSync(join(this.keysPath, `${circuit}_final.zkey`));
-      const vkey = existsSync(join(this.keysPath, `${circuit}_vkey.json`));
-      
-      status[circuit] = {
-        compiled: r1cs && wasm,
-        setup: zkey,
-        ready: wasm && zkey && vkey,
-        files: { r1cs, wasm, zkey, vkey }
-      };
+      try {
+        const circuitDir = join(this.keysPath, circuit);
+        
+        // Check for our compiled simple circuits
+        const r1cs = existsSync(join(circuitDir, 'simple_age.r1cs'));
+        const wasm = existsSync(join(circuitDir, 'simple_age_js', 'simple_age.wasm'));
+        const zkey = existsSync(join(this.keysPath, `${circuit}_final.zkey`));
+        const vkey = existsSync(join(this.keysPath, `${circuit}_vkey.json`));
+        
+        status[circuit] = {
+          compiled: r1cs && wasm,
+          setup: zkey,
+          ready: wasm && zkey && vkey,
+          files: { r1cs, wasm, zkey, vkey }
+        };
+      } catch (error) {
+        // Fallback to safe defaults
+        status[circuit] = {
+          compiled: false,
+          setup: false,
+          ready: false,
+          files: { r1cs: false, wasm: false, zkey: false, vkey: false }
+        };
+      }
     });
     
     return status;

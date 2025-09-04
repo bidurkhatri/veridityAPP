@@ -20,6 +20,9 @@ import Settings from "@/pages/Settings";
 import ProofGeneration from "@/pages/ProofGeneration";
 import Verification from "@/pages/Verification";
 import Admin from "@/pages/Admin";
+import Help from "@/pages/Help";
+import Privacy from "@/pages/Privacy";
+import OrganizationDashboard from "@/pages/OrganizationDashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -73,6 +76,11 @@ function Router() {
         <Route path="/generate" component={ProofGeneration} />
         <Route path="/verify" component={Verification} />
         <Route path="/admin" component={Admin} />
+        
+        {/* Support and Legal Pages */}
+        <Route path="/help" component={Help} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/organizations" component={OrganizationDashboard} />
         
         <Route component={NotFound} />
       </Switch>
