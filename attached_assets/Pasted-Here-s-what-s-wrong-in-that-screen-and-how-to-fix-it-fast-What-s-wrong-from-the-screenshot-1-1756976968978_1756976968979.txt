@@ -1,0 +1,137 @@
+Here’s what’s wrong in that screen and how to fix it fast.
+
+⸻
+
+What’s wrong (from the screenshot)
+	1.	Outdated + mixed province labels
+	•	The list contains “Province 1” (obsolete). It should be “Koshi Province”.
+	•	Ensure full set (EN + NP): Koshi, Madhesh, Bagmati, Gandaki, Lumbini, Karnali, Sudurpashchim.
+	2.	Dropdown rendering over other inputs (messy overlap)
+	•	The options panel is bleeding into “District” / “Municipality” fields.
+Likely causes: the menu is positioned inside a stacking context (parent with transform/filter/overflow:hidden) and rendered without a portal, or using absolute positioning without flip/shift.
+	3.	Cascading selects not wired
+	•	“District” and “Municipality/VDC” don’t filter based on the selected province (and placeholders look like data). This confuses users and invites bad input.
+	4.	Mobile usability
+	•	The menu doesn’t flip upward when there isn’t space (tab bar hides the bottom).
+	•	No max-height/scroll on the options list → long list overlaps content.
+	5.	Localization & consistency
+	•	All province names are in English only; the rest of the app supports Nepali.
+	•	Placeholders like “e.g., Kathmandu Metropolitan City” appear under a visible list → looks like duplicate data.
+
+⸻
+
+Fix it (shadcn/Radix + Floating UI example)
+
+A) Use a Portal + fixed positioning (prevents overlap/clipping)
+
+// ProvinceSelect.tsx (shadcn/ui Radix Select)
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectPortal } from "@/components/ui/select";
+
+export function ProvinceSelect({ value, onChange, lang = 'en' }: {
+  value?: string; onChange: (v: string)=>void; lang?: 'en'|'ne';
+}) {
+  const provinces = lang === 'ne'
+    ? ['कोशी प्रदेश','मधेश प्रदेश','बागमती प्रदेश','गण्डकी प्रदेश','लुम्बिनी प्रदेश','कर्णाली प्रदेश','सुदूरपश्चिम प्रदेश']
+    : ['Koshi Province','Madhesh Province','Bagmati Province','Gandaki Province','Lumbini Province','Karnali Province','Sudurpashchim Province'];
+
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder={lang==='ne' ? 'प्रदेश छान्नुहोस्' : 'Select province'} />
+      </SelectTrigger>
+
+      {/* Always render to body with high z-index */}
+      <SelectPortal>
+        <SelectContent
+          position="popper"     // Radix powered
+          sideOffset={8}
+          avoidCollisions
+          className="z-[1000] max-h-[280px] overflow-auto"
+        >
+          {provinces.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+        </SelectContent>
+      </SelectPortal>
+    </Select>
+  );
+}
+
+If you use Floating UI directly:
+
+useFloating({
+  strategy: 'fixed',          // ignore transformed parents
+  middleware: [offset(8), flip(), shift()],
+});
+
+	•	strategy: 'fixed' + portal to <body> avoids being clipped by parents with overflow/transform.
+	•	flip() opens upward when bottom space is tight (tab bar present).
+	•	max-h + overflow-auto keeps the list scrollable, not sprawled across the form.
+
+B) Prevent state collisions (District using Province value)
+
+Make sure each field has a unique name/state (React Hook Form/Controller):
+
+const { control, watch } = useForm({ defaultValues: { province:'', district:'', municipality:'' } });
+const province = watch('province');
+
+<Controller name="province" control={control} render={({field}) => (
+  <ProvinceSelect value={field.value} onChange={field.onChange} lang={lang}/>
+)} />
+
+<Controller name="district" control={control} render={({field}) => (
+  <DistrictSelect province={province} value={field.value} onChange={field.onChange} lang={lang}/>
+)} />
+
+C) Cascade District → Municipality lists from Province
+
+// data/admin-boundaries.ts
+export const districtsByProvince = {
+  'Koshi Province': ['Taplejung','Sankhuwasabha','Solukhumbu',/*...*/],
+  // ...
+};
+export const municipalitiesByDistrict = {
+  'Kathmandu': ['Kathmandu Metropolitan City','Kageshwori Manohara','Kirtipur',/*...*/],
+  // ...
+};
+
+// DistrictSelect.tsx
+export function DistrictSelect({ province, value, onChange, lang='en' }) {
+  const districts = province ? districtsByProvince[province] ?? [] : [];
+  return (
+    <Select value={value} onValueChange={onChange} disabled={!province}>
+      <SelectTrigger><SelectValue placeholder={lang==='ne'?'जिल्ला छान्नुहोस्':'Select district'}/></SelectTrigger>
+      <SelectPortal>
+        <SelectContent position="popper" sideOffset={8} className="z-[1000] max-h-[280px] overflow-auto">
+          {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+        </SelectContent>
+      </SelectPortal>
+    </Select>
+  );
+}
+
+D) Accessibility & mobile polish
+	•	Add aria-label on triggers; ensure focus trap doesn’t scroll the page.
+	•	Close menu on selection; reopen with search if you add cmd+k filter.
+	•	When the keyboard pops on mobile, scroll the trigger into view before opening.
+
+⸻
+
+Data corrections (copy/paste)
+
+Provinces (EN):
+["Koshi Province","Madhesh Province","Bagmati Province","Gandaki Province","Lumbini Province","Karnali Province","Sudurpashchim Province"]
+
+Provinces (NE):
+["कोशी प्रदेश","मधेश प्रदेश","बागमती प्रदेश","गण्डकी प्रदेश","लुम्बिनी प्रदेश","कर्णाली प्रदेश","सुदूरपश्चिम प्रदेश"]
+
+(Replace any “Province 1” label; keep consistent ordering across languages.)
+
+⸻
+
+Done criteria
+	•	The province menu opens in a portal, scrolls within itself, and flips up when near the tab bar.
+	•	No overlapping over inputs; z-index is above cards.
+	•	Selecting a province filters districts; selecting a district filters municipalities.
+	•	Province list uses current names in both English and Nepali.
+	•	Each field stores its own value (no duplication).
+
+If you want, I can also drop a pre-filled Nepal administrative dataset (province → district → municipality) JSON so you can plug it in immediately.

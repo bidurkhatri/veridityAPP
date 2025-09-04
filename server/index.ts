@@ -66,6 +66,43 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
+  
+  // Graceful shutdown handling
+  const gracefulShutdown = (signal: string) => {
+    log(`Received ${signal}, shutting down gracefully...`);
+    server.close(() => {
+      log('Server closed');
+      process.exit(0);
+    });
+    
+    // Force exit after 10 seconds
+    setTimeout(() => {
+      log('Forcing shutdown after timeout');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      log(`Port ${port} is already in use. Trying to find alternative...`);
+      // Try alternative ports
+      const altPort = port + Math.floor(Math.random() * 1000) + 1;
+      server.listen({
+        port: altPort,
+        host: "0.0.0.0",
+        reusePort: true,
+      }, () => {
+        log(`serving on alternative port ${altPort}`);
+      });
+    } else {
+      log(`Server error: ${err.message}`);
+      throw err;
+    }
+  });
+
   server.listen({
     port,
     host: "0.0.0.0",

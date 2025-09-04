@@ -404,7 +404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: 'Circuits built successfully',
           status: circuitBuilder.getBuildStatus()
         });
-      } catch (error) {
+      } catch (error: any) {
         res.status(500).json({ 
           success: false, 
           error: error.message 

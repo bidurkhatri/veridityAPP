@@ -1,6 +1,28 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
+import crypto from 'crypto';
 
-export function setupSecurityHeaders(app: Express) {
+// Rate limiting store
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+export interface SecurityConfig {
+  enableCSRF: boolean;
+  rateLimitWindow: number;
+  rateLimitMax: number;
+  enableCORS: boolean;
+  allowedOrigins: string[];
+}
+
+const DEFAULT_CONFIG: SecurityConfig = {
+  enableCSRF: true,
+  rateLimitWindow: 15 * 60 * 1000, // 15 minutes
+  rateLimitMax: 100, // requests per window
+  enableCORS: true,
+  allowedOrigins: process.env.NODE_ENV === 'production' 
+    ? ['https://your-domain.replit.app'] 
+    : ['http://localhost:5000', 'https://localhost:5000']
+};
+
+export function setupSecurityHeaders(app: Express, config: SecurityConfig = DEFAULT_CONFIG) {
   // Security headers middleware for Observatory grade A
   app.use((req, res, next) => {
     // Content Security Policy - Restrictive CSP for maximum security
@@ -96,6 +118,61 @@ export function setupSecurityHeaders(app: Express) {
     
     // Remove server information
     res.removeHeader('X-Powered-By');
+    
+    next();
+  });
+
+  // CORS configuration
+  if (config.enableCORS) {
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      const origin = req.headers.origin;
+      
+      if (!origin || config.allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin || '*');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token');
+      }
+
+      if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+        return;
+      }
+
+      next();
+    });
+  }
+
+  // Rate limiting
+  app.use('/api/', (req: Request, res: Response, next: NextFunction) => {
+    const key = req.ip || 'unknown';
+    const now = Date.now();
+    
+    let userLimit = rateLimitStore.get(key);
+    
+    if (!userLimit || now > userLimit.resetTime) {
+      userLimit = {
+        count: 1,
+        resetTime: now + config.rateLimitWindow
+      };
+    } else {
+      userLimit.count++;
+    }
+    
+    rateLimitStore.set(key, userLimit);
+    
+    // Set rate limit headers
+    res.setHeader('X-RateLimit-Limit', config.rateLimitMax);
+    res.setHeader('X-RateLimit-Remaining', Math.max(0, config.rateLimitMax - userLimit.count));
+    res.setHeader('X-RateLimit-Reset', Math.ceil(userLimit.resetTime / 1000));
+    
+    if (userLimit.count > config.rateLimitMax) {
+      res.status(429).json({
+        error: 'Too many requests',
+        retryAfter: Math.ceil((userLimit.resetTime - now) / 1000)
+      });
+      return;
+    }
     
     next();
   });

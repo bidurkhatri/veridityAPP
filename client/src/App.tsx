@@ -10,6 +10,8 @@ import { Onboarding } from "@/components/Onboarding";
 import { ContextualThemeProvider, useAutoThemeDetection } from "@/components/ContextualTheme";
 import { VoiceNavigationNew as VoiceNavigation } from "@/components/VoiceNavigationNew";
 import { PWACapabilities } from "@/components/PWACapabilities";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 // Pages
 import Landing from "@/pages/Landing";
@@ -107,16 +109,19 @@ function AppWithTheme() {
   }, [currentLanguage]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-        <VoiceNavigation 
-          currentLanguage={currentLanguage}
-          onLanguageChange={setCurrentLanguage}
-        />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <OfflineIndicator />
+          <Router />
+          <VoiceNavigation 
+            currentLanguage={currentLanguage}
+            onLanguageChange={setCurrentLanguage}
+          />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
