@@ -36,17 +36,30 @@ interface VoiceSettings {
   confirmCommands: boolean;
 }
 
-export function VoiceNavigation() {
-  const { t } = useTranslation('en');
+// Extended Window interface for speech recognition
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
+interface VoiceNavigationProps {
+  currentLanguage?: 'en' | 'np';
+  onLanguageChange?: (language: 'en' | 'np') => void;
+}
+
+export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: VoiceNavigationProps = {}) {
+  const { t } = useTranslation(currentLanguage);
   const [, navigate] = useLocation();
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [lastCommand, setLastCommand] = useState<string>('');
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<any | null>(null);
   const [synthesis, setSynthesis] = useState<SpeechSynthesis | null>(null);
   const [settings, setSettings] = useState<VoiceSettings>({
     enabled: false,
-    language: 'en',
+    language: currentLanguage,
     speechRate: 1.0,
     speechVolume: 1.0,
     micSensitivity: 0.8,
@@ -56,57 +69,112 @@ export function VoiceNavigation() {
   const [showSettings, setShowSettings] = useState(false);
   const [transcript, setTranscript] = useState('');
 
-  // Voice commands
-  const voiceCommands: VoiceCommand[] = [
-    {
-      phrase: 'go home',
-      action: () => navigate('/'),
-      description: 'Navigate to home page',
-      category: 'navigation'
-    },
-    {
-      phrase: 'generate proof',
-      action: () => navigate('/prove'),
-      description: 'Go to proof generation',
-      category: 'navigation'
-    },
-    {
-      phrase: 'share proof',
-      action: () => navigate('/share'),
-      description: 'Go to proof sharing',
-      category: 'navigation'
-    },
-    {
-      phrase: 'view history',
-      action: () => navigate('/history'),
-      description: 'Go to proof history',
-      category: 'navigation'
-    },
-    {
-      phrase: 'open settings',
-      action: () => navigate('/settings'),
-      description: 'Go to settings',
-      category: 'navigation'
-    },
-    {
-      phrase: 'read page',
-      action: () => readCurrentPage(),
-      description: 'Read current page content',
-      category: 'accessibility'
-    },
-    {
-      phrase: 'help me',
-      action: () => speakHelp(),
-      description: 'Get voice assistance',
-      category: 'accessibility'
-    },
-    {
-      phrase: 'stop speaking',
-      action: () => stopSpeaking(),
-      description: 'Stop text-to-speech',
-      category: 'action'
+  // Voice commands based on current language
+  const getVoiceCommands = (): VoiceCommand[] => {
+    if (settings.language === 'np') {
+      return [
+        {
+          phrase: 'होम जानुहोस्',
+          action: () => navigate('/'),
+          description: 'होम पेजमा जानुहोस्',
+          category: 'navigation'
+        },
+        {
+          phrase: 'प्रमाण बनाउनुहोस्',
+          action: () => navigate('/prove'),
+          description: 'प्रमाण उत्पादन पेजमा जानुहोस्',
+          category: 'navigation'
+        },
+        {
+          phrase: 'प्रमाण साझा गर्नुहोस्',
+          action: () => navigate('/share'),
+          description: 'प्रमाण साझा पेजमा जानुहोस्',
+          category: 'navigation'
+        },
+        {
+          phrase: 'इतिहास हेर्नुहोस्',
+          action: () => navigate('/history'),
+          description: 'प्रमाण इतिहास हेर्नुहोस्',
+          category: 'navigation'
+        },
+        {
+          phrase: 'सेटिङ्स खोल्नुहोस्',
+          action: () => navigate('/settings'),
+          description: 'सेटिङ्स पेजमा जानुहोस्',
+          category: 'navigation'
+        },
+        {
+          phrase: 'पेज पढ्नुहोस्',
+          action: () => readCurrentPage(),
+          description: 'हालको पेजको सामग्री पढ्नुहोस्',
+          category: 'accessibility'
+        },
+        {
+          phrase: 'मद्दत गर्नुहोस्',
+          action: () => speakHelp(),
+          description: 'आवाज सहायता प्राप्त गर्नुहोस्',
+          category: 'accessibility'
+        },
+        {
+          phrase: 'बोल्न बन्द गर्नुहोस्',
+          action: () => stopSpeaking(),
+          description: 'पाठ-देखि-आवाज बन्द गर्नुहोस्',
+          category: 'action'
+        }
+      ];
+    } else {
+      return [
+        {
+          phrase: 'go home',
+          action: () => navigate('/'),
+          description: 'Navigate to home page',
+          category: 'navigation'
+        },
+        {
+          phrase: 'generate proof',
+          action: () => navigate('/prove'),
+          description: 'Go to proof generation',
+          category: 'navigation'
+        },
+        {
+          phrase: 'share proof',
+          action: () => navigate('/share'),
+          description: 'Go to proof sharing',
+          category: 'navigation'
+        },
+        {
+          phrase: 'view history',
+          action: () => navigate('/history'),
+          description: 'Go to proof history',
+          category: 'navigation'
+        },
+        {
+          phrase: 'open settings',
+          action: () => navigate('/settings'),
+          description: 'Go to settings',
+          category: 'navigation'
+        },
+        {
+          phrase: 'read page',
+          action: () => readCurrentPage(),
+          description: 'Read current page content',
+          category: 'accessibility'
+        },
+        {
+          phrase: 'help me',
+          action: () => speakHelp(),
+          description: 'Get voice assistance',
+          category: 'accessibility'
+        },
+        {
+          phrase: 'stop speaking',
+          action: () => stopSpeaking(),
+          description: 'Stop text-to-speech',
+          category: 'action'
+        }
+      ];
     }
-  ];
+  };
 
   useEffect(() => {
     // Initialize speech recognition
@@ -120,14 +188,14 @@ export function VoiceNavigation() {
       
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
-      recognition.onerror = (event) => {
+      recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
       };
       
-      recognition.onresult = (event) => {
+      recognition.onresult = (event: any) => {
         const transcript = Array.from(event.results)
-          .map(result => result[0].transcript)
+          .map((result: any) => result[0].transcript)
           .join('');
         
         setTranscript(transcript);
@@ -148,16 +216,28 @@ export function VoiceNavigation() {
     // Load settings from localStorage
     const savedSettings = localStorage.getItem('veridity-voice-settings');
     if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
+      const parsed = JSON.parse(savedSettings);
+      setSettings({ ...parsed, language: currentLanguage });
     }
-  }, []);
+  }, [currentLanguage]);
 
   useEffect(() => {
     // Save settings to localStorage
     localStorage.setItem('veridity-voice-settings', JSON.stringify(settings));
-  }, [settings]);
+    
+    // Update recognition language when settings change
+    if (recognition) {
+      recognition.lang = settings.language === 'np' ? 'ne-NP' : 'en-US';
+    }
+  }, [settings, recognition]);
+
+  // Update language when parent language changes
+  useEffect(() => {
+    setSettings(prev => ({ ...prev, language: currentLanguage }));
+  }, [currentLanguage]);
 
   const processVoiceCommand = (transcript: string) => {
+    const voiceCommands = getVoiceCommands();
     const command = voiceCommands.find(cmd => 
       transcript.includes(cmd.phrase) || 
       cmd.phrase.includes(transcript)
@@ -167,13 +247,19 @@ export function VoiceNavigation() {
       setLastCommand(command.phrase);
       
       if (settings.confirmCommands) {
-        speak(`Executing ${command.description}`);
+        const confirmText = settings.language === 'np' 
+          ? `कार्यान्वयन गर्दै: ${command.description}`
+          : `Executing ${command.description}`;
+        speak(confirmText);
         setTimeout(() => command.action(), 1000);
       } else {
         command.action();
       }
     } else {
-      speak("Sorry, I didn't understand that command. Say 'help me' for available commands.");
+      const errorText = settings.language === 'np'
+        ? "माफ गर्नुहोस्, मैले त्यो आदेश बुझिन। उपलब्ध आदेशहरूका लागि 'मद्दत गर्नुहोस्' भन्नुहोस्।"
+        : "Sorry, I didn't understand that command. Say 'help me' for available commands.";
+      speak(errorText);
     }
   };
 
@@ -228,8 +314,10 @@ export function VoiceNavigation() {
   };
 
   const speakHelp = () => {
-    const helpText = `Available voice commands: ${voiceCommands.map(cmd => cmd.phrase).join(', ')}. 
-                     You can also say "read page" to hear the current content, or "stop speaking" to interrupt.`;
+    const voiceCommands = getVoiceCommands();
+    const helpText = settings.language === 'np'
+      ? `उपलब्ध आवाज आदेशहरू: ${voiceCommands.map(cmd => cmd.phrase).join(', ')}। तपाईं "पेज पढ्नुहोस्" भनेर हालको सामग्री सुन्न सक्नुहुन्छ, वा "बोल्न बन्द गर्नुहोस्" भनेर रोक्न सक्नुहुन्छ।`
+      : `Available voice commands: ${voiceCommands.map(cmd => cmd.phrase).join(', ')}. You can also say "read page" to hear the current content, or "stop speaking" to interrupt.`;
     speak(helpText);
   };
 
@@ -237,7 +325,10 @@ export function VoiceNavigation() {
     setSettings(prev => ({ ...prev, enabled: !prev.enabled }));
     
     if (!settings.enabled) {
-      speak("Voice navigation enabled. Say 'help me' for available commands.");
+      const enableText = settings.language === 'np'
+        ? "आवाज नेभिगेसन सक्रिय गरियो। उपलब्ध आदेशहरूका लागि 'मद्दत गर्नुहोस्' भन्नुहोस्।"
+        : "Voice navigation enabled. Say 'help me' for available commands.";
+      speak(enableText);
     } else {
       stopSpeaking();
       stopListening();
@@ -384,7 +475,10 @@ export function VoiceNavigation() {
                       <Button
                         variant={settings.language === 'en' ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setSettings(prev => ({ ...prev, language: 'en' }))}
+                        onClick={() => {
+                          setSettings(prev => ({ ...prev, language: 'en' }));
+                          onLanguageChange?.('en');
+                        }}
                         className="flex-1 apple-button"
                       >
                         English
@@ -392,7 +486,10 @@ export function VoiceNavigation() {
                       <Button
                         variant={settings.language === 'np' ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setSettings(prev => ({ ...prev, language: 'np' }))}
+                        onClick={() => {
+                          setSettings(prev => ({ ...prev, language: 'np' }));
+                          onLanguageChange?.('np');
+                        }}
                         className="flex-1 apple-button"
                       >
                         नेपाली
@@ -423,7 +520,7 @@ export function VoiceNavigation() {
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Available Commands</p>
                     <div className="max-h-32 overflow-y-auto space-y-1">
-                      {voiceCommands.map((cmd, index) => (
+                      {getVoiceCommands().map((cmd, index) => (
                         <div key={index} className="text-xs p-2 bg-muted/10 rounded">
                           <p className="font-medium">"{cmd.phrase}"</p>
                           <p className="text-muted-foreground">{cmd.description}</p>
@@ -437,7 +534,12 @@ export function VoiceNavigation() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => speak("Voice navigation test. This is how I sound.")}
+                      onClick={() => {
+                        const testText = settings.language === 'np'
+                          ? "आवाज नेभिगेसन परीक्षण। म यसरी सुनिन्छु।"
+                          : "Voice navigation test. This is how I sound.";
+                        speak(testText);
+                      }}
                       className="flex-1 apple-button"
                       disabled={isSpeaking}
                     >

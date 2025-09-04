@@ -83,12 +83,30 @@ function Router() {
 
 function AppWithTheme() {
   useAutoThemeDetection();
+  const [currentLanguage, setCurrentLanguage] = useState<'en' | 'np'>('en');
+
+  // Load language from localStorage
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('veridity-language') as 'en' | 'np';
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'np')) {
+      setCurrentLanguage(savedLanguage);
+    }
+  }, []);
+
+  // Save language to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('veridity-language', currentLanguage);
+  }, [currentLanguage]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Router />
-        <VoiceNavigation />
+        <VoiceNavigation 
+          currentLanguage={currentLanguage}
+          onLanguageChange={setCurrentLanguage}
+        />
       </TooltipProvider>
     </QueryClientProvider>
   );
