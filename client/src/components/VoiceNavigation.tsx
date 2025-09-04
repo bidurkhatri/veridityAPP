@@ -284,7 +284,18 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
 
   const startListening = () => {
     if (recognition && settings.enabled) {
-      recognition.start();
+      try {
+        recognition.start();
+        console.log('Voice recognition started');
+      } catch (error) {
+        console.error('Error starting voice recognition:', error);
+        speak('Voice recognition is not available on this device or browser.');
+      }
+    } else {
+      console.warn('Voice recognition not available or not enabled');
+      if (!recognition) {
+        speak('Voice recognition is not supported on this browser.');
+      }
     }
   };
 
@@ -322,9 +333,20 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
   };
 
   const toggleVoiceNavigation = () => {
+    const wasEnabled = settings.enabled;
     setSettings(prev => ({ ...prev, enabled: !prev.enabled }));
     
-    if (!settings.enabled) {
+    if (!wasEnabled) {
+      // Check if speech recognition is available
+      if (!recognition) {
+        console.error('Speech recognition not available');
+        const errorText = settings.language === 'np'
+          ? "माफ गर्नुहोस्, यो ब्राउजरमा आवाज पहिचान उपलब्ध छैन।"
+          : "Sorry, voice recognition is not available on this browser.";
+        speak(errorText);
+        return;
+      }
+      
       const enableText = settings.language === 'np'
         ? "आवाज नेभिगेसन सक्रिय गरियो। उपलब्ध आदेशहरूका लागि 'मद्दत गर्नुहोस्' भन्नुहोस्।"
         : "Voice navigation enabled. Say 'help me' for available commands.";
@@ -339,11 +361,12 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
     return (
       <Button
         onClick={toggleVoiceNavigation}
-        className="fixed bottom-32 left-4 z-40 rounded-full w-12 h-12 p-0 apple-shadow"
-        variant="outline"
+        className="fixed bottom-24 right-4 z-50 rounded-full w-14 h-14 p-0 shadow-lg bg-accent hover:bg-accent/90 border-2 border-white"
+        variant="default"
         aria-label="Enable voice navigation"
+        data-testid="button-enable-voice"
       >
-        <Accessibility className="h-5 w-5" />
+        <Accessibility className="h-6 w-6 text-white" />
       </Button>
     );
   }
@@ -354,7 +377,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="fixed bottom-32 left-4 z-40 space-y-2"
+        className="fixed bottom-24 right-4 z-50 space-y-2"
       >
         {/* Main Voice Button */}
         <motion.button
@@ -406,7 +429,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-56 left-4 right-4 z-40"
+            className="fixed bottom-48 left-4 right-20 z-50"
           >
             <Card className="apple-glass border-primary/20">
               <CardContent className="p-4">
