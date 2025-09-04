@@ -95,7 +95,7 @@ export class PWAEnhancement {
   // Setup push notifications
   private async setupNotifications(): Promise<void> {
     if ('Notification' in window) {
-      this.notificationPermission = await Notification.requestPermission();
+      this.notificationPermission = await (Notification as any).requestPermission();
       
       if (this.notificationPermission === 'granted') {
         console.log('✅ Notification permission granted');

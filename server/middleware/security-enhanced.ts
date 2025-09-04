@@ -1,5 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import crypto from 'crypto';
+// @ts-ignore
 const geoip = require('geoip-lite');
 
 // Enhanced rate limiting store with IP tracking

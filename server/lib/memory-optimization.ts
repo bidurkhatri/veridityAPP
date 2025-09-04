@@ -1,4 +1,28 @@
-const { LRUCache } = require('lru-cache');
+// Simple memory management without external dependencies
+class SimpleCache {
+  private data = new Map<string, { value: any; expiry: number }>();
+  
+  set(key: string, value: any, ttl = 15 * 60 * 1000) {
+    this.data.set(key, { value, expiry: Date.now() + ttl });
+  }
+  
+  get(key: string) {
+    const item = this.data.get(key);
+    if (!item || item.expiry < Date.now()) {
+      this.data.delete(key);
+      return undefined;
+    }
+    return item.value;
+  }
+  
+  clear() {
+    this.data.clear();
+  }
+  
+  size() {
+    return this.data.size;
+  }
+}
 
 // Memory-optimized cache management system
 export class MemoryOptimizer {

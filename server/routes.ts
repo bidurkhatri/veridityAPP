@@ -5,6 +5,11 @@ import { healthMonitor } from "./lib/health-monitor";
 import { realTimeMonitor, metricsMiddleware } from "./lib/real-time-monitor";
 import { cacheManager, initializeCaching } from "./lib/cache-manager";
 import { dbPool } from "./lib/database-pool";
+import { aiFraudDetection } from "./lib/enhanced-ai-fraud";
+import { enterpriseAPI } from "./lib/enterprise-api";
+import { enhancedZKP } from "./lib/enhanced-zkp";
+import { complianceEngine } from "./lib/compliance-engine";
+import { developerPlatform } from "./lib/developer-platform";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { isAuthenticated as isAuthenticatedImproved, isAPIAuthenticated, requireRole } from './middleware/auth-improved';
 import { ZKPService } from "./services/zkpService";
@@ -34,6 +39,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize enhanced systems
   initializeCaching();
   realTimeMonitor.startMonitoring();
+  enhancedZKP.initializeCircuits();
+  complianceEngine.initializeRegulations();
+  developerPlatform.initializePlatform();
   
   // Apply metrics middleware
   app.use(metricsMiddleware());
