@@ -135,13 +135,18 @@ export class HealthMonitor {
     };
   }
 
-  // Simple database ping
+  // Real database ping
   private async pingDatabase(): Promise<void> {
-    // This would be replaced with actual database ping
-    // For now, simulate a database check
-    return new Promise((resolve) => {
-      setTimeout(resolve, Math.random() * 50); // 0-50ms simulated latency
-    });
+    try {
+      // Try to connect to database and run a simple query
+      const { Pool } = await import('@neondatabase/serverless');
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      
+      await pool.query('SELECT 1');
+      await pool.end();
+    } catch (error) {
+      throw new Error(`Database ping failed: ${error.message}`);
+    }
   }
 
   // Get performance metrics

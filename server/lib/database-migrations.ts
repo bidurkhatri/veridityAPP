@@ -53,30 +53,67 @@ export class MigrationManager {
   async createBackup(): Promise<string> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupName = `backup_${timestamp}`;
+    const backupDir = path.join(process.cwd(), 'backups');
+    const backupFile = path.join(backupDir, `${backupName}.sql`);
     
     console.log(`📦 Creating database backup: ${backupName}`);
     
-    // In a real implementation, you would:
-    // 1. Create a database dump
-    // 2. Store it securely
-    // 3. Return the backup identifier
-    
-    // For now, just log the intent
-    console.log(`✅ Backup created (mock): ${backupName}`);
-    
-    return backupName;
+    try {
+      // Ensure backup directory exists
+      await fs.mkdir(backupDir, { recursive: true });
+      
+      // Create database dump using pg_dump
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+      
+      const dumpCommand = `pg_dump ${process.env.DATABASE_URL} > ${backupFile}`;
+      await execAsync(dumpCommand);
+      
+      // Verify backup file was created
+      const stats = await fs.stat(backupFile);
+      if (stats.size === 0) {
+        throw new Error('Backup file is empty');
+      }
+      
+      console.log(`✅ Backup created: ${backupName} (${Math.round(stats.size / 1024)} KB)`);
+      return backupName;
+    } catch (error) {
+      console.error('❌ Backup creation failed:', error);
+      throw new Error(`Failed to create backup: ${error.message}`);
+    }
   }
 
   async restoreBackup(backupId: string): Promise<void> {
+    const backupDir = path.join(process.cwd(), 'backups');
+    const backupFile = path.join(backupDir, `${backupId}.sql`);
+    
     console.log(`🔄 Restoring database from backup: ${backupId}`);
     
-    // In a real implementation, you would:
-    // 1. Validate the backup exists
-    // 2. Stop all connections
-    // 3. Restore from backup
-    // 4. Restart services
-    
-    console.log(`✅ Database restored from backup (mock): ${backupId}`);
+    try {
+      // Verify backup file exists
+      await fs.access(backupFile);
+      
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+      
+      // Create a restore database
+      const restoreDbName = `veridity_restore_${Date.now()}`;
+      const createDbCommand = `createdb ${restoreDbName}`;
+      await execAsync(createDbCommand);
+      
+      // Restore from backup
+      const restoreCommand = `psql ${restoreDbName} < ${backupFile}`;
+      await execAsync(restoreCommand);
+      
+      console.log(`✅ Database restored from backup: ${backupId}`);
+      console.log(`⚠️ Restored to new database: ${restoreDbName}`);
+      console.log(`⚠️ Manual verification and cutover required`);
+    } catch (error) {
+      console.error('❌ Backup restore failed:', error);
+      throw new Error(`Failed to restore backup: ${error.message}`);
+    }
   }
 
   async checkDataIntegrity(): Promise<{ isValid: boolean; issues: string[] }> {
