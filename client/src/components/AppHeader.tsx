@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MoreVertical } from "lucide-react";
 import { useLocation } from "wouter";
-import appLogo from "@assets/generated_images/Veridity_app_logo_design_c47eee7b.png";
+import appLogo from "@assets/generated_images/Veridity_logo_icon_4c517e5b.png";
 
 export interface AppHeaderProps {
   title: string;
@@ -68,7 +68,7 @@ export function AppHeader({
                 <img 
                   src={appLogo} 
                   alt="Veridity" 
-                  className="w-6 h-6 object-contain"
+                  className="w-5 h-5 object-contain"
                 />
                 <h1 className="text-lg font-semibold text-text-primary truncate">
                   {title}

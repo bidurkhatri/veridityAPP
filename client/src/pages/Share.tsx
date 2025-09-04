@@ -18,7 +18,7 @@ import {
   Eye
 } from "lucide-react";
 import { useLocation } from "wouter";
-import qrSharingImage from "@assets/generated_images/QR_code_sharing_illustration_1bda16e1.png";
+import qrSharingImage from "@assets/generated_images/QR_code_security_icon_9c36c191.png";
 
 export default function Share() {
   const [location, navigate] = useLocation();
@@ -178,7 +178,7 @@ export default function Share() {
                   <img 
                     src={qrSharingImage} 
                     alt="QR Code Sharing" 
-                    className="w-12 h-12 object-cover rounded-lg"
+                    className="w-8 h-8 object-contain"
                   />
                   <CardTitle className="text-center text-text-primary">Your Verification QR</CardTitle>
                 </div>

@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
-import onboardingImage from "@assets/generated_images/App_onboarding_illustration_99de6e0b.png";
-import zkProofImage from "@assets/generated_images/Zero-knowledge_proof_explanation_560b7720.png";
+import onboardingImage from "@assets/generated_images/Data_privacy_illustration_0a17e3a9.png";
+import zkProofImage from "@assets/generated_images/Zero-knowledge_proof_concept_f0a963d2.png";
 
 interface OnboardingSlideProps {
   step: number;

@@ -12,7 +12,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation, type Language } from "@/lib/i18n";
 import { Shield, Settings, Lock, Calendar, Flag, GraduationCap, Banknote, MapPin, ArrowLeft } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import verificationTypesImage from "@assets/generated_images/Identity_verification_type_icons_8f62fbea.png";
+import verificationTypesImage from "@assets/generated_images/Identity_verification_icons_set_0afd8efa.png";
 
 export default function ProofGeneration() {
   const { user } = useAuth();
@@ -410,7 +410,7 @@ export default function ProofGeneration() {
                 <img 
                   src={verificationTypesImage} 
                   alt="Verification Types" 
-                  className="w-16 h-10 object-cover rounded-lg"
+                  className="w-12 h-8 object-contain"
                 />
                 <CardTitle className="text-2xl text-text-primary">{t('form.proofType')}</CardTitle>
               </div>

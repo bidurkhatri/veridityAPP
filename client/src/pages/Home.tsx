@@ -20,8 +20,8 @@ import {
   Share
 } from "lucide-react";
 import { Link } from "wouter";
-import privacyTipsImage from "@assets/generated_images/Privacy_tips_visual_guide_f3688914.png";
-import verificationTypesImage from "@assets/generated_images/Identity_verification_type_icons_8f62fbea.png";
+import privacyTipsImage from "@assets/generated_images/Data_privacy_illustration_0a17e3a9.png";
+import verificationTypesImage from "@assets/generated_images/Identity_verification_icons_set_0afd8efa.png";
 
 export default function Home() {
   const { user } = useAuth();
@@ -232,7 +232,7 @@ export default function Home() {
               <img 
                 src={privacyTipsImage} 
                 alt="Privacy Tips" 
-                className="w-12 h-12 object-cover rounded-lg"
+                className="w-10 h-8 object-contain"
               />
               <CardTitle className="text-lg text-text-primary">
                 {t('home.privacyTips')}
