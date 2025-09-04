@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { healthMonitor } from "./lib/health-monitor";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { ZKPService } from "./services/zkpService";
 import { insertProofSchema, insertVerificationSchema, insertOrganizationSchema } from "@shared/schema";
@@ -779,6 +780,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('🏢 Organization dashboard endpoints enabled');
   console.log('🔗 Proof sharing endpoints enabled');
   
+  // Add health monitoring endpoints
+  await addHealthEndpoints(app);
+  console.log('💊 Health monitoring endpoints enabled');
+  
   return httpServer;
 }
 
@@ -844,4 +849,33 @@ async function initializeDefaultData() {
   } catch (error) {
     console.error("Error initializing default data:", error);
   }
+}
+
+// Add health check endpoints before returning server
+async function addHealthEndpoints(app: Express) {
+  // Health check endpoints
+  app.get('/api/health', async (req, res) => {
+    try {
+      const health = await healthMonitor.getHealth();
+      const statusCode = health.status === 'healthy' ? 200 : 
+                        health.status === 'degraded' ? 206 : 503;
+      
+      res.status(statusCode).json(health);
+    } catch (error) {
+      res.status(503).json({
+        status: 'unhealthy',
+        error: 'Health check failed',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  app.get('/api/health/metrics', async (req, res) => {
+    try {
+      const metrics = healthMonitor.getMetrics();
+      res.json(metrics);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get metrics' });
+    }
+  });
 }
