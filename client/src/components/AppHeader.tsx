@@ -34,7 +34,7 @@ export function AppHeader({
   return (
     <header
       className={`
-        apple-glass border-b border-border/20 z-40 backdrop-blur-md
+        bg-surface text-text-primary border-b border z-40
         ${sticky ? 'sticky top-0' : ''}
         ${className}
       `}
@@ -62,7 +62,7 @@ export function AppHeader({
 
           {/* Center - Title */}
           <div className="flex-1 text-center sm:text-left px-4">
-            <h1 className="text-lg font-semibold text-foreground truncate">
+            <h1 className="text-lg font-semibold text-text-primary truncate">
               {title}
             </h1>
           </div>

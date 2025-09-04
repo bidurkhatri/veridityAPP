@@ -1,0 +1,232 @@
+Prompt: Veridity UI Theme Refactor (AAA-ready Light/Dark)
+
+Role: You are a senior design-systems engineer working across Web (Next.js + Tailwind + shadcn) and Mobile (React Native / Expo).
+Goal: Replace the current low-contrast “neumorphic” look with an accessible, crisp, high-contrast theme that preserves Veridity’s teal brand. Implement semantic tokens, light & dark themes, and refactor core components (Header, Cards, KPI tiles, Pills, Tab Bar, Buttons). Deliver code patches, tests, and screenshots.
+
+⸻
+
+0) Diagnose → Objectives
+
+Issues (from screenshot):
+	•	Surfaces and header share almost the same dark tone → text lacks contrast.
+	•	Heavy blur/shadows; neumorphic look muddies icons and labels.
+	•	Status pills and KPIs don’t stand out; inconsistent status colors.
+	•	Bottom tab bar too dark; active state unclear.
+
+Objectives:
+	•	Introduce semantic color tokens and elevation tokens.
+	•	Ship Light and Dark themes with WCAG 2.1 AA minimum (AAA for body text).
+	•	Remove glassmorphism/blur; use clear elevation.
+	•	Normalize components to the tokens.
+
+⸻
+
+1) Brand Scales (base palette)
+
+Primary / Teal
+	•	50 #F0FDFA · 100 #CCFBF1 · 200 #99F6E4 · 300 #5EEAD4
+	•	400 #2DD4BF · 500 #14B8A6 · 600 #0D9488 · 700 #0F766E · 800 #115E59 · 900 #134E4A
+
+Neutral / Slate
+	•	50 #F9FAFB · 100 #F3F4F6 · 200 #E5E7EB · 300 #D1D5DB · 400 #9CA3AF
+	•	500 #6B7280 · 600 #4B5563 · 700 #374151 · 800 #1F2937 · 900 #111827
+
+Functional
+	•	Success: 600 #16A34A / bg 50 #ECFDF5
+	•	Warning: 600 #D97706 / bg 50 #FFFBEB
+	•	Danger: 600 #DC2626 / bg 50 #FEF2F2
+	•	Info: 600 #2563EB / bg 50 #EFF6FF
+
+⸻
+
+2) Semantic Tokens (single source of truth)
+
+All UI must use semantic tokens below—not raw HEX.
+
+Light
+	•	bg.canvas = #F8FAFC
+	•	bg.surface = #FFFFFF
+	•	bg.surfaceAlt = #F3F4F6
+	•	text.primary = #111827
+	•	text.secondary = #4B5563
+	•	text.muted = #6B7280
+	•	brand.primary = #0F766E
+	•	brand.emphasis = #0D9488
+	•	border.default = #E5E7EB
+	•	border.strong = #D1D5DB
+	•	success.text/bg/border = #065F46 / #ECFDF5 / #0D9488
+	•	warning.text/bg/border = #92400E / #FFFBEB / #D97706
+	•	danger.text/bg/border = #7F1D1D / #FEF2F2 / #DC2626
+	•	focus.ring = #0D9488 (2px)
+
+Dark
+	•	bg.canvas = #0B1220
+	•	bg.surface = #111827
+	•	bg.surfaceAlt = #0F172A
+	•	text.primary = #F3F4F6
+	•	text.secondary = #CBD5E1
+	•	text.muted = #9CA3AF
+	•	brand.primary = #2DD4BF
+	•	brand.emphasis = #14B8A6
+	•	border.default = #1F2937
+	•	border.strong = #334155
+	•	success.text/bg/border = #86EFAC / #052E1E / #22C55E
+	•	warning.text/bg/border = #FDE68A / #2B1905 / #F59E0B
+	•	danger.text/bg/border = #FCA5A5 / #2C0B0B / #F87171
+	•	focus.ring = #2DD4BF (2px)
+
+Elevation (both themes)
+	•	elev.0 = none
+	•	elev.1 = 0 1px 2px rgba(17,24,39,0.06)
+	•	elev.2 = 0 2px 6px rgba(17,24,39,0.10)
+	•	elev.3 = 0 8px 20px rgba(17,24,39,0.14)
+
+Radii: card 12px; control 10px.
+Spacing: 4 / 8 / 12 / 16 / 20 / 24.
+
+⸻
+
+3) Web Implementation (Next.js + Tailwind)
+
+3.1 CSS Variables
+
+Create variables and a .dark override:
+
+/* styles/globals.css */
+:root{
+  --bg-canvas:#F8FAFC; --bg-surface:#FFFFFF; --bg-surfaceAlt:#F3F4F6;
+  --text-primary:#111827; --text-secondary:#4B5563; --text-muted:#6B7280;
+  --brand-primary:#0F766E; --brand-emphasis:#0D9488;
+  --border-default:#E5E7EB; --border-strong:#D1D5DB;
+  --success-text:#065F46; --success-bg:#ECFDF5; --success-border:#0D9488;
+  --warning-text:#92400E; --warning-bg:#FFFBEB; --warning-border:#D97706;
+  --danger-text:#7F1D1D;  --danger-bg:#FEF2F2;  --danger-border:#DC2626;
+  --focus-ring:#0D9488;
+}
+.dark{
+  --bg-canvas:#0B1220; --bg-surface:#111827; --bg-surfaceAlt:#0F172A;
+  --text-primary:#F3F4F6; --text-secondary:#CBD5E1; --text-muted:#9CA3AF;
+  --brand-primary:#2DD4BF; --brand-emphasis:#14B8A6;
+  --border-default:#1F2937; --border-strong:#334155;
+  --success-text:#86EFAC; --success-bg:#052E1E; --success-border:#22C55E;
+  --warning-text:#FDE68A; --warning-bg:#2B1905; --warning-border:#F59E0B;
+  --danger-text:#FCA5A5;  --danger-bg:#2C0B0B;  --danger-border:#F87171;
+  --focus-ring:#2DD4BF;
+}
+
+3.2 Tailwind Bindings
+
+Expose semantic utilities:
+
+// tailwind.config.cjs (excerpt)
+module.exports = {
+  content: ['./app/**/*.{ts,tsx}','./components/**/*.{ts,tsx}'],
+  theme:{
+    extend:{
+      colors:{
+        canvas:'var(--bg-canvas)',
+        surface:'var(--bg-surface)',
+        surfaceAlt:'var(--bg-surfaceAlt)',
+        text:{
+          primary:'var(--text-primary)',
+          secondary:'var(--text-secondary)',
+          muted:'var(--text-muted)'
+        },
+        brand:{ primary:'var(--brand-primary)', emphasis:'var(--brand-emphasis)' },
+        border:{ DEFAULT:'var(--border-default)', strong:'var(--border-strong)' },
+        success:{ text:'var(--success-text)', bg:'var(--success-bg)', border:'var(--success-border)' },
+        warning:{ text:'var(--warning-text)', bg:'var(--warning-bg)', border:'var(--warning-border)' },
+        danger:{ text:'var(--danger-text)', bg:'var(--danger-bg)', border:'var(--danger-border)' },
+        focus:{ ring:'var(--focus-ring)' }
+      },
+      boxShadow:{
+        elev1:'0 1px 2px rgba(17,24,39,0.06)',
+        elev2:'0 2px 6px rgba(17,24,39,0.10)',
+        elev3:'0 8px 20px rgba(17,24,39,0.14)',
+      },
+      borderRadius:{ card:'12px', control:'10px' }
+    }
+  },
+  darkMode:'class'
+}
+
+3.3 Component Styling Rules
+	•	Header: bg-surface text-text-primary border-b border (no blur).
+	•	Cards (Security, KPI, Quick Actions): bg-surface shadow-elev1 rounded-card border. Titles use text-text-secondary; values use text-brand-emphasis.
+	•	“Verified” pill: bg-success-bg text-success-text border border-success-border rounded-full px-3 py-1 text-sm.
+	•	Primary Button: bg-brand-primary hover:bg-brand-emphasis text-white.
+	•	Outline Button: border border-brand-emphasis text-brand-emphasis bg-transparent.
+	•	Tab Bar: bg-surface border-t; inactive text-text-muted; active text-brand-primary + 2px underline.
+
+⸻
+
+4) Mobile Implementation (React Native)
+
+Create theme.ts with semantic keys mirroring web:
+
+// theme.ts
+export const light = {
+  bg:{ canvas:'#F8FAFC', surface:'#FFFFFF', surfaceAlt:'#F3F4F6' },
+  text:{ primary:'#111827', secondary:'#4B5563', muted:'#6B7280' },
+  brand:{ primary:'#0F766E', emphasis:'#0D9488' },
+  border:{ default:'#E5E7EB', strong:'#D1D5DB' },
+  success:{ text:'#065F46', bg:'#ECFDF5', border:'#0D9488' },
+  warning:{ text:'#92400E', bg:'#FFFBEB', border:'#D97706' },
+  danger:{ text:'#7F1D1D', bg:'#FEF2F2', border:'#DC2626' },
+  focus:{ ring:'#0D9488' },
+  elev:{ 1:{ shadowColor:'#111827', shadowOpacity:0.06, shadowRadius:2, elevation:1 }, /* etc. */ },
+  radius:{ card:12, control:10 }
+};
+
+export const dark = {
+  bg:{ canvas:'#0B1220', surface:'#111827', surfaceAlt:'#0F172A' },
+  text:{ primary:'#F3F4F6', secondary:'#CBD5E1', muted:'#9CA3AF' },
+  brand:{ primary:'#2DD4BF', emphasis:'#14B8A6' },
+  border:{ default:'#1F2937', strong:'#334155' },
+  success:{ text:'#86EFAC', bg:'#052E1E', border:'#22C55E' },
+  warning:{ text:'#FDE68A', bg:'#2B1905', border:'#F59E0B' },
+  danger:{ text:'#FCA5A5', bg:'#2C0B0B', border:'#F87171' },
+  focus:{ ring:'#2DD4BF' },
+  elev:{ 1:{ shadowColor:'#000', shadowOpacity:0.25, shadowRadius:2, elevation:1 } },
+  radius:{ card:12, control:10 }
+};
+
+RN Component rules
+	•	Containers use theme.bg.surface; text uses theme.text.primary/secondary/muted.
+	•	Pills and buttons map to success/*, brand/* tokens.
+	•	Remove backdrop-blur; rely on shadows/elevation tokens.
+	•	Tab Bar: background bg.surface, border top border.default, active label brand.primary with 2px indicator.
+
+⸻
+
+5) Accessibility Acceptance Criteria
+	•	Contrast: Body copy ≥ 7:1 (AAA). Small UI text ≥ 4.5:1 (AA).
+	•	Focus: Visible 2px focus.ring outline on interactive elements (web).
+	•	States: Hover/pressed/selected/disabled states visually distinct in both themes.
+	•	Testing: Lighthouse + axe (web) and RN a11y audit; zero critical failures.
+
+⸻
+
+6) Migration Checklist
+	1.	Add CSS variables & Tailwind bindings; enable .dark class toggle at <html>.
+	2.	Replace hardcoded HEX in components with semantic classes (bg-surface, text-text-primary, border, etc.).
+	3.	Refactor Header, KPI tiles, Security card, Verified pill, Quick Actions, Tab Bar, Buttons per rules above.
+	4.	Remove glassmorphism/backdrop-blur and heavy inner shadows.
+	5.	Implement RN theme.ts; wire theme into Header, Card, TabBar.
+	6.	Add automated contrast checks to CI (axe + jest-axe for critical templates).
+	7.	Capture before/after screenshots (Light & Dark) for Home, Settings, History, Share.
+
+⸻
+
+7) Deliverables
+	•	styles/globals.css (variables + dark mode)
+	•	tailwind.config.cjs (semantic tokens)
+	•	RN theme.ts + updated component styles
+	•	Refactored UI for: Home, Prove, Share, History, Settings
+	•	A11y report (axe/Lighthouse) and before/after screenshots
+
+⸻
+
+8) Done Definition (say these words when finished)
+
+“All components now consume semantic tokens, pass contrast checks in light & dark, and use clean elevation. The tab bar, header, cards, buttons, and status pills are visually distinct and consistent across platforms.”

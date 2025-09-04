@@ -11,6 +11,42 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        // Semantic tokens
+        canvas: "var(--bg-canvas)",
+        surface: "var(--bg-surface)",
+        surfaceAlt: "var(--bg-surfaceAlt)",
+        text: {
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
+          muted: "var(--text-muted)",
+        },
+        brand: {
+          primary: "var(--brand-primary)",
+          emphasis: "var(--brand-emphasis)",
+        },
+        border: {
+          DEFAULT: "var(--border-default)",
+          strong: "var(--border-strong)",
+        },
+        success: {
+          text: "var(--success-text)",
+          bg: "var(--success-bg)",
+          border: "var(--success-border)",
+        },
+        warning: {
+          text: "var(--warning-text)",
+          bg: "var(--warning-bg)",
+          border: "var(--warning-border)",
+        },
+        danger: {
+          text: "var(--danger-text)",
+          bg: "var(--danger-bg)",
+          border: "var(--danger-border)",
+        },
+        focus: {
+          ring: "var(--focus-ring)",
+        },
+        // Legacy compatibility
         background: "var(--background)",
         foreground: "var(--foreground)",
         card: {
@@ -41,7 +77,6 @@ export default {
           DEFAULT: "var(--destructive)",
           foreground: "var(--destructive-foreground)",
         },
-        border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
         chart: {
@@ -67,6 +102,15 @@ export default {
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
         devanagari: ["Noto Sans Devanagari", "sans-serif"],
+      },
+      boxShadow: {
+        elev1: "0 1px 2px rgba(17,24,39,0.06)",
+        elev2: "0 2px 6px rgba(17,24,39,0.10)",
+        elev3: "0 8px 20px rgba(17,24,39,0.14)",
+      },
+      borderRadius: {
+        card: "12px",
+        control: "10px",
       },
       keyframes: {
         "accordion-down": {

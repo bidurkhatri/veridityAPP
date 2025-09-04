@@ -7,6 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@shared/schema";
 import { useTranslation } from "@/lib/i18n";
 import { AppHeader } from "@/components/AppHeader";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { StatusPill } from "@/components/StatusPill";
 import { WalletBackup } from "@/components/WalletBackup";
 import {
   Settings as SettingsIcon,
@@ -84,19 +86,22 @@ export default function Settings() {
   ];
 
   return (
-    <div className="min-h-screen bg-background apple-blur-bg" style={{ paddingBottom: '80px' }}>
+    <div className="min-h-screen bg-canvas" style={{ paddingBottom: '80px' }}>
       <AppHeader 
         title={t('nav.settings')}
         type="root"
+        actions={[
+          <ThemeToggle key="theme-toggle" />
+        ]}
         sticky
       />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* User Profile */}
-        <Card className="apple-card apple-glass border-0 apple-shadow">
+        <Card className="bg-surface shadow-elev1 rounded-card border">
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center apple-shadow">
+              <div className="w-16 h-16 bg-brand-primary rounded-full flex items-center justify-center shadow-elev1">
                 {(user as User)?.profileImageUrl ? (
                   <img 
                     src={(user as User).profileImageUrl!} 
@@ -108,21 +113,21 @@ export default function Settings() {
                 )}
               </div>
               <div className="flex-1">
-                <h2 className="text-xl font-bold apple-gradient-text">
+                <h2 className="text-xl font-bold text-brand-emphasis">
                   {(user as User)?.firstName || (user as User)?.email?.split('@')[0] || 'User'}
                 </h2>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <div className="flex items-center space-x-2 text-sm text-text-secondary">
                   <Mail className="h-4 w-4" />
                   <span>{(user as User)?.email}</span>
                 </div>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-1">
+                <div className="flex items-center space-x-2 text-sm text-text-secondary mt-1">
                   <Calendar className="h-4 w-4" />
                   <span>Member since {new Date((user as User)?.createdAt || '').toLocaleDateString()}</span>
                 </div>
               </div>
-              <Badge className="bg-success/10 text-success border-success/20">
+              <StatusPill status="verified">
                 Verified
-              </Badge>
+              </StatusPill>
             </div>
           </CardContent>
         </Card>
@@ -131,9 +136,9 @@ export default function Settings() {
         <WalletBackup />
 
         {/* Privacy Settings */}
-        <Card className="apple-card apple-glass border-0 apple-shadow">
+        <Card className="bg-surface shadow-elev1 rounded-card border">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
+            <CardTitle className="flex items-center space-x-2 text-text-primary">
               <Shield className="h-5 w-5" />
               <span>Privacy & Security</span>
             </CardTitle>
@@ -142,8 +147,8 @@ export default function Settings() {
             {settingsOptions.map((option, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">{option.title}</h3>
-                  <p className="text-sm text-muted-foreground">{option.description}</p>
+                  <h3 className="font-medium text-text-primary">{option.title}</h3>
+                  <p className="text-sm text-text-secondary">{option.description}</p>
                 </div>
                 <Switch
                   checked={option.value}

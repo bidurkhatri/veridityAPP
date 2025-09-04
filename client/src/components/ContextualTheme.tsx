@@ -48,8 +48,8 @@ const themeConfigs: Record<ThemeMode, ThemeConfig> = {
       primary: '#14B8A6', // Teal
       secondary: '#0F766E',
       accent: '#F59E0B', // Amber
-      background: '#FFFFFF',
-      text: '#1F2937'
+      background: '#F8FAFC',
+      text: '#1E293B'
     },
     typography: {
       fontFamily: 'Inter, system-ui, sans-serif',
@@ -72,8 +72,8 @@ const themeConfigs: Record<ThemeMode, ThemeConfig> = {
       primary: '#1E40AF', // Deep Blue
       secondary: '#1E3A8A',
       accent: '#059669', // Green
-      background: '#F8FAFC',
-      text: '#0F172A'
+      background: '#F1F5F9',
+      text: '#1E293B'
     },
     typography: {
       fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
@@ -96,8 +96,8 @@ const themeConfigs: Record<ThemeMode, ThemeConfig> = {
       primary: '#DC2626', // Nepal Red
       secondary: '#B91C1C',
       accent: '#1D4ED8', // Nepal Blue
-      background: '#FEFEFE',
-      text: '#111827'
+      background: '#F8FAFC',
+      text: '#1E293B'
     },
     typography: {
       fontFamily: '"Times New Roman", serif',
@@ -120,8 +120,8 @@ const themeConfigs: Record<ThemeMode, ThemeConfig> = {
       primary: '#7C3AED', // Purple
       secondary: '#6D28D9',
       accent: '#F59E0B', // Amber
-      background: '#FDFCFD',
-      text: '#374151'
+      background: '#F8FAFC',
+      text: '#334155'
     },
     typography: {
       fontFamily: '"Open Sans", "Helvetica Neue", sans-serif',
@@ -145,7 +145,7 @@ const themeConfigs: Record<ThemeMode, ThemeConfig> = {
       secondary: '#047857',
       accent: '#EF4444', // Medical Red
       background: '#F0FDF4',
-      text: '#065F46'
+      text: '#0F766E'
     },
     typography: {
       fontFamily: '"Source Sans Pro", Arial, sans-serif',
@@ -168,8 +168,8 @@ const themeConfigs: Record<ThemeMode, ThemeConfig> = {
       primary: '#DC2626', // Red
       secondary: '#B91C1C',
       accent: '#F59E0B', // Amber
-      background: '#FEF2F2',
-      text: '#7F1D1D'
+      background: '#FEF7F7',
+      text: '#991B1B'
     },
     typography: {
       fontFamily: '"Roboto Condensed", sans-serif',

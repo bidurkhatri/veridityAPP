@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/lib/i18n";
 import { AppHeader } from "@/components/AppHeader";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   QrCode, 
   Share as ShareIcon, 
@@ -104,6 +105,9 @@ export default function Share() {
       <AppHeader 
         title={t('nav.share')}
         type="root"
+        actions={[
+          <ThemeToggle key="theme-toggle" />
+        ]}
         sticky
       />
 

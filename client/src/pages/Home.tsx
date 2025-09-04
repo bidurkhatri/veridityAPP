@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@shared/schema";
 import { AppHeader } from "@/components/AppHeader";
 import { TrustIndicators } from "@/components/TrustIndicators";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTranslation } from "@/lib/i18n";
 import { 
   Shield, 
@@ -84,11 +85,12 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-background apple-blur-bg" style={{ paddingBottom: '80px' }}>
+    <div className="min-h-screen bg-canvas" style={{ paddingBottom: '80px' }}>
       <AppHeader 
         title={greeting}
         type="root"
         actions={[
+          <ThemeToggle key="theme-toggle" />,
           <Button 
             key="logout"
             variant="ghost" 
@@ -109,36 +111,36 @@ export default function Home() {
         
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-4">
-          <Card className="apple-card apple-glass border-0 apple-shadow">
+          <Card className="bg-surface shadow-elev1 rounded-card border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-sm font-medium text-text-secondary">
                     {t('stats.proofsGenerated')}
                   </p>
-                  <p className="text-2xl font-bold apple-gradient-text" data-testid="stat-total-proofs">
+                  <p className="text-2xl font-bold text-brand-emphasis" data-testid="stat-total-proofs">
                     {stats?.totalProofs || 0}
                   </p>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-600 rounded-xl flex items-center justify-center apple-shadow">
+                <div className="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-elev1">
                   <Shield className="h-5 w-5 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="apple-card apple-glass border-0 apple-shadow">
+          <Card className="bg-surface shadow-elev1 rounded-card border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-sm font-medium text-text-secondary">
                     {t('stats.verifications')}
                   </p>
-                  <p className="text-2xl font-bold apple-gradient-text" data-testid="stat-verified-proofs">
+                  <p className="text-2xl font-bold text-brand-emphasis" data-testid="stat-verified-proofs">
                     {stats?.verifiedProofs || 0}
                   </p>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-success to-emerald-500 rounded-xl flex items-center justify-center apple-shadow">
+                <div className="w-10 h-10 bg-success-border rounded-xl flex items-center justify-center shadow-elev1">
                   <CheckCircle className="h-5 w-5 text-white" />
                 </div>
               </div>
@@ -147,9 +149,9 @@ export default function Home() {
         </div>
 
         {/* Quick Actions */}
-        <Card className="apple-card apple-glass border-0 apple-shadow">
+        <Card className="bg-surface shadow-elev1 rounded-card border">
           <CardHeader>
-            <CardTitle className="text-lg">
+            <CardTitle className="text-lg text-text-primary">
               {t('home.quickActions')}
             </CardTitle>
           </CardHeader>
@@ -163,19 +165,19 @@ export default function Home() {
                   className="block"
                   data-testid={action.testId}
                 >
-                  <div className="flex items-center p-4 rounded-xl border border-border/20 hover:bg-muted/50 transition-colors group">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${action.color} rounded-xl flex items-center justify-center mr-4 apple-shadow group-hover:scale-105 transition-transform`}>
+                  <div className="flex items-center p-4 rounded-control border hover:bg-surfaceAlt transition-colors group">
+                    <div className="w-12 h-12 bg-brand-primary rounded-control flex items-center justify-center mr-4 shadow-elev1 group-hover:bg-brand-emphasis transition-colors">
                       <Icon className="h-6 w-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-foreground">
+                      <h3 className="font-semibold text-text-primary">
                         {action.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-text-secondary">
                         {action.description}
                       </p>
                     </div>
-                    <Share className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    <Share className="h-4 w-4 text-text-muted group-hover:text-text-primary transition-colors" />
                   </div>
                 </Link>
               );
@@ -185,10 +187,10 @@ export default function Home() {
 
         {/* Recent Activity */}
         {proofs.length > 0 && (
-          <Card className="apple-card apple-glass border-0 apple-shadow">
+          <Card className="bg-surface shadow-elev1 rounded-card border">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">
+                <CardTitle className="text-lg text-text-primary">
                   {t('nav.history')}
                 </CardTitle>
                 <Link href="/history">
@@ -200,14 +202,14 @@ export default function Home() {
             </CardHeader>
             <CardContent className="space-y-3">
               {proofs.slice(0, 3).map((proof, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
+                <div key={index} className="flex items-center justify-between p-3 rounded-control bg-surfaceAlt">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Shield className="h-4 w-4 text-primary" />
+                    <div className="w-8 h-8 bg-brand-primary/10 rounded-lg flex items-center justify-center">
+                      <Shield className="h-4 w-4 text-brand-primary" />
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{proof.type}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="font-medium text-sm text-text-primary">{proof.type}</p>
+                      <p className="text-xs text-text-secondary">
                         {new Date(proof.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -222,9 +224,9 @@ export default function Home() {
         )}
 
         {/* Privacy Tips */}
-        <Card className="apple-card apple-glass border-0 apple-shadow">
+        <Card className="bg-surface shadow-elev1 rounded-card border">
           <CardHeader>
-            <CardTitle className="text-lg">
+            <CardTitle className="text-lg text-text-primary">
               {t('home.privacyTips')}
             </CardTitle>
           </CardHeader>
@@ -233,12 +235,12 @@ export default function Home() {
               const Icon = tip.icon;
               return (
                 <div key={index} className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center mt-1">
-                    <Icon className="h-4 w-4 text-accent" />
+                  <div className="w-8 h-8 bg-warning-bg rounded-lg flex items-center justify-center mt-1">
+                    <Icon className="h-4 w-4 text-warning-text" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-sm">{tip.title}</h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
+                    <h4 className="font-medium text-sm text-text-primary">{tip.title}</h4>
+                    <p className="text-xs text-text-secondary leading-relaxed">
                       {tip.description}
                     </p>
                   </div>

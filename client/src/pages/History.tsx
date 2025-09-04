@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n";
 import { AppHeader } from "@/components/AppHeader";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   History as HistoryIcon, 
   Search, 
@@ -141,6 +142,9 @@ export default function History() {
       <AppHeader 
         title={t('nav.history')}
         type="root"
+        actions={[
+          <ThemeToggle key="theme-toggle" />
+        ]}
         sticky
       />
 

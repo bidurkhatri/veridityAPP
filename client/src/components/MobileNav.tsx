@@ -42,7 +42,7 @@ const MobileNav = () => {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-50 apple-glass bg-background/95 backdrop-blur-md border-t border-border/20"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border"
       style={{ 
         paddingBottom: 'max(8px, env(safe-area-inset-bottom))',
         height: '64px'
@@ -67,8 +67,8 @@ const MobileNav = () => {
                 "flex flex-col items-center justify-center space-y-1 p-1 rounded-xl",
                 "min-h-[44px] min-w-[44px] transition-colors duration-200",
                 isActive 
-                  ? "text-primary-600" 
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-brand-primary" 
+                  : "text-text-muted hover:text-text-primary"
               )}
               data-testid={item.testId}
             >
