@@ -25,6 +25,10 @@ import Admin from "@/pages/Admin";
 import Help from "@/pages/Help";
 import Privacy from "@/pages/Privacy";
 import OrganizationDashboard from "@/pages/OrganizationDashboard";
+import EnterpriseDashboard from "@/pages/EnterpriseDashboard";
+import AdminPortal from "@/pages/AdminPortal";
+import ClientPortal from "@/pages/ClientPortal";
+import CustomerPortal from "@/pages/CustomerPortal";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -78,6 +82,12 @@ function Router() {
         <Route path="/generate" component={ProofGeneration} />
         <Route path="/verify" component={Verification} />
         <Route path="/admin" component={Admin} />
+        
+        {/* New Portal Routes */}
+        <Route path="/enterprise" component={EnterpriseDashboard} />
+        <Route path="/admin-portal" component={AdminPortal} />
+        <Route path="/client-portal" component={ClientPortal} />
+        <Route path="/customer-portal" component={CustomerPortal} />
         
         {/* Support and Legal Pages */}
         <Route path="/help" component={Help} />
