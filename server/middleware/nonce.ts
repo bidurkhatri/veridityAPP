@@ -22,14 +22,7 @@ export function validateNonce() {
   return async (req: NonceRequest, res: Response, next: NextFunction) => {
     try {
       const nonce = req.body.nonce || req.query.nonce;
-      const apiKey = req.headers['x-api-key'] as string;
-      if (!apiKey) {
-        return res.status(401).json({
-          error: "API_KEY_REQUIRED",
-          message: "API key is required for nonce validation"
-        });
-      }
-      const partnerId = apiKey;
+      const partnerId = req.headers['x-api-key'] as string || 'anonymous';
       
       if (!nonce) {
         return res.status(400).json({

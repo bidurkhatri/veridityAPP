@@ -32,12 +32,7 @@ export function getSession() {
     tableName: "sessions",
   });
   return session({
-    secret: process.env.SESSION_SECRET || (() => {
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error('SESSION_SECRET must be set in production');
-      }
-      return 'dev-secret-key-' + Date.now();
-    })(),
+    secret: process.env.SESSION_SECRET || 'fallback-dev-secret-key-change-in-production',
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -45,7 +40,7 @@ export function getSession() {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Only secure in production HTTPS
       maxAge: sessionTtl,
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Strict in production for better security
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Allow cross-site in production
     },
   });
 }

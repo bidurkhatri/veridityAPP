@@ -1,12 +1,10 @@
 # Veridity - Privacy-First Digital Identity Platform
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/veridity/platform)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/veridity/platform)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/veridity/platform/actions)
-[![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen.svg)](https://codecov.io/gh/veridity/platform)
+[![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen.svg)](https://codecov.io/gh/veridity/platform)
 [![Security Score](https://img.shields.io/badge/security-A+-brightgreen.svg)](https://snyk.io/test/github/veridity/platform)
-[![Enterprise Ready](https://img.shields.io/badge/enterprise-ready-brightgreen.svg)](https://veridity.com/enterprise)
-[![Quantum Safe](https://img.shields.io/badge/quantum-safe-purple.svg)](https://veridity.com/quantum-security)
 
 ## Table of Contents
 
@@ -22,10 +20,6 @@
 - [Internationalization](#internationalization)
 - [Enterprise Features](#enterprise-features)
 - [Mobile & PWA](#mobile--pwa)
-- [Advanced Infrastructure](#advanced-infrastructure)
-- [Edge Computing](#edge-computing)
-- [Quantum Security](#quantum-security)
-- [AI/ML Optimization](#aiml-optimization)
 - [Deployment](#deployment)
 - [Monitoring & Analytics](#monitoring--analytics)
 - [Contributing](#contributing)
@@ -33,7 +27,7 @@
 
 ## Overview
 
-Veridity is an enterprise-grade, privacy-first digital identity verification platform designed for global markets with advanced East Asian localization. The platform leverages Zero-Knowledge Proofs (ZKP), quantum-resistant cryptography, and AI-powered optimization to enable users to prove specific identity attributes without revealing sensitive personal data. Built with comprehensive enterprise infrastructure including edge computing, automated compliance, and real-time analytics.
+Veridity is a privacy-first digital identity verification platform designed specifically for East Asian markets, with initial focus on Nepal. The platform leverages Zero-Knowledge Proofs (ZKP) to enable users to prove specific identity attributes (age, citizenship, education, income) without revealing sensitive personal data.
 
 ### Mission
 
@@ -41,12 +35,11 @@ To create a trustless verification system that prioritizes user privacy while ma
 
 ### Key Principles
 
-- **Privacy by Design**: Zero-knowledge architecture with quantum-resistant encryption
-- **Global Scale**: Edge computing infrastructure across 5+ regions with sub-50ms latency
-- **Enterprise Ready**: Production-grade with 99.99% uptime, automated scaling, and disaster recovery
-- **AI-Optimized**: Machine learning-powered performance optimization and fraud detection
-- **Regulatory Automation**: Automated GDPR, SOX, PCI DSS compliance reporting and monitoring
-- **Developer First**: Comprehensive SDKs in 6 languages with interactive playground
+- **Privacy by Design**: Zero-knowledge architecture ensures personal data never leaves user control
+- **Global Compliance**: GDPR, CCPA, PIPL, and regional regulation compliance built-in
+- **Enterprise Ready**: Production-grade infrastructure with 99.9% uptime guarantee
+- **Mobile First**: Optimized for mobile devices and low-connectivity environments
+- **Developer Friendly**: Comprehensive APIs and SDKs for easy integration
 
 ## Key Features
 
@@ -100,28 +93,11 @@ To create a trustless verification system that prioritizes user privacy while ma
 - **Business Intelligence**: Revenue tracking and conversion analytics
 
 ### 🛡️ Security & Privacy
-- **Quantum-Resistant Cryptography**: Post-quantum algorithms (Kyber, Dilithium, SPHINCS+)
-- **Advanced Threat Detection**: AI-powered fraud detection with 99.5% accuracy
-- **Multi-Factor Authentication**: SMS, TOTP, hardware keys, and biometric authentication
-- **End-to-End Encryption**: Hybrid classical-quantum encryption for future security
-- **Zero-Trust Architecture**: Comprehensive identity verification and access control
-- **Automated Compliance**: Real-time GDPR, SOX, PCI DSS monitoring and reporting
-
-### ⚡ Advanced Infrastructure
-- **Edge Computing**: Global deployment across 5+ regions with intelligent routing
-- **Auto-Scaling**: AI-driven predictive scaling based on usage patterns
-- **Load Balancing**: Circuit breaker implementation with traffic shaping
-- **Disaster Recovery**: Automated backup and point-in-time recovery systems
-- **Real-Time Monitoring**: Comprehensive alerting with predictive analytics
-- **Performance Optimization**: Machine learning-powered system optimization
-
-### 🤖 AI/ML Integration
-- **Intelligent Optimization**: Automated resource allocation and performance tuning
-- **Predictive Analytics**: Advanced business intelligence and user behavior analysis
-- **Document Processing**: AI-powered OCR and document authenticity verification
-- **Fraud Prevention**: Multi-model ensemble with real-time risk scoring
-- **Natural Language Processing**: Voice control and accessibility features
-- **Computer Vision**: Automated alt-text generation and visual analysis
+- **Multi-Factor Authentication**: SMS, TOTP, and hardware key support
+- **End-to-End Encryption**: Data encryption at rest and in transit
+- **Privacy Impact Assessments**: Automated DPIA generation and risk analysis
+- **Incident Response**: Automated security breach detection and response
+- **Audit Logging**: Comprehensive activity tracking and forensic capabilities
 
 ## Architecture
 
