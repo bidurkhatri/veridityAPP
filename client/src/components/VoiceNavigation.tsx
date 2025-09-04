@@ -234,8 +234,10 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
 
   // Update language when parent language changes
   useEffect(() => {
-    setSettings(prev => ({ ...prev, language: currentLanguage }));
-  }, [currentLanguage]);
+    if (currentLanguage !== settings.language) {
+      setSettings(prev => ({ ...prev, language: currentLanguage }));
+    }
+  }, [currentLanguage, settings.language]);
 
   const processVoiceCommand = (transcript: string) => {
     const voiceCommands = getVoiceCommands();
@@ -272,10 +274,25 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
     }
 
     try {
-      // Wait for voices to load
-      await new Promise<void>(resolve => {
-        if (speechSynthesis.getVoices().length) return resolve();
-        speechSynthesis.onvoiceschanged = () => resolve();
+      // Cancel any existing speech first
+      synthesis.cancel();
+      
+      // Wait for voices to load with timeout
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Voice loading timeout')), 3000);
+        
+        if (speechSynthesis.getVoices().length) {
+          clearTimeout(timeout);
+          return resolve();
+        }
+        
+        const handler = () => {
+          clearTimeout(timeout);
+          speechSynthesis.removeEventListener('voiceschanged', handler);
+          resolve();
+        };
+        
+        speechSynthesis.addEventListener('voiceschanged', handler);
       });
 
       const voices = speechSynthesis.getVoices();
@@ -284,18 +301,21 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
       // Find appropriate voice with fallback chain
       let voice = null;
       if (settings.language === 'ne') {
-        // For Nepali: try ne -> hi -> en
-        voice = voices.find(v => v.lang?.toLowerCase().startsWith('ne')) ||
-               voices.find(v => v.lang?.toLowerCase().startsWith('hi')) ||
-               voices.find(v => v.lang?.toLowerCase().startsWith('en'));
+        // For Nepali: try ne -> hi -> en (with specific voice preferences)
+        voice = voices.find(v => v.lang?.toLowerCase().includes('ne-np')) ||
+               voices.find(v => v.lang?.toLowerCase().includes('ne')) ||
+               voices.find(v => v.lang?.toLowerCase().includes('hi')) ||
+               voices.find(v => v.lang?.toLowerCase().includes('en') && !v.name.includes('Google'));
       } else {
-        // For English
-        voice = voices.find(v => v.lang?.toLowerCase().startsWith('en'));
+        // For English: prefer system voices
+        voice = voices.find(v => v.lang?.toLowerCase().includes('en-us') && v.localService) ||
+               voices.find(v => v.lang?.toLowerCase().includes('en-gb') && v.localService) ||
+               voices.find(v => v.lang?.toLowerCase().includes('en'));
       }
 
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = Math.max(0.5, Math.min(1.2, settings.speechRate));
-      utterance.volume = settings.speechVolume;
+      utterance.rate = Math.max(0.5, Math.min(1.5, settings.speechRate));
+      utterance.volume = Math.max(0.1, Math.min(1.0, settings.speechVolume));
       
       if (voice) {
         utterance.voice = voice;
@@ -307,14 +327,43 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = (e) => {
-        console.warn('Speech synthesis error:', e);
+        console.warn('Speech synthesis error - retrying with fallback:', e.error || e.type);
         setIsSpeaking(false);
+        
+        // Retry with simpler utterance if error occurs
+        if (!e.retried) {
+          setTimeout(() => {
+            const fallback = new SpeechSynthesisUtterance(text);
+            fallback.rate = 1.0;
+            fallback.volume = 0.8;
+            fallback.lang = settings.language === 'ne' ? 'en-US' : 'en-US'; // fallback to English
+            (fallback as any).retried = true;
+            synthesis.speak(fallback);
+          }, 100);
+        }
       };
 
       synthesis.speak(utterance);
+      
+      // Fallback timeout in case speech doesn't start
+      setTimeout(() => {
+        if (isSpeaking) {
+          setIsSpeaking(false);
+        }
+      }, 10000);
+      
     } catch (error) {
       console.error('Error in speak function:', error);
       setIsSpeaking(false);
+      
+      // Last resort: try simple English speech
+      try {
+        const fallback = new SpeechSynthesisUtterance(text);
+        fallback.lang = 'en-US';
+        synthesis.speak(fallback);
+      } catch (e) {
+        console.error('Fallback speech also failed:', e);
+      }
     }
   };
 
