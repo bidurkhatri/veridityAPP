@@ -71,6 +71,12 @@ export class TTSService {
       };
     }
 
+    // Skip cloud API for now and use Web Speech directly for better reliability
+    console.log('Using Web Speech API for TTS:', text.substring(0, 50) + '...');
+    return this.fallbackToWebSpeech(text, options);
+
+    // TODO: Implement real cloud TTS when ready
+    /*
     try {
       const ssml = this.textToSSML(text, options.lang);
       
@@ -95,11 +101,6 @@ export class TTSService {
 
       const result = await response.json();
       
-      // Cache the result
-      if (options.cache !== false && result.audioUrl) {
-        this.cache.set(cacheKey, result.audioUrl);
-      }
-
       return {
         audioUrl: result.audioUrl,
         usedLang: result.usedLang,
@@ -110,10 +111,9 @@ export class TTSService {
       
     } catch (error) {
       console.error('TTS synthesis failed:', error);
-      
-      // Fallback to browser TTS
       return this.fallbackToWebSpeech(text, options);
     }
+    */
   }
 
   /**
@@ -126,53 +126,70 @@ export class TTSService {
         return;
       }
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Try to find appropriate voice
-      const voices = speechSynthesis.getVoices();
-      let targetLang = langToBCP47[options.lang];
-      let fallbackUsed = false;
-      
-      let voice = voices.find(v => v.lang.startsWith(options.lang === 'ne' ? 'ne' : 'en'));
-      
-      if (!voice && options.lang === 'ne') {
-        // Try Hindi as fallback for Nepali
-        voice = voices.find(v => v.lang.startsWith('hi'));
-        if (voice) {
-          targetLang = 'hi-IN';
-          fallbackUsed = true;
-        }
-      }
-      
-      if (!voice) {
-        // Final fallback to any English voice
-        voice = voices.find(v => v.lang.startsWith('en'));
-        if (voice) {
-          targetLang = 'en-US';
-          fallbackUsed = true;
-        }
-      }
-
-      utterance.lang = targetLang;
-      if (voice) utterance.voice = voice;
-      utterance.rate = options.rate || 1.0;
-      utterance.volume = options.volume || 1.0;
-      utterance.pitch = options.pitch || 1.0;
-
-      utterance.onend = () => {
-        resolve({
-          usedLang: targetLang,
-          fallbackUsed,
-          provider: 'web-speech',
-          cached: false
+      // Wait for voices to load
+      const loadVoices = () => {
+        return new Promise<void>((res) => {
+          if (speechSynthesis.getVoices().length > 0) {
+            res();
+            return;
+          }
+          speechSynthesis.onvoiceschanged = () => res();
         });
       };
 
-      utterance.onerror = (e) => {
-        reject(new Error(`Web Speech TTS error: ${e.error}`));
-      };
+      loadVoices().then(() => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Try to find appropriate voice
+        const voices = speechSynthesis.getVoices();
+        let targetLang = langToBCP47[options.lang];
+        let fallbackUsed = false;
+        
+        let voice = voices.find(v => v.lang.toLowerCase().startsWith(options.lang === 'ne' ? 'ne' : 'en'));
+        
+        if (!voice && options.lang === 'ne') {
+          // Try Hindi as fallback for Nepali
+          voice = voices.find(v => v.lang.toLowerCase().startsWith('hi'));
+          if (voice) {
+            targetLang = 'hi-IN';
+            fallbackUsed = true;
+          }
+        }
+        
+        if (!voice) {
+          // Final fallback to any English voice
+          voice = voices.find(v => v.lang.toLowerCase().startsWith('en'));
+          if (voice) {
+            targetLang = 'en-US';
+            fallbackUsed = options.lang === 'ne';
+          }
+        }
 
-      speechSynthesis.speak(utterance);
+        utterance.lang = targetLang;
+        if (voice) utterance.voice = voice;
+        utterance.rate = Math.max(0.1, Math.min(2.0, options.rate || 1.0));
+        utterance.volume = Math.max(0.1, Math.min(1.0, options.volume || 1.0));
+        utterance.pitch = Math.max(0, Math.min(2, options.pitch || 1.0));
+
+        utterance.onend = () => {
+          resolve({
+            usedLang: targetLang,
+            fallbackUsed,
+            provider: 'web-speech',
+            cached: false
+          });
+        };
+
+        utterance.onerror = (e) => {
+          reject(new Error(`Web Speech TTS error: ${e.error}`));
+        };
+
+        // Cancel any existing speech
+        speechSynthesis.cancel();
+        
+        // Speak the text
+        speechSynthesis.speak(utterance);
+      });
     });
   }
 
@@ -196,7 +213,9 @@ export class TTSService {
   async speak(text: string, options: TTSOptions = { lang: 'en' }): Promise<TTSResult> {
     const result = await this.synthesize(text, options);
     
-    if (result.audioUrl) {
+    // For Web Speech API, the speech happens during synthesize
+    // For cloud providers, we'd play the audioUrl here
+    if (result.audioUrl && result.provider !== 'web-speech') {
       await this.play(result.audioUrl);
     }
     
