@@ -20,6 +20,8 @@ import {
   Share
 } from "lucide-react";
 import { Link } from "wouter";
+import privacyTipsImage from "@assets/generated_images/Privacy_tips_visual_guide_f3688914.png";
+import verificationTypesImage from "@assets/generated_images/Identity_verification_type_icons_8f62fbea.png";
 
 export default function Home() {
   const { user } = useAuth();
@@ -226,9 +228,16 @@ export default function Home() {
         {/* Privacy Tips */}
         <Card className="bg-surface shadow-elev1 rounded-card border">
           <CardHeader>
-            <CardTitle className="text-lg text-text-primary">
-              {t('home.privacyTips')}
-            </CardTitle>
+            <div className="flex items-center space-x-3">
+              <img 
+                src={privacyTipsImage} 
+                alt="Privacy Tips" 
+                className="w-12 h-12 object-cover rounded-lg"
+              />
+              <CardTitle className="text-lg text-text-primary">
+                {t('home.privacyTips')}
+              </CardTitle>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {tips.map((tip, index) => {

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MoreVertical } from "lucide-react";
 import { useLocation } from "wouter";
+import appLogo from "@assets/generated_images/Veridity_app_logo_design_c47eee7b.png";
 
 export interface AppHeaderProps {
   title: string;
@@ -62,9 +63,22 @@ export function AppHeader({
 
           {/* Center - Title */}
           <div className="flex-1 text-center sm:text-left px-4">
-            <h1 className="text-lg font-semibold text-text-primary truncate">
-              {title}
-            </h1>
+            {type === 'root' ? (
+              <div className="flex items-center justify-center sm:justify-start space-x-2">
+                <img 
+                  src={appLogo} 
+                  alt="Veridity" 
+                  className="w-6 h-6 object-contain"
+                />
+                <h1 className="text-lg font-semibold text-text-primary truncate">
+                  {title}
+                </h1>
+              </div>
+            ) : (
+              <h1 className="text-lg font-semibold text-text-primary truncate">
+                {title}
+              </h1>
+            )}
           </div>
 
           {/* Right side - Actions */}

@@ -9,6 +9,7 @@ import { useTranslation } from "@/lib/i18n";
 import { AppHeader } from "@/components/AppHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StatusPill } from "@/components/StatusPill";
+import { StatusIcon } from "@/components/StatusIcon";
 import { WalletBackup } from "@/components/WalletBackup";
 import {
   Settings as SettingsIcon,

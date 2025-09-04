@@ -12,6 +12,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation, type Language } from "@/lib/i18n";
 import { Shield, Settings, Lock, Calendar, Flag, GraduationCap, Banknote, MapPin, ArrowLeft } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import verificationTypesImage from "@assets/generated_images/Identity_verification_type_icons_8f62fbea.png";
 
 export default function ProofGeneration() {
   const { user } = useAuth();
@@ -403,9 +404,16 @@ export default function ProofGeneration() {
         </div>
 
         {currentStep === 1 && (
-          <Card className="apple-card apple-glass border-0 apple-shadow apple-fade-in">
+          <Card className="bg-surface shadow-elev1 rounded-card border">
             <CardHeader>
-              <CardTitle className="text-2xl">{t('form.proofType')}</CardTitle>
+              <div className="flex items-center space-x-4">
+                <img 
+                  src={verificationTypesImage} 
+                  alt="Verification Types" 
+                  className="w-16 h-10 object-cover rounded-lg"
+                />
+                <CardTitle className="text-2xl text-text-primary">{t('form.proofType')}</CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -414,22 +422,22 @@ export default function ProofGeneration() {
                   return (
                     <Card 
                       key={proofType.id}
-                      className="cursor-pointer apple-card apple-glass border-0 group"
+                      className="cursor-pointer bg-surface border hover:bg-surfaceAlt transition-colors group shadow-elev1 rounded-card"
                       onClick={() => handleProofTypeChange(proofType.id)}
                       data-testid={`card-proof-type-${proofType.circuitId}`}
                     >
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-4 mb-4">
-                          <div className="w-14 h-14 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center apple-shadow group-hover:scale-105 transition-transform">
+                          <div className="w-14 h-14 bg-brand-primary rounded-control flex items-center justify-center shadow-elev1 group-hover:bg-brand-emphasis transition-colors">
                             <IconComponent className="h-7 w-7 text-white" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-foreground text-lg">
+                            <h3 className="font-bold text-text-primary text-lg">
                               {language === 'np' ? proofType.nameNepali : proofType.name}
                             </h3>
                           </div>
                         </div>
-                        <p className="text-muted-foreground leading-relaxed">
+                        <p className="text-text-secondary leading-relaxed">
                           {language === 'np' ? proofType.descriptionNepali : proofType.description}
                         </p>
                       </CardContent>
