@@ -49,6 +49,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Demo: Update user role
+  app.post('/api/auth/update-role', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { role } = req.body;
+      
+      if (!['customer', 'client', 'admin'].includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
+      }
+      
+      await storage.updateUserRole(userId, role);
+      const updatedUser = await storage.getUser(userId);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
+
   // Proof type routes
   app.get('/api/proof-types', async (req, res) => {
     try {

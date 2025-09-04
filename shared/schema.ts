@@ -31,6 +31,9 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   preferredLanguage: varchar("preferred_language").default("en"),
+  role: varchar("role").default("customer"), // customer, client, admin
+  organizationId: varchar("organization_id").references(() => organizations.id),
+  permissions: jsonb("permissions").default([]), // Array of permission strings
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

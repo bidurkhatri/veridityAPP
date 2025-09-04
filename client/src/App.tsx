@@ -29,6 +29,7 @@ import EnterpriseDashboard from "@/pages/EnterpriseDashboard";
 import AdminPortal from "@/pages/AdminPortal";
 import ClientPortal from "@/pages/ClientPortal";
 import CustomerPortal from "@/pages/CustomerPortal";
+import PortalSelector from "@/components/PortalSelector";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -71,8 +72,11 @@ function Router() {
         />
       )}
       <Switch>
+        {/* Portal Selector - Main Entry Point */}
+        <Route path="/" component={PortalSelector} />
+        
         {/* Mobile-first navigation structure as per PRD */}
-        <Route path="/" component={Home} />
+        <Route path="/home" component={Home} />
         <Route path="/prove" component={ProofGeneration} />
         <Route path="/share" component={Share} />
         <Route path="/history" component={History} />
