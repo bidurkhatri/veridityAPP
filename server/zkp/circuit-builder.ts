@@ -1,5 +1,5 @@
 import { execSync, spawn } from 'child_process';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync, copyFileSync, unlinkSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -78,7 +78,7 @@ export class CircuitBuilder {
     const wasmDst = join(this.circuitsPath, `${circuitName}.wasm`);
     
     if (existsSync(wasmSrc)) {
-      execSync(`cp ${wasmSrc} ${wasmDst}`);
+      copyFileSync(wasmSrc, wasmDst);
     }
   }
 
@@ -113,7 +113,7 @@ export class CircuitBuilder {
       // Cleanup intermediate files
       [pot0, pot1].forEach(file => {
         if (existsSync(file)) {
-          execSync(`rm ${file}`);
+          unlinkSync(file);
         }
       });
     }
@@ -133,7 +133,7 @@ export class CircuitBuilder {
     
     // Cleanup intermediate file
     if (existsSync(zkey0)) {
-      execSync(`rm ${zkey0}`);
+      unlinkSync(zkey0);
     }
   }
 
@@ -193,7 +193,8 @@ export class CircuitBuilder {
     console.log('🧹 Cleaning build artifacts...');
     
     if (existsSync(this.buildPath)) {
-      execSync(`rm -rf ${this.buildPath}/*`);
+      rmSync(this.buildPath, { recursive: true, force: true });
+      mkdirSync(this.buildPath, { recursive: true });
     }
   }
 }
