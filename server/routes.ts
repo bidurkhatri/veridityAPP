@@ -21,6 +21,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply rate limiting to all API routes
   app.use('/api', apiRateLimit);
 
+  // Voice API endpoints
+  const { handleTTSRequest } = await import('./api/tts');
+  const { handleASRRequest } = await import('./api/asr');
+  
+  app.post('/api/tts', isAuthenticated, handleTTSRequest);
+  app.post('/api/asr', isAuthenticated, handleASRRequest);
+
   // Initialize default data
   await initializeDefaultData();
 

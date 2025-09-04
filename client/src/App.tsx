@@ -8,7 +8,7 @@ import MobileNav from "@/components/MobileNav";
 import { useState, useEffect } from "react";
 import { Onboarding } from "@/components/Onboarding";
 import { ContextualThemeProvider, useAutoThemeDetection } from "@/components/ContextualTheme";
-import { VoiceNavigation } from "@/components/VoiceNavigation";
+import { VoiceNavigationNew as VoiceNavigation } from "@/components/VoiceNavigationNew";
 import { PWACapabilities } from "@/components/PWACapabilities";
 
 // Pages
@@ -91,12 +91,12 @@ function Router() {
 
 function AppWithTheme() {
   useAutoThemeDetection();
-  const [currentLanguage, setCurrentLanguage] = useState<'en' | 'np'>('en');
+  const [currentLanguage, setCurrentLanguage] = useState<'en' | 'ne'>('en');
 
   // Load language from localStorage
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('veridity-language') as 'en' | 'np';
-    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'np')) {
+    const savedLanguage = localStorage.getItem('veridity-language') as 'en' | 'ne';
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ne')) {
       setCurrentLanguage(savedLanguage);
     }
   }, []);

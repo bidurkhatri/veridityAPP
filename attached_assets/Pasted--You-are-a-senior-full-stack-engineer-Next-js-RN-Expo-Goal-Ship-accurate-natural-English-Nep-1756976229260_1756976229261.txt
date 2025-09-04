@@ -1,0 +1,218 @@
+
+	You are a senior full-stack engineer (Next.js + RN/Expo).
+Goal: Ship accurate, natural English/Nepali voice (TTS + speech recognition) and fix the language segmented control that highlights the wrong option. Unify language across UI, TTS, and ASR with proper BCP-47 codes. Deliver code, tests, and QA scripts.
+
+⸻
+
+1) Problems to fix
+	1.	Voice quality & accuracy
+	•	Web Speech / OS TTS is low-quality and inconsistent; Nepali often missing.
+	•	Recognition returns wrong text or nothing; ne-NP unsupported in some browsers.
+	2.	Language toggle bug
+	•	Pressing English highlights Nepali and vice versa.
+
+⸻
+
+2) Solution blueprint
+
+A. Use a high-quality speech stack with fallbacks
+	•	ASR (speech recognition):
+	•	Primary: Google Cloud Speech-to-Text v2 with languageCodes: ['ne-NP'] or ['en-US'].
+	•	Fallbacks: if Nepali unavailable on device, show a toast and offer Hindi (hi-IN) or text input.
+	•	TTS (speech synthesis):
+	•	Primary: Cloud TTS provider (e.g., Google Cloud TTS or another neural provider) with SSML.
+	•	If Nepali voice isn’t available in your provider, route Nepali to your secondary provider or explicitly fall back to Hindi with a visible notice.
+	•	Cache synthesized audio (SW on web / FileSystem on RN) for common phrases (“Test Voice”, onboarding lines).
+	•	Language codes:
+	•	English: en-US
+	•	Nepali: ne-NP (never np-NP)
+	•	Hindi fallback: hi-IN
+	•	Keep a single source of truth in state: lang: 'en' | 'ne'.
+	•	Quality knobs:
+	•	22.05–24 kHz mono PCM input to ASR; VBR/OGG or MP3 output from TTS, 128–192 kbps.
+	•	SSML prosody for clearer Nepali numerals & pauses.
+
+B. Fix the segmented control (wrong highlight)
+	•	Use a controlled SegmentedControl component bound directly to lang.
+	•	Never flip the value in the onClick handler (no lang === 'en' ? 'ne' : 'en').
+	•	Active state = item.value === lang.
+	•	Sync lang to i18n + speech engines in a single effect.
+
+⸻
+
+3) Exact tasks (Web + RN)
+
+3.1 Shared types & state
+
+// src/lib/i18n/lang.ts
+export type Lang = 'en' | 'ne';
+export const langToBCP47: Record<Lang,string> = { en: 'en-US', ne: 'ne-NP' };
+
+3.2 Segmented control (bugfix)
+
+// components/LanguageSegment.tsx
+'use client';
+import { useState, useEffect } from 'react';
+import { langToBCP47, Lang } from '@/lib/i18n/lang';
+
+export default function LanguageSegment({
+  value, onChange,
+}: { value: Lang; onChange: (v: Lang)=>void }) {
+  return (
+    <div role="tablist" className="inline-flex rounded-lg border border-border px-1 py-1 bg-surface">
+      {(['en','ne'] as Lang[]).map(v => (
+        <button
+          key={v}
+          role="tab"
+          aria-selected={value===v}
+          onClick={() => onChange(v)}
+          className={[
+            'px-3 py-2 rounded-md text-sm',
+            value===v ? 'bg-brand-primary text-white' : 'text-text-primary hover:bg-surfaceAlt'
+          ].join(' ')}
+        >
+          {v==='en' ? 'English' : 'नेपाली'}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+Important: No ternary flip. The active class uses value===v only.
+
+3.3 Wire the source of truth
+
+// app/settings/voice/page.tsx (or equivalent)
+const [lang, setLang] = useState<Lang>('en');
+
+useEffect(() => {
+  i18n.changeLanguage(lang);                   // UI language
+  speech.setLanguage(langToBCP47[lang]);       // TTS
+  asr.setLanguage(langToBCP47[lang]);          // ASR
+}, [lang]);
+
+3.4 TTS (web) with provider + SSML fallback
+
+// src/lib/tts.ts
+export async function synth(text: string, lang: 'en'|'ne') {
+  const res = await fetch('/api/tts', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      text,
+      ssml: toSSML(text, lang),
+      lang: lang === 'ne' ? 'ne-NP' : 'en-US'
+    })
+  });
+  if (!res.ok) throw new Error('TTS failed');
+  const { url } = await res.json();            // signed URL or data URI
+  play(url);
+}
+const toSSML = (t: string, lang:'en'|'ne') => `
+  <speak xml:lang="${lang==='ne'?'ne-NP':'en-US'}">
+    <prosody rate="0.95">
+      ${t}
+    </prosody>
+  </speak>`;
+
+// app/api/tts/route.ts (server)
+export async function POST(req: Request) {
+  const { ssml, lang } = await req.json();
+  // Try primary provider (neural TTS). If it returns "voice not available",
+  // fallback to a secondary provider or to hi-IN with a header `X-Fallback: hi-IN`.
+  // Return a signed URL or base64 data URI.
+  return Response.json({ url: await synthesize(ssml, lang) });
+}
+
+3.5 ASR (web) with cloud + graceful fallback
+
+// src/lib/asr.ts
+export async function transcribe(blob: Blob, lang: 'en'|'ne') {
+  const res = await fetch('/api/asr', {
+    method: 'POST',
+    body: await toFormData({ file: blob, lang: lang==='ne'?'ne-NP':'en-US' })
+  });
+  if (!res.ok) throw new Error('ASR failed');
+  const { text, usedLang } = await res.json(); // e.g., 'hi-IN' fallback
+  return { text, usedLang };
+}
+
+// app/api/asr/route.ts
+export async function POST(req: Request) {
+  // Forward audio to Google STT v2 (or your chosen provider) with proper languageCode.
+  // If ne-NP unsupported, retry with hi-IN and mark fallback.
+  return Response.json({ text, usedLang: 'ne-NP' /* or 'hi-IN' */ });
+}
+
+3.6 React Native (Expo) equivalents
+
+TTS
+
+import * as Speech from 'expo-speech';
+export async function speakRN(text: string, lang: 'en'|'ne') {
+  const voices = await Speech.getAvailableVoicesAsync();
+  const want = lang==='ne' ? ['ne','hi'] : ['en'];
+  const pick = voices.find(v => want.some(w => v.language?.startsWith(w)));
+  await Speech.speak(text, {
+    language: pick?.language ?? (lang==='ne'?'hi-IN':'en-US'),
+    voice: pick?.identifier,
+    rate: 0.95,
+  });
+}
+
+ASR (Android works best for Nepali)
+
+import Voice from '@react-native-voice/voice';
+export async function startRN(lang: 'en'|'ne', onText:(s:string)=>void) {
+  await Voice.start(lang==='ne'?'ne-NP':'en-US');
+  Voice.onSpeechResults = e => onText(e.value?.[0] ?? '');
+}
+
+
+⸻
+
+4) Command recognition (both langs)
+
+const intents = [
+  { id:'home',  en:[/go home/i],              ne:[/होम( पेजमा)? जानुहोस्/] },
+  { id:'prove', en:[/generate|create proof/i], ne:[/प्रमाण बनाउनुहोस्|प्रमाण तयार गर्नुहोस्/] },
+  { id:'share', en:[/share proof/i],          ne:[/प्रमाण साझा गर्नुहोस्/] },
+];
+export function detectIntent(text: string, lang:'en'|'ne') {
+  const bank = lang==='ne' ? intents.map(i=>({id:i.id, rx:i.ne})) : intents.map(i=>({id:i.id, rx:i.en}));
+  return bank.find(b => b.rx.some(r => r.test(text)))?.id ?? null;
+}
+
+
+⸻
+
+5) Acceptance criteria
+	•	Toggle bug fixed: Clicking English sets lang='en' and highlights English; clicking नेपाली sets lang='ne' and highlights नेपाली.
+	•	Single source of truth: lang drives UI i18n, TTS, and ASR.
+	•	Nepali TTS: When selecting Nepali and tapping Test Voice, audio plays in Nepali (or shows a visible fallback notice if provider lacks Nepali).
+	•	Nepali ASR: Saying “होम जानुहोस्” triggers Home navigation (on supported platforms).
+	•	Quality: TTS is neural-quality (clear, natural), ASR returns correct phrases for provided test set.
+	•	Caching: Replays of the same “Test Voice” are instant (cached).
+	•	Telemetry: Log tts_provider, asr_provider, usedLang, fallbackUsed for later analysis.
+
+⸻
+
+6) QA script (copy/paste for testers)
+	1.	Toggle to English → English pill is highlighted; tap Test Voice → clear EN voice.
+	2.	Toggle to नेपाली → नेपाली pill highlighted; Test Voice plays Nepali.
+	3.	Speak “प्रमाण बनाउनुहोस्” → navigates to Generate Proof (Android/Chrome).
+	4.	Turn off network: Test Voice uses cached audio; ASR shows “Recognition requires internet”.
+	5.	On a device without Nepali TTS: banner “Nepali voice unavailable — using Hindi as fallback” and audio in Hindi.
+
+⸻
+
+7) Notes to the coder
+	•	Do not rely on OS/browser TTS if quality is the requirement; use a neural provider with SSML.
+	•	Keep all language strings in i18n files, not in components.
+	•	Respect BCP-47 codes everywhere.
+	•	Guard feature support (Web Speech on Safari/iOS is limited).
+	•	Make the segmented control a controlled component only; no toggle logic.
+
+⸻
+
+Deliver: PR with the new speech modules, the fixed segmented control, server routes for /api/tts & /api/asr, unit tests for detectIntent, and a README detailing provider env vars and fallbacks.
