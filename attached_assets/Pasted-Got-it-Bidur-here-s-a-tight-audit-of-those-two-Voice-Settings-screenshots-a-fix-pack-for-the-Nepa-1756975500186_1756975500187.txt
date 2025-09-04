@@ -1,0 +1,181 @@
+Got it, Bidur—here’s a tight audit of those two Voice Settings screenshots + a fix pack for the Nepali voice not working issue.
+
+⸻
+
+What’s wrong in the screenshots (UI/UX)
+	1.	Low contrast & glassmorphism
+
+	•	Dark card on dark canvas + blurry blobs → poor legibility (especially micro text like “Enabled”).
+Fix: use the semantic tokens we defined: bg.surface for the card, text.primary for labels, remove background blur.
+
+	2.	Language toggle affordance
+
+	•	The “Language” control looks like two buttons; affordance is ambiguous (which one is selected?).
+Fix: use a proper segmented control with clear active state and aria-pressed/selected.
+
+	3.	Alignment & hierarchy
+
+	•	“Enabled” status is far right; it reads like a label, not a control.
+Fix: replace “Enabled” text with a switch on the same row: Voice Navigation  [○] with helper text under it.
+
+	4.	Quotes around commands
+
+	•	Commands are wrapped in ASCII quotes "…", which is noisy and harms scan-ability—especially in Devanagari.
+Fix: use bullets/tokens and Devanagari punctuation (।) or none:
+	•	go home — होम जानुहोस्
+	•	generate proof — प्रमाण बनाउनुहोस्
+	•	share proof — प्रमाण साझा गर्नुहोस्
+
+	5.	Nepali copy consistency
+
+	•	Mixed English/Nepali in the same slot (“Language English  नेपाली”).
+Fix: When the UI language is EN, keep labels in EN; when NE, localize everything (including “Test Voice”, “Done”).
+
+	6.	Controls clarity
+
+	•	Speech rate slider has no numeric feedback.
+Fix: add a live label: Speech Rate — 0.85× (updates as you drag).
+
+	7.	Button contrast
+
+	•	The gradient Done button in dark mode likely misses AA.
+Fix: solid brand.primary background with white text; hover/pressed brand.emphasis.
+
+⸻
+
+Why Nepali voice isn’t working (most common causes)
+	•	❌ Wrong language code — using 'np'/'np-NP' instead of 'ne-NP' (Nepali).
+	•	❌ Engine/voice not available — Web Speech/OS TTS doesn’t have a Nepali voice installed.
+	•	❌ Browser/platform gap — iOS Safari does not support Web Speech Recognition; RN/web need a different stack for ASR.
+	•	❌ One side only — setting speechSynthesis to Nepali but leaving Recognition in English (or vice-versa).
+	•	❌ No graceful fallback — code assumes a Nepali voice exists and fails silently.
+
+⸻
+
+Drop-in fixes (Web PWA)
+
+1) TTS (speechSynthesis) — pick ne-NP safely
+
+// tts.ts
+export async function speak(text: string, lang = 'ne-NP') {
+  if (!('speechSynthesis' in window)) throw new Error('No TTS support');
+  await new Promise<void>(r => {
+    if (speechSynthesis.getVoices().length) return r();
+    window.speechSynthesis.onvoiceschanged = () => r();
+  });
+  const voices = speechSynthesis.getVoices();
+  const ne = voices.find(v => v.lang?.toLowerCase().startsWith('ne'));
+  const hi = voices.find(v => v.lang?.toLowerCase().startsWith('hi'));
+  const en = voices.find(v => v.lang?.toLowerCase().startsWith('en'));
+  const voice = ne ?? hi ?? en ?? null;
+
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = ne ? 'ne-NP' : hi ? 'hi-IN' : 'en-US';
+  if (voice) u.voice = voice;
+  u.rate = clampRate(getStoredRate()); // 0.5 – 1.2
+  speechSynthesis.speak(u);
+}
+const clampRate = (n: number) => Math.max(0.5, Math.min(1.2, n || 1));
+
+2) ASR (speech recognition) — detect support & fallback
+
+// asr.ts
+type Recog = typeof window & { webkitSpeechRecognition?: any };
+export function startRecognition(lang = 'ne-NP', onText: (s: string)=>void) {
+  const W: Recog = window as any;
+  const SR = W.SpeechRecognition || W.webkitSpeechRecognition;
+  if (!SR) throw new Error('Browser recognition unsupported');
+  const rec = new SR();
+  rec.lang = lang;            // 'ne-NP' — not 'np-NP'
+  rec.continuous = false;
+  rec.interimResults = false;
+  rec.onresult = (e: any) => onText(e.results[0][0].transcript.trim());
+  rec.start();
+  return () => rec.stop();
+}
+
+If SR is undefined (iOS Safari, many desktops), disable the feature and show:
+“Voice recognition requires a supported browser. Try Chrome/Edge, or use the app.”
+
+⸻
+
+Fixes for React Native / Expo
+
+TTS
+
+import * as Speech from 'expo-speech';
+
+export async function speakRN(text: string) {
+  const voices = await Speech.getAvailableVoicesAsync();
+  const ne = voices.find(v => v.language?.startsWith('ne'));
+  const hi = voices.find(v => v.language?.startsWith('hi'));
+  const voice = ne ?? hi;
+  await Speech.speak(text, {
+    language: voice ? voice.language : 'en-US',
+    voice: voice?.identifier,
+    rate: 0.9
+  });
+}
+
+ASR
+
+Use react-native-voice (Android supports Nepali with Google; iOS Siri doesn’t support Nepali ASR as of most builds).
+
+import Voice from '@react-native-voice/voice';
+
+export async function startRN(onText:(s:string)=>void) {
+  await Voice.start('ne-NP'); // falls back to 'hi-IN' if needed
+  Voice.onSpeechResults = e => onText(e.value?.[0] ?? '');
+}
+
+Device requirement: On Android, install Google voice typing and download the Nepali language pack in Gboard settings (or allow network recognition).
+
+⸻
+
+Command recognition (EN + NE)
+
+Normalize and map synonyms so both languages work:
+
+const intents = [
+  { id:'home', en:[/go home/i, /home/i], ne:[/होम( पेजमा)? जानुहोस्/, /घर( पृष्ठ)?/] },
+  { id:'prove', en:[/generate proof/i, /create proof/i], ne:[/प्रमाण बनाउनुहोस्/, /प्रमाण तयार गर्नुहोस्/] },
+  { id:'share', en:[/share proof/i, /send proof/i], ne:[/प्रमाण साझा गर्नुहोस्/] },
+];
+
+export function matchIntent(text: string, lang: 'en'|'ne') {
+  for (const it of intents) {
+    const list = lang === 'ne' ? it.ne : it.en;
+    if (list.some(rx => rx.test(text))) return it.id;
+  }
+  return null;
+}
+
+
+⸻
+
+UI tweaks (Voice Settings)
+	•	Header: Voice Settings (title) + help icon linking to “How to enable voice”.
+	•	Switch: Voice Navigation [on/off] with helper “Enable voice commands”.
+	•	Language segmented control: English | नेपाली with the active one filled (brand.primary bg).
+	•	Speech rate: slider + numeric label (0.9×).
+	•	Available commands: bullets, not quotes; show both languages only if UI language is English (learners), otherwise just the selected language.
+	•	Test Voice: Play/Stop buttons with clear labels; when Nepali is selected, test with a Nepali sample sentence (e.g., “यो आवाज परीक्षण हो।”).
+
+Correct Nepali strings
+	•	Voice Navigation → भ्वाइस नेभिगेशन
+	•	Language → भाषा
+	•	Speech Rate → बोलीको गति
+	•	Available Commands → उपलब्ध कमाण्डहरू
+	•	Test Voice → आवाज परीक्षण
+	•	Done → सम्पन्न भयो (or simply ठीक छ)
+
+⸻
+
+Quick checklist (do these and you’re done)
+	•	Replace any 'np'/'np-NP' with 'ne-NP' everywhere (TTS & ASR).
+	•	Enumerate voices; fallback chain ne → hi → en + user-visible warning if Nepali missing.
+	•	Gate recognition by feature-detecting Web Speech; show fallback message on unsupported browsers.
+	•	Convert “Enabled” into a switch; use segmented control for language.
+	•	Remove quotes around commands; use bullets and correct Nepali phrasing.
+	•	Add current rate label and persist it.
+	•	Update dark theme to semantic tokens; remove blurred blobs behind this modal.

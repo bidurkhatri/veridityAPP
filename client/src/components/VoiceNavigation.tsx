@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/lib/i18n";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,7 +29,7 @@ interface VoiceCommand {
 
 interface VoiceSettings {
   enabled: boolean;
-  language: 'en' | 'np';
+  language: 'en' | 'ne';
   speechRate: number;
   speechVolume: number;
   micSensitivity: number;
@@ -45,8 +46,8 @@ declare global {
 }
 
 interface VoiceNavigationProps {
-  currentLanguage?: 'en' | 'np';
-  onLanguageChange?: (language: 'en' | 'np') => void;
+  currentLanguage?: 'en' | 'ne';
+  onLanguageChange?: (language: 'en' | 'ne') => void;
 }
 
 export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: VoiceNavigationProps = {}) {
@@ -71,7 +72,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
 
   // Voice commands based on current language
   const getVoiceCommands = (): VoiceCommand[] => {
-    if (settings.language === 'np') {
+    if (settings.language === 'ne') {
       return [
         {
           phrase: 'होम जानुहोस्',
@@ -184,7 +185,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
       
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = settings.language === 'np' ? 'ne-NP' : 'en-US';
+      recognition.lang = settings.language === 'ne' ? 'ne-NP' : 'en-US';
       
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
@@ -227,7 +228,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
     
     // Update recognition language when settings change
     if (recognition) {
-      recognition.lang = settings.language === 'np' ? 'ne-NP' : 'en-US';
+      recognition.lang = settings.language === 'ne' ? 'ne-NP' : 'en-US';
     }
   }, [settings, recognition]);
 
@@ -247,7 +248,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
       setLastCommand(command.phrase);
       
       if (settings.confirmCommands) {
-        const confirmText = settings.language === 'np' 
+        const confirmText = settings.language === 'ne' 
           ? `कार्यान्वयन गर्दै: ${command.description}`
           : `Executing ${command.description}`;
         speak(confirmText);
@@ -256,30 +257,65 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
         command.action();
       }
     } else {
-      const errorText = settings.language === 'np'
+      const errorText = settings.language === 'ne'
         ? "माफ गर्नुहोस्, मैले त्यो आदेश बुझिन। उपलब्ध आदेशहरूका लागि 'मद्दत गर्नुहोस्' भन्नुहोस्।"
         : "Sorry, I didn't understand that command. Say 'help me' for available commands.";
       speak(errorText);
     }
   };
 
-  const speak = (text: string, interrupt: boolean = false) => {
+  const speak = async (text: string, interrupt: boolean = false) => {
     if (!synthesis || !settings.enabled) return;
 
     if (interrupt) {
       synthesis.cancel();
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = settings.speechRate;
-    utterance.volume = settings.speechVolume;
-    utterance.lang = settings.language === 'np' ? 'ne-NP' : 'en-US';
-    
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    try {
+      // Wait for voices to load
+      await new Promise<void>(resolve => {
+        if (speechSynthesis.getVoices().length) return resolve();
+        speechSynthesis.onvoiceschanged = () => resolve();
+      });
 
-    synthesis.speak(utterance);
+      const voices = speechSynthesis.getVoices();
+      const targetLang = settings.language === 'ne' ? 'ne-NP' : 'en-US';
+      
+      // Find appropriate voice with fallback chain
+      let voice = null;
+      if (settings.language === 'ne') {
+        // For Nepali: try ne -> hi -> en
+        voice = voices.find(v => v.lang?.toLowerCase().startsWith('ne')) ||
+               voices.find(v => v.lang?.toLowerCase().startsWith('hi')) ||
+               voices.find(v => v.lang?.toLowerCase().startsWith('en'));
+      } else {
+        // For English
+        voice = voices.find(v => v.lang?.toLowerCase().startsWith('en'));
+      }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = Math.max(0.5, Math.min(1.2, settings.speechRate));
+      utterance.volume = settings.speechVolume;
+      
+      if (voice) {
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+      } else {
+        utterance.lang = targetLang;
+      }
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = (e) => {
+        console.warn('Speech synthesis error:', e);
+        setIsSpeaking(false);
+      };
+
+      synthesis.speak(utterance);
+    } catch (error) {
+      console.error('Error in speak function:', error);
+      setIsSpeaking(false);
+    }
   };
 
   const startListening = async () => {
@@ -292,7 +328,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
       } catch (error: any) {
         console.error('Error starting voice recognition:', error);
         if (error.name === 'NotAllowedError' || error.message === 'service-not-allowed') {
-          const permissionText = settings.language === 'np'
+          const permissionText = settings.language === 'ne'
             ? "कृपया माइक्रोफोन अनुमति दिनुहोस्। ब्राउजर सेटिङ्समा जानुहोस् र यो साइटका लागि माइक्रोफोन सक्षम पार्नुहोस्।"
             : "Please allow microphone access. Go to browser settings and enable microphone for this site.";
           speak(permissionText);
@@ -303,7 +339,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
     } else {
       console.warn('Voice recognition not available or not enabled');
       if (!recognition) {
-        const errorText = settings.language === 'np'
+        const errorText = settings.language === 'ne'
           ? "यो ब्राउजरमा आवाज पहिचान समर्थित छैन।"
           : "Voice recognition is not supported on this browser.";
         speak(errorText);
@@ -338,7 +374,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
 
   const speakHelp = () => {
     const voiceCommands = getVoiceCommands();
-    const helpText = settings.language === 'np'
+    const helpText = settings.language === 'ne'
       ? `उपलब्ध आवाज आदेशहरू: ${voiceCommands.map(cmd => cmd.phrase).join(', ')}। तपाईं "पेज पढ्नुहोस्" भनेर हालको सामग्री सुन्न सक्नुहुन्छ, वा "बोल्न बन्द गर्नुहोस्" भनेर रोक्न सक्नुहुन्छ।`
       : `Available voice commands: ${voiceCommands.map(cmd => cmd.phrase).join(', ')}. You can also say "read page" to hear the current content, or "stop speaking" to interrupt.`;
     speak(helpText);
@@ -352,14 +388,14 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
       // Check if speech recognition is available
       if (!recognition) {
         console.error('Speech recognition not available');
-        const errorText = settings.language === 'np'
+        const errorText = settings.language === 'ne'
           ? "माफ गर्नुहोस्, यो ब्राउजरमा आवाज पहिचान उपलब्ध छैन।"
           : "Sorry, voice recognition is not available on this browser.";
         speak(errorText);
         return;
       }
       
-      const enableText = settings.language === 'np'
+      const enableText = settings.language === 'ne'
         ? "आवाज नेभिगेसन सक्रिय गरियो। उपलब्ध आदेशहरूका लागि 'मद्दत गर्नुहोस्' भन्नुहोस्।"
         : "Voice navigation enabled. Say 'help me' for available commands.";
       speak(enableText);
@@ -479,7 +515,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
               exit={{ scale: 0.9, opacity: 0 }}
               className="w-full max-w-md"
             >
-              <Card className="apple-card apple-glass border-0 apple-shadow">
+              <Card className="bg-background border border-border shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Headphones className="h-5 w-5" />
@@ -493,14 +529,10 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
                       <p className="font-medium">Voice Navigation</p>
                       <p className="text-xs text-muted-foreground">Enable voice commands</p>
                     </div>
-                    <Button
-                      variant={settings.enabled ? "default" : "outline"}
-                      size="sm"
-                      onClick={toggleVoiceNavigation}
-                      className="apple-button"
-                    >
-                      {settings.enabled ? 'Enabled' : 'Disabled'}
-                    </Button>
+                    <Switch
+                      checked={settings.enabled}
+                      onCheckedChange={(checked) => setSettings(prev => ({ ...prev, enabled: checked }))}
+                    />
                   </div>
 
                   {/* Language */}
@@ -519,11 +551,11 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
                         English
                       </Button>
                       <Button
-                        variant={settings.language === 'np' ? 'default' : 'outline'}
+                        variant={settings.language === 'ne' ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => {
-                          setSettings(prev => ({ ...prev, language: 'np' }));
-                          onLanguageChange?.('np');
+                          setSettings(prev => ({ ...prev, language: 'ne' }));
+                          onLanguageChange?.('ne');
                         }}
                         className="flex-1 apple-button"
                       >
@@ -546,7 +578,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Slow</span>
-                      <span>{settings.speechRate}x</span>
+                      <span className="font-medium text-foreground">{settings.speechRate}×</span>
                       <span>Fast</span>
                     </div>
                   </div>
@@ -556,9 +588,9 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
                     <p className="text-sm font-medium">Available Commands</p>
                     <div className="max-h-32 overflow-y-auto space-y-1">
                       {getVoiceCommands().map((cmd, index) => (
-                        <div key={index} className="text-xs p-2 bg-muted/10 rounded">
-                          <p className="font-medium">"{cmd.phrase}"</p>
-                          <p className="text-muted-foreground">{cmd.description}</p>
+                        <div key={index} className="text-xs p-2 bg-background/50 rounded border">
+                          <p className="font-medium">• {cmd.phrase}</p>
+                          <p className="text-muted-foreground ml-2">— {cmd.description}</p>
                         </div>
                       ))}
                     </div>
@@ -570,7 +602,7 @@ export function VoiceNavigation({ currentLanguage = 'en', onLanguageChange }: Vo
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const testText = settings.language === 'np'
+                        const testText = settings.language === 'ne'
                           ? "आवाज नेभिगेसन परीक्षण। म यसरी सुनिन्छु।"
                           : "Voice navigation test. This is how I sound.";
                         speak(testText);
