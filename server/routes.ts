@@ -2,7 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { healthMonitor } from "./lib/health-monitor";
+import { realTimeMonitor, metricsMiddleware } from "./lib/real-time-monitor";
+import { cacheManager, initializeCaching } from "./lib/cache-manager";
+import { dbPool } from "./lib/database-pool";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { isAuthenticated as isAuthenticatedImproved, isAPIAuthenticated, requireRole } from './middleware/auth-improved';
 import { ZKPService } from "./services/zkpService";
 import { insertProofSchema, insertVerificationSchema, insertOrganizationSchema } from "@shared/schema";
 import { QRCodeService } from "./services/qrService";
@@ -26,6 +30,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Apply rate limiting to all API routes
   app.use('/api', apiRateLimit);
+  
+  // Initialize enhanced systems
+  initializeCaching();
+  realTimeMonitor.startMonitoring();
+  
+  // Apply metrics middleware
+  app.use(metricsMiddleware());
 
   // Voice API endpoints
   const { handleTTSRequest } = await import('./api/tts');
@@ -430,6 +441,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Call original close method
       originalShutdown(callback);
     });
+    
+    return httpServer;
   };
   
   // ZK Circuit and verification status endpoints
