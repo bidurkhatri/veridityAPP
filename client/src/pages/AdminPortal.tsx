@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { formatPercentage, formatUptime, formatNumber, formatResponseTime } from '@/lib/format';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -60,10 +61,10 @@ export default function AdminPortal() {
   const { data: systemHealth } = useQuery<SystemHealth>({
     queryKey: ['/api/admin/health'],
     select: (data: any) => ({
-      cpu: Math.round(data.cpu?.usage || 0),
+      cpu: data.cpu?.usage || 0,
       memory: data.memory?.percentage || 0,
       disk: data.disk?.percentage || 0,
-      uptime: `${Math.floor(data.uptime / 86400)} days, ${Math.floor((data.uptime % 86400) / 3600)} hours`,
+      uptime: formatUptime(data.uptime || 0),
       activeUsers: data.metrics?.requests || 0,
       totalRequests: data.metrics?.totalRequests || 0
     })
@@ -136,7 +137,7 @@ export default function AdminPortal() {
             <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemHealth?.cpu || 0}%</div>
+            <div className="text-2xl font-bold">{formatPercentage(systemHealth?.cpu)}</div>
             <Progress value={systemHealth?.cpu || 0} className="mt-2" />
           </CardContent>
         </Card>
@@ -147,7 +148,7 @@ export default function AdminPortal() {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemHealth?.memory || 0}%</div>
+            <div className="text-2xl font-bold">{formatPercentage(systemHealth?.memory)}</div>
             <Progress value={systemHealth?.memory || 0} className="mt-2" />
           </CardContent>
         </Card>
@@ -158,7 +159,7 @@ export default function AdminPortal() {
             <HardDrive className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemHealth?.disk || 0}%</div>
+            <div className="text-2xl font-bold">{formatPercentage(systemHealth?.disk)}</div>
             <Progress value={systemHealth?.disk || 0} className="mt-2" />
           </CardContent>
         </Card>
@@ -169,7 +170,7 @@ export default function AdminPortal() {
             <Server className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">{systemHealth?.uptime || '0 days, 0 hours'}</div>
+            <div className="text-lg font-bold">{systemHealth?.uptime}</div>
             <p className="text-xs text-muted-foreground">99.9% availability</p>
           </CardContent>
         </Card>
@@ -199,11 +200,11 @@ export default function AdminPortal() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span>Active Users</span>
-                  <span className="font-bold">{systemHealth?.activeUsers?.toLocaleString() || '0'}</span>
+                  <span className="font-bold">{formatNumber(systemHealth?.activeUsers)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Total Requests (24h)</span>
-                  <span className="font-bold">{systemHealth?.totalRequests?.toLocaleString() || '0'}</span>
+                  <span className="font-bold">{formatNumber(systemHealth?.totalRequests)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Success Rate</span>
@@ -211,7 +212,7 @@ export default function AdminPortal() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Avg Response Time</span>
-                  <span className="font-bold">245ms</span>
+                  <span className="font-bold">{formatResponseTime(245)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -314,7 +315,7 @@ export default function AdminPortal() {
                           Suspend
                         </Button>
                       ) : (
-                        <Button variant="default" size="sm" data-testid={`activate-user-${user.id}`}>
+                        <Button variant="outline" size="sm" data-testid={`activate-user-${user.id}`}>
                           Activate
                         </Button>
                       )}

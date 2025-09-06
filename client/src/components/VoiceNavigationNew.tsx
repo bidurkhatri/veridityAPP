@@ -88,17 +88,12 @@ export function VoiceNavigationNew({
     localStorage.setItem('veridity-voice-settings', JSON.stringify(settings));
   }, [settings]);
 
-  // Single source of truth: sync language across UI, TTS, and ASR
+  // Sync external language changes to internal state
   useEffect(() => {
-    if (settings.lang !== currentLanguage) {
+    if (currentLanguage !== settings.lang) {
       setSettings(prev => ({ ...prev, lang: currentLanguage }));
     }
-    
-    // Notify parent of language change
-    if (onLanguageChange && settings.lang !== currentLanguage) {
-      onLanguageChange(settings.lang);
-    }
-  }, [settings.lang, currentLanguage, onLanguageChange]);
+  }, [currentLanguage]);
 
   // Check voice support on mount
   useEffect(() => {
