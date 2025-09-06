@@ -1,0 +1,105 @@
+P0 - Critical Foundation Tasks (27 remaining)
+Component Library
+Ensure app compiles with tokens only - remove hardcoded values
+Create Input, Select, DatePicker components using Radix with Portal architecture
+Complete Tabs, SegmentedControl, Cards, EmptyState, Toast, Badge/StatusPill components
+Implement Stepper, Modal/Sheet, Toolbar, Data Tiles, Tag, Pagination, Table components
+Create Stat KPIs, Progress, Skeleton, Tooltip, Dropdown, Alert, Banner components
+Replace all screen-level bespoke styles with unified component library
+Icon System
+Switch fully to Lucide icons (single set), 1.5px stroke, size 18/20/24 with consistent padding
+Create 8-12 Veridity custom glyphs (ZK shield, QR verify, Proof, Wallet, Audit, AI shield, Chain, GOV)
+Eliminate all blank image squares in tiles and map icons in design tokens
+Typography & Layout
+Apply line-height rules and max 80ch width for long text
+Ensure all headings/body follow ramp with truncation handled by tooltip
+Theme & Motion
+Build High-contrast AAA mode for accessibility
+Remove harsh multicolor gradients, replace with subtle noise/soft radial patterns
+Implement theme toggle with persistence
+Add page transitions (fade/slide 120ms) between routes
+Ensure motion tokens are used and prefers-reduced-motion is respected
+Critical UX Bugs
+Ensure pressing English highlights English and persists across routes
+Replace TTS provider with high-quality voices for ne-NP with cloud fallback and caching
+Expose TTS rate (0.8-1.2) and pitch (-2 to +2) controls, save per-language
+Achieve TTS quality MOS ≥ 4 in internal QA for both EN/NE
+Fix Select/DatePicker z-index issues using Radix Select with Portal and collision detection
+Implement mobile sheet pattern for select dropdowns
+Add inline validation messages under fields with clear error states
+Complete A11y pass - focus outlines, skip-to-content, roles, ARIA on steppers
+Achieve Axe score 100% with tab order matching visual order
+P1 - Page Improvements (64 remaining)
+Welcome/Portal Pages
+Add hero identity strip with user avatar, role chip, environment badge
+Convert portal tiles to card grid with brief bullets and icons
+Add Quick Start section (Generate Proof, Scan QR, View Docs)
+Ensure 5-second test - users identify next steps without reading dense text
+Customer Portal
+Add trend chevrons and secondary metric badges (growth %) to KPI tiles
+Fix expiring proofs to show Expired state with Renew now action (no negative days)
+Convert Quick Actions to Action Cards with icons and help text
+Surface verification level, backup status, passkey status in Profile Overview
+Proof Generation Flow
+Add illustrated icons for each proof type (Address/Age/Citizenship/Education/Income)
+Elevate Privacy Note with shield icon and info link
+Implement stepper with current/complete states and mobile sticky footer CTA
+Add DOB masked input + date picker with min/max age validation
+Implement Citizenship No. pattern + checksum with verifier-side hashing
+Add Income numeric keypad with thousand separators while typing
+Create Education Level controlled vocabulary + auto-fill institution list
+Ensure form completion success < 90s for first-time user with zero layout overlap
+Share Screen
+Create share actions row: Copy Link / Share / Save PDF with clear hierarchy
+Convert Privacy Protected to info card with What's shared? link
+Ensure users can copy link in < 2s with clear privacy messaging
+History Screen
+Show verifier, scope, expiry, status pill (verified/pending/failed), actions in each item
+Add row expand for proof meta (public signals hash, created, circuit version)
+Move Export to top toolbar with CSV/PDF options
+Ensure users can find last verified proof in < 5s, export under 3 clicks
+Settings Screen
+Convert Passkey + Recovery Phrase to setup cards with progress and risk labels
+Replace auto-delete stepper with Segmented control (Off/7d/30d/90d/Custom)
+Group Privacy & Security with toggles: Notifications, Biometrics, High-contrast Mode
+Ensure backup completion path is 2 steps with big, tappable duration control
+Organization Dashboard
+Add sparkline and trend badges (↑/↓) to KPI cards
+Convert Quick Actions to primary action cards with icons (API key, Webhooks, SDK, Docs)
+Create timeline for Recent Activity with category chips (Security/Billing/Team)
+Ensure time-to-API-key generation < 3 clicks from entry
+Admin Portal
+Show rolling 30-day uptime with incidents log link
+Add severity tags (High/Med/Low) with colors to Security Events, link to detail
+Convert Access Control policies to toggle list with tooltips & edit drawers
+Show real charts (stacked area for proofs, line for latency) in Analytics
+Create Open Chat Console button with queues table and SLA badges
+Ensure no fake numbers, every tile clickable, charts populated with data
+Content & Copy
+Replace long privacy paragraphs with short, punchy lines + Learn more links
+Normalize labels: Title Case for headers, Sentence case for body and buttons
+Clarify statuses with consistent pill colors for Verified/Pending/Failed
+Achieve Hemingway readability grade ≤ 6
+Internationalization
+Implement locale-aware formatting for dates and numbers with Intl.*
+Audit Nepali strings - remove leftover keys like form.minimumAge ghosts
+Add persistent language switcher in header with immediate reflection
+Achieve 100% coverage for EN/NE strings with no key leaks on UI
+Engineering Tasks (4 remaining)
+Adopt Radix UI - Select, Dialog, Tooltip, Tabs, Popover, Sheet, Toast with Portal
+Add ESLint a11y rules and CI Axe checks on key routes
+Build stateful stepper & sticky footer CTA that reflects validity and shows missing fields
+Create TTS abstraction with pluggable providers, voice map per locale, cache samples
+P2 - Polish & Enhancement (16 remaining)
+Brand & Visual
+Apply new Veridity logo across splash/top bar/login/empty states
+Introduce brand illustrations for proof types and empty states (minimal, outline)
+Add success screen with celebratory micro-motion (shield check burst)
+Ensure brand assets consistent with no generic placeholders
+User Guidance
+Add first-run coach marks (3-5 tips) for Customer Portal
+Add inline Why we ask this? help near sensitive inputs
+Offer Next steps on proof success: Share QR / Save PDF / Add to Wallet
+Ensure first-time user completes proof unaided in < 2 minutes
+Quick Wins (1 remaining)
+Replace Select with Radix Select + Portal to fix z-index issues
