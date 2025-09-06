@@ -60,6 +60,21 @@ export interface IStorage {
     successRate: number;
   }>;
   
+  // Admin operations
+  getAdminOrganizationStats(): Promise<{
+    todayVerifications: number;
+    monthlyVerifications: number;
+    successRate: number;
+    avgTime: number;
+  }>;
+  
+  getRecentVerifications(limit: number): Promise<Array<{
+    id: string;
+    type: string;
+    timestamp: string;
+    status: string;
+  }>>;
+  
   // Audit operations
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
 }
@@ -251,6 +266,87 @@ export class DatabaseStorage implements IStorage {
   async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
     const [newLog] = await db.insert(auditLogs).values(log).returning();
     return newLog;
+  }
+
+  async getAdminOrganizationStats(): Promise<{
+    todayVerifications: number;
+    monthlyVerifications: number;
+    successRate: number;
+    avgTime: number;
+  }> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    // Get today's verifications across all organizations
+    const [todayResult] = await db
+      .select({ count: count() })
+      .from(verifications)
+      .where(sql`${verifications.createdAt} >= ${today}`);
+
+    // Get monthly verifications across all organizations
+    const [monthlyResult] = await db
+      .select({ count: count() })
+      .from(verifications)
+      .where(sql`${verifications.createdAt} >= ${monthStart}`);
+
+    // Get success rate
+    const [successResult] = await db
+      .select({ count: count() })
+      .from(verifications)
+      .where(
+        and(
+          eq(verifications.status, 'verified'),
+          sql`${verifications.createdAt} >= ${monthStart}`
+        )
+      );
+
+    const successRate = monthlyResult.count > 0 
+      ? (successResult.count / monthlyResult.count) * 100 
+      : 0;
+
+    return {
+      todayVerifications: todayResult.count,
+      monthlyVerifications: monthlyResult.count,
+      successRate: Math.round(successRate * 10) / 10,
+      avgTime: 1.2 // Mock average time - would calculate from verification logs in production
+    };
+  }
+
+  async getRecentVerifications(limit: number): Promise<Array<{
+    id: string;
+    type: string;
+    timestamp: string;
+    status: string;
+  }>> {
+    const results = await db
+      .select({
+        id: verifications.id,
+        status: verifications.status,
+        createdAt: verifications.createdAt,
+        proofTypeId: verifications.proofTypeId
+      })
+      .from(verifications)
+      .orderBy(desc(verifications.createdAt))
+      .limit(limit);
+
+    // Get proof types to map IDs to names
+    const proofTypesList = await this.getProofTypes();
+    const proofTypeMap = new Map(proofTypesList.map(pt => [pt.id, pt.name]));
+
+    return results.map(v => ({
+      id: v.id,
+      type: proofTypeMap.get(v.proofTypeId) || 'Unknown Type',
+      timestamp: new Date(v.createdAt).toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      }),
+      status: v.status
+    }));
   }
 }
 

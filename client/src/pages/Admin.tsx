@@ -28,22 +28,25 @@ export default function Admin() {
     queryKey: ['/api/organizations'],
   });
 
-  // Mock organization stats (in real app, this would be fetched with proper API key)
-  const mockOrgStats = {
-    todayVerifications: 47,
-    monthlyVerifications: 1284,
-    successRate: 98.5,
-    avgTime: 1.2
-  };
+  // Fetch organization statistics
+  const { data: orgStats } = useQuery<{
+    todayVerifications: number;
+    monthlyVerifications: number;
+    successRate: number;
+    avgTime: number;
+  }>({
+    queryKey: ['/api/admin/organization-stats'],
+  });
 
-  // Mock recent verifications
-  const mockRecentVerifications = [
-    { type: 'Age 18+ Proof', timestamp: '2:45 PM', status: 'verified' },
-    { type: 'Citizenship Proof', timestamp: '2:40 PM', status: 'verified' },
-    { type: 'Education Proof', timestamp: '2:35 PM', status: 'failed' },
-    { type: 'Income Proof', timestamp: '2:30 PM', status: 'verified' },
-    { type: 'Address Proof', timestamp: '2:25 PM', status: 'verified' }
-  ];
+  // Fetch recent verifications
+  const { data: recentVerifications = [] } = useQuery<Array<{
+    type: string;
+    timestamp: string;
+    status: string;
+    id: string;
+  }>>({
+    queryKey: ['/api/admin/recent-verifications'],
+  });
 
   return (
     <div className="min-h-screen bg-background apple-blur-bg">
@@ -93,7 +96,7 @@ export default function Admin() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Today's Verifications</p>
                   <p className="text-3xl font-bold apple-gradient-text" data-testid="stat-today-verifications">
-                    {mockOrgStats.todayVerifications}
+                    {orgStats?.todayVerifications || 0}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center apple-shadow">
@@ -109,7 +112,7 @@ export default function Admin() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Monthly Total</p>
                   <p className="text-2xl font-bold text-secondary" data-testid="stat-monthly-verifications">
-                    {mockOrgStats.monthlyVerifications.toLocaleString()}
+                    {(orgStats?.monthlyVerifications || 0).toLocaleString()}
                   </p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-secondary" />
@@ -123,7 +126,7 @@ export default function Admin() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
                   <p className="text-2xl font-bold text-accent" data-testid="stat-success-rate">
-                    {mockOrgStats.successRate}%
+                    {(orgStats?.successRate || 0).toFixed(1)}%
                   </p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-accent" />
@@ -137,7 +140,7 @@ export default function Admin() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Avg Time</p>
                   <p className="text-2xl font-bold text-foreground" data-testid="stat-avg-time">
-                    {mockOrgStats.avgTime}s
+                    {(orgStats?.avgTime || 0).toFixed(1)}s
                   </p>
                 </div>
                 <Clock className="h-8 w-8 text-foreground" />
@@ -156,9 +159,9 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockRecentVerifications.map((verification, index) => (
+                  {recentVerifications.map((verification, index) => (
                     <div 
-                      key={index}
+                      key={verification.id || index}
                       className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                       data-testid={`verification-${index}`}
                     >

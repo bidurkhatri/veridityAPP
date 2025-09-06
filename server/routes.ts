@@ -389,6 +389,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin organization statistics
+  app.get('/api/admin/organization-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      // In production, this would verify admin role
+      const adminStats = await storage.getAdminOrganizationStats();
+      res.json(adminStats);
+    } catch (error) {
+      console.error("Error fetching admin organization stats:", error);
+      res.status(500).json({ message: "Failed to fetch admin organization stats" });
+    }
+  });
+
+  // Admin recent verifications
+  app.get('/api/admin/recent-verifications', isAuthenticated, async (req: any, res) => {
+    try {
+      // In production, this would verify admin role
+      const recentVerifications = await storage.getRecentVerifications(10);
+      res.json(recentVerifications);
+    } catch (error) {
+      console.error("Error fetching recent verifications:", error);
+      res.status(500).json({ message: "Failed to fetch recent verifications" });
+    }
+  });
+
   // WebSocket server for real-time verification
   const httpServer = createServer(app);
   
