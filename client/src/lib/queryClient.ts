@@ -49,15 +49,9 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Infinity,
       retry: false,
-      onError: (error: unknown) => {
-        console.error('Query error:', error);
-      },
     },
     mutations: {
       retry: false,
-      onError: (error: unknown) => {
-        console.error('Mutation error:', error);
-      },
     },
   },
 });
@@ -69,9 +63,9 @@ queryClient.setMutationDefaults(['*'], {
   },
 });
 
-// Catch any unhandled query errors
+// Setup query error logging
 queryClient.getQueryCache().subscribe((event) => {
-  if (event.type === 'queryError') {
-    console.error('Query cache error:', event.query.state.error);
+  if (event.query.state.error) {
+    console.error('Query error occurred:', event.query.state.error);
   }
 });

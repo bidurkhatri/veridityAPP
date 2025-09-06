@@ -303,6 +303,119 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async getComprehensiveStats(userId: string): Promise<{
+    totalVerifications: number;
+    successfulVerifications: number;
+    failedVerifications: number;
+    uniqueUsers: number;
+    topProofTypes: Array<{ type: string; count: number }>;
+    recentActivity: Array<{
+      id: string;
+      type: string;
+      result: 'success' | 'failed';
+      timestamp: string;
+      userHash?: string;
+    }>;
+  }> {
+    try {
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+
+      // Get total verifications
+      const [totalResult] = await db
+        .select({ count: count() })
+        .from(verifications)
+        .where(sql`${verifications.createdAt} >= ${monthStart}`);
+
+      // Get successful verifications
+      const [successResult] = await db
+        .select({ count: count() })
+        .from(verifications)
+        .where(
+          and(
+            eq(verifications.status, 'verified'),
+            sql`${verifications.createdAt} >= ${monthStart}`
+          )
+        );
+
+      // Get failed verifications
+      const [failedResult] = await db
+        .select({ count: count() })
+        .from(verifications)
+        .where(
+          and(
+            eq(verifications.status, 'failed'),
+            sql`${verifications.createdAt} >= ${monthStart}`
+          )
+        );
+
+      // Get unique users
+      const [uniqueUsersResult] = await db
+        .select({ count: sql<number>`COUNT(DISTINCT ${verifications.userId})` })
+        .from(verifications)
+        .where(sql`${verifications.createdAt} >= ${monthStart}`);
+
+      // Get proof type statistics
+      const proofTypeStats = await db
+        .select({ 
+          type: proofs.proofType,
+          count: count()
+        })
+        .from(proofs)
+        .innerJoin(verifications, eq(proofs.id, verifications.proofId))
+        .where(sql`${verifications.createdAt} >= ${monthStart}`)
+        .groupBy(proofs.proofType)
+        .orderBy(desc(count()))
+        .limit(3);
+
+      // Get recent activity
+      const recentActivity = await db
+        .select({
+          id: verifications.id,
+          type: proofs.proofType,
+          status: verifications.status,
+          timestamp: verifications.createdAt,
+          userId: verifications.userId
+        })
+        .from(verifications)
+        .innerJoin(proofs, eq(verifications.proofId, proofs.id))
+        .where(sql`${verifications.createdAt} >= ${monthStart}`)
+        .orderBy(desc(verifications.createdAt))
+        .limit(10);
+
+      return {
+        totalVerifications: totalResult.count,
+        successfulVerifications: successResult.count,
+        failedVerifications: failedResult.count,
+        uniqueUsers: uniqueUsersResult.count,
+        topProofTypes: proofTypeStats.map(stat => ({
+          type: stat.type,
+          count: stat.count
+        })),
+        recentActivity: recentActivity.map(activity => ({
+          id: activity.id,
+          type: activity.type,
+          result: activity.status === 'verified' ? 'success' as const : 'failed' as const,
+          timestamp: activity.timestamp.toISOString(),
+          userHash: activity.userId ? `${activity.userId.slice(0, 6)}...` : undefined
+        }))
+      };
+    } catch (error) {
+      console.error('Error fetching comprehensive stats:', error);
+      
+      // Return fallback data
+      return {
+        totalVerifications: 0,
+        successfulVerifications: 0,
+        failedVerifications: 0,
+        uniqueUsers: 0,
+        topProofTypes: [],
+        recentActivity: []
+      };
+    }
+  }
+
   async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
     const [newLog] = await db.insert(auditLogs).values(log).returning();
     return newLog;

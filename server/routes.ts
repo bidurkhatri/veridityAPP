@@ -1051,21 +1051,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Organization management endpoints
   app.get('/api/organizations/my', isAuthenticated, async (req: any, res) => {
     try {
-      // Mock organization data for development
-      const organizations = [
-        {
-          id: 'org_demo_123',
-          name: 'Demo Bank Nepal',
-          domain: 'demobank.np',
-          apiKey: 'vty_dev_1234567890abcdef',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          verificationCount: 42,
-          lastUsed: new Date().toISOString()
-        }
-      ];
+      const userId = req.user.claims.sub;
       
-      res.json(organizations);
+      // Get all organizations (for demo, show all since organizations are shared in the system)
+      const allOrganizations = await storage.getOrganizations();
+      
+      // Add usage statistics for each organization
+      const organizationsWithStats = await Promise.all(
+        allOrganizations.map(async (org) => {
+          const stats = await storage.getOrganizationStats(org.id);
+          return {
+            id: org.id,
+            name: org.name,
+            domain: org.domain || 'veridity.app',
+            apiKey: org.apiKey || `vty_${org.id.slice(0, 8)}`,
+            isActive: org.isActive,
+            createdAt: org.createdAt.toISOString(),
+            verificationCount: stats.monthlyVerifications,
+            lastUsed: new Date().toISOString()
+          };
+        })
+      );
+      
+      res.json(organizationsWithStats);
     } catch (error: any) {
       console.error("Error fetching organizations:", error);
       res.status(500).json({ message: "Failed to fetch organizations" });
@@ -1074,34 +1082,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/organizations/stats', isAuthenticated, async (req: any, res) => {
     try {
-      // Mock statistics data for development
-      const stats = {
-        totalVerifications: 156,
-        successfulVerifications: 142,
-        failedVerifications: 14,
-        uniqueUsers: 89,
-        topProofTypes: [
-          { type: 'age', count: 45 },
-          { type: 'citizenship', count: 38 },
-          { type: 'education', count: 23 }
-        ],
-        recentActivity: [
-          {
-            id: 'act_1',
-            type: 'age',
-            result: 'success',
-            timestamp: new Date().toISOString(),
-            userHash: 'abc123...'
-          },
-          {
-            id: 'act_2',
-            type: 'citizenship',
-            result: 'success',
-            timestamp: new Date(Date.now() - 3600000).toISOString(),
-            userHash: 'def456...'
-          }
-        ]
-      };
+      const userId = req.user.claims.sub;
+      
+      // Get comprehensive verification statistics from the database
+      const stats = await storage.getComprehensiveStats(userId);
       
       res.json(stats);
     } catch (error: any) {
