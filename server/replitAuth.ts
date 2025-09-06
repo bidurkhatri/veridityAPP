@@ -162,34 +162,21 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
-  // Enhanced logging for debugging authentication issues
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔐 Auth check:', {
-      isAuthenticated: req.isAuthenticated(),
-      hasUser: !!user,
-      userExpiry: user?.expires_at,
-      sessionID: req.sessionID
-    });
-  }
-
   if (!req.isAuthenticated() || !user?.expires_at) {
-    console.log('❌ Authentication failed:', {
-      authenticated: req.isAuthenticated(),
-      hasUser: !!user,
-      hasExpiry: !!user?.expires_at
-    });
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   const now = Math.floor(Date.now() / 1000);
-  if (now <= user.expires_at) {
+  
+  // Add buffer time (5 minutes) to avoid frequent token refreshes
+  const bufferSeconds = 300;
+  if (now + bufferSeconds <= user.expires_at) {
     return next();
   }
 
   const refreshToken = user.refresh_token;
   if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
   try {
@@ -198,7 +185,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     updateUserSession(user, tokenResponse);
     return next();
   } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    console.error('Token refresh failed:', error);
+    return res.status(401).json({ message: "Unauthorized" });
   }
 };
