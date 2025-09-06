@@ -90,7 +90,7 @@ export default function PortalSelector() {
   const availablePortals = getAvailablePortals();
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-20" data-testid="portal-selector">
+    <div className="min-h-screen bg-background p-4" data-testid="portal-selector">
       <div className="max-w-4xl mx-auto py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -125,7 +125,7 @@ export default function PortalSelector() {
         </div>
 
         {showRoleAssigner && (
-          <div className="mb-8 relative z-10">
+          <div className="mb-8">
             <RoleAssigner 
               currentRole={user.role} 
               onRoleChanged={() => {
@@ -204,7 +204,7 @@ export default function PortalSelector() {
         </div>
 
         {/* Role Information */}
-        <div className="mt-8 mb-8 p-4 bg-muted rounded-lg">
+        <div className="mt-8 p-4 bg-muted rounded-lg">
           <h3 className="font-medium mb-2">Your Access Level</h3>
           <p className="text-sm text-muted-foreground">
             {user.role === 'admin' && 

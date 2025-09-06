@@ -40,10 +40,6 @@ const MobileNav = () => {
     }
   ];
 
-  // Don't show on customer portal or other dedicated portal pages as they have their own navigation
-  const isPortalPage = location.includes('-portal');
-  if (isPortalPage) return null;
-
   return (
     <nav 
       className="fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border"
