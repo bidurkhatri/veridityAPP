@@ -84,10 +84,7 @@ export interface IStorage {
     status: string;
   }>>;
   
-  getAllUsers(limit?: number, offset?: number): Promise<{
-    users: User[];
-    total: number;
-  }>;
+  getAllUsers(limit?: number, offset?: number): Promise<User[]>;
   
   getAuditLogs(limit?: number, offset?: number, filter?: {
     userId?: string;
@@ -546,10 +543,7 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async getAllUsers(limit: number = 50, offset: number = 0): Promise<{
-    users: User[];
-    total: number;
-  }> {
+  async getAllUsers(limit: number = 50, offset: number = 0): Promise<User[]> {
     // Get paginated users
     const userResults = await db
       .select()
@@ -558,15 +552,7 @@ export class DatabaseStorage implements IStorage {
       .limit(limit)
       .offset(offset);
 
-    // Get total count
-    const [totalResult] = await db
-      .select({ count: count() })
-      .from(users);
-
-    return {
-      users: userResults,
-      total: totalResult.count
-    };
+    return userResults;
   }
 
   async getAuditLogs(
