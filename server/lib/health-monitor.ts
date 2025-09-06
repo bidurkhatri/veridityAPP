@@ -72,7 +72,7 @@ export class HealthMonitor {
     const load = os.loadavg();
 
     // Database check
-    let dbStatus = { connected: false, responseTime: undefined };
+    let dbStatus: { connected: boolean; responseTime?: number } = { connected: false };
     try {
       const dbStart = performance.now();
       // Simple database ping
@@ -87,7 +87,7 @@ export class HealthMonitor {
 
     // Run custom health checks
     const services: HealthStatus['services'] = {};
-    for (const [name, checkFn] of this.checks.entries()) {
+    for (const [name, checkFn] of Array.from(this.checks.entries())) {
       const serviceStart = performance.now();
       try {
         const isHealthy = await checkFn();
@@ -145,7 +145,8 @@ export class HealthMonitor {
       await pool.query('SELECT 1');
       await pool.end();
     } catch (error) {
-      throw new Error(`Database ping failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Database ping failed: ${errorMessage}`);
     }
   }
 
