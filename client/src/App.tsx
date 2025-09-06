@@ -1,9 +1,10 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import MobileNav from "@/components/MobileNav";
 import { useState, useEffect } from "react";
 import { Onboarding } from "@/components/Onboarding";
@@ -34,7 +35,13 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [location] = useLocation();
+  const isMobile = useIsMobile();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Routes that should show mobile navigation
+  const mobileRoutes = ['/home', '/prove', '/share', '/history', '/settings', '/generate', '/verify'];
+  const shouldShowMobileNav = isMobile && mobileRoutes.includes(location);
   
   // Check if user has seen onboarding
   useEffect(() => {
@@ -100,7 +107,7 @@ function Router() {
         
         <Route component={NotFound} />
       </Switch>
-      <MobileNav />
+      {shouldShowMobileNav && <MobileNav />}
     </>
   );
 }

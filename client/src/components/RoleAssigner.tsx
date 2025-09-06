@@ -77,7 +77,7 @@ export default function RoleAssigner({ currentRole, onRoleChanged }: RoleAssigne
   };
 
   return (
-    <Card className="max-w-2xl mx-auto" data-testid="role-assigner">
+    <Card className="max-w-2xl mx-auto shadow-lg border-2" data-testid="role-assigner">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Crown className="h-5 w-5 text-yellow-500" />

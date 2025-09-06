@@ -1,11 +1,16 @@
 import { Link, useLocation } from "wouter";
 import { Home, Shield, Share, History, Settings } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 const MobileNav = () => {
   const [location] = useLocation();
   const { t } = useTranslation('en');
+  const isMobile = useIsMobile();
+  
+  // Don't render on desktop
+  if (!isMobile) return null;
 
   const navItems = [
     {
