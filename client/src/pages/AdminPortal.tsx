@@ -128,8 +128,8 @@ export default function AdminPortal() {
             <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemHealth.cpu}%</div>
-            <Progress value={systemHealth.cpu} className="mt-2" />
+            <div className="text-2xl font-bold">{systemHealth?.cpu || 0}%</div>
+            <Progress value={systemHealth?.cpu || 0} className="mt-2" />
           </CardContent>
         </Card>
 
@@ -139,8 +139,8 @@ export default function AdminPortal() {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemHealth.memory}%</div>
-            <Progress value={systemHealth.memory} className="mt-2" />
+            <div className="text-2xl font-bold">{systemHealth?.memory || 0}%</div>
+            <Progress value={systemHealth?.memory || 0} className="mt-2" />
           </CardContent>
         </Card>
 
@@ -150,8 +150,8 @@ export default function AdminPortal() {
             <HardDrive className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{systemHealth.disk}%</div>
-            <Progress value={systemHealth.disk} className="mt-2" />
+            <div className="text-2xl font-bold">{systemHealth?.disk || 0}%</div>
+            <Progress value={systemHealth?.disk || 0} className="mt-2" />
           </CardContent>
         </Card>
 
@@ -161,7 +161,7 @@ export default function AdminPortal() {
             <Server className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">{systemHealth.uptime}</div>
+            <div className="text-lg font-bold">{systemHealth?.uptime || '0 days, 0 hours'}</div>
             <p className="text-xs text-muted-foreground">99.9% availability</p>
           </CardContent>
         </Card>
@@ -191,11 +191,11 @@ export default function AdminPortal() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span>Active Users</span>
-                  <span className="font-bold">{systemHealth.activeUsers.toLocaleString()}</span>
+                  <span className="font-bold">{systemHealth?.activeUsers?.toLocaleString() || '0'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Total Requests (24h)</span>
-                  <span className="font-bold">{systemHealth.totalRequests.toLocaleString()}</span>
+                  <span className="font-bold">{systemHealth?.totalRequests?.toLocaleString() || '0'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Success Rate</span>
