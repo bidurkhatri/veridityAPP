@@ -183,10 +183,6 @@ export default function OrganizationDashboard() {
     <div className="min-h-screen bg-background apple-blur-bg">
       <AppHeader 
         title={language === 'np' ? 'संस्था ड्यासबोर्ड' : 'Organization Dashboard'}
-        type="secondary"
-        showLanguageSwitcher
-        onLanguageChange={setLanguage}
-        currentLanguage={language}
       />
 
       <main className="container mx-auto px-4 py-6 max-w-6xl space-y-6">
