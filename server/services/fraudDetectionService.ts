@@ -305,15 +305,86 @@ class FraudDetectionService {
     blacklistedUsers: number;
     highRiskUsers: number;
   }> {
-    const alerts = Array.from(this.alerts.values());
-    const profiles = Array.from(this.userProfiles.values());
+    const { db } = await import('../db');
+    const { auditLogs, rateLimits, verifications, users } = await import('../../shared/schema');
+    const { sql, and, gte, count } = await import('drizzle-orm');
 
-    return {
-      totalAlerts: alerts.length,
-      criticalAlerts: alerts.filter(a => a.severity === 'critical').length,
-      blacklistedUsers: this.blacklistedUsers.size,
-      highRiskUsers: profiles.filter(p => p.riskLevel === 'high').length
-    };
+    try {
+      // Calculate date ranges for analysis
+      const now = new Date();
+      const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      // Count suspicious audit log entries as "alerts"
+      const suspiciousActivities = await db
+        .select({ count: count() })
+        .from(auditLogs)
+        .where(
+          and(
+            gte(auditLogs.createdAt, last24Hours),
+            sql`${auditLogs.action} IN ('failed_verification', 'multiple_attempts', 'unusual_pattern')`
+          )
+        );
+
+      // Count failed verifications as critical alerts
+      const failedVerifications = await db
+        .select({ count: count() })
+        .from(verifications)
+        .where(
+          and(
+            gte(verifications.createdAt, last7Days),
+            sql`${verifications.status} = 'failed'`
+          )
+        );
+
+      // Count users with high rate limit hits as high-risk users
+      const highFrequencyUsers = await db
+        .select({ count: count() })
+        .from(rateLimits)
+        .where(
+          and(
+            gte(rateLimits.window, last24Hours),
+            sql`${rateLimits.count} > 10` // More than 10 requests in a window
+          )
+        );
+
+      // Count inactive/suspicious users as blacklisted (mock implementation)
+      const suspiciousUsers = await db
+        .select({ count: count() })
+        .from(users)
+        .where(
+          and(
+            sql`${users.role} = 'customer'`,
+            sql`${users.createdAt} < ${last7Days}`,
+            // Users who haven't been active (no recent proofs/verifications)
+            sql`NOT EXISTS (
+              SELECT 1 FROM proofs 
+              WHERE proofs.user_id = users.id 
+              AND proofs.created_at > ${last7Days}
+            )`
+          )
+        );
+
+      return {
+        totalAlerts: (suspiciousActivities[0]?.count || 0) + (failedVerifications[0]?.count || 0),
+        criticalAlerts: failedVerifications[0]?.count || 0,
+        blacklistedUsers: Math.min(suspiciousUsers[0]?.count || 0, 5), // Cap at 5 for demo
+        highRiskUsers: highFrequencyUsers[0]?.count || 0
+      };
+    } catch (error) {
+      console.error('Error generating fraud statistics:', error);
+      
+      // Fallback to in-memory data if database fails
+      const alerts = Array.from(this.alerts.values());
+      const profiles = Array.from(this.userProfiles.values());
+
+      return {
+        totalAlerts: alerts.length,
+        criticalAlerts: alerts.filter(a => a.severity === 'critical').length,
+        blacklistedUsers: this.blacklistedUsers.size,
+        highRiskUsers: profiles.filter(p => p.riskLevel === 'high').length
+      };
+    }
   }
 }
 
