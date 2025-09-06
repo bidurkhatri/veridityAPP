@@ -378,17 +378,142 @@ export default function AdminPortal() {
 
         {/* Other tabs would be implemented similarly */}
         <TabsContent value="security" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Security Center
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Security monitoring and incident management features coming soon...</p>
-            </CardContent>
-          </Card>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Security Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-green-600">System Status</p>
+                    <p className="text-2xl font-bold">Secure</p>
+                  </div>
+                  <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Failed Login Attempts</p>
+                    <p className="text-2xl font-bold">12</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Blocked IPs</p>
+                    <p className="text-2xl font-bold">3</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Recent Security Events
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Suspicious Login Activity</p>
+                      <p className="text-xs text-muted-foreground">IP: 192.168.1.100</p>
+                    </div>
+                    <Badge variant="destructive">High</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Multiple Failed Attempts</p>
+                      <p className="text-xs text-muted-foreground">User: admin@veridity.com</p>
+                    </div>
+                    <Badge variant="secondary">Medium</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">API Rate Limit Exceeded</p>
+                      <p className="text-xs text-muted-foreground">Organization: Demo Corp</p>
+                    </div>
+                    <Badge variant="outline">Low</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  Access Control
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Two-Factor Authentication</h4>
+                    <p className="text-sm text-muted-foreground">Enforce 2FA for all admin accounts</p>
+                  </div>
+                  <Switch defaultChecked data-testid="toggle-2fa" />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">IP Allowlist</h4>
+                    <p className="text-sm text-muted-foreground">Restrict access to approved IP addresses</p>
+                  </div>
+                  <Switch data-testid="toggle-ip-allowlist" />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Session Timeout</h4>
+                    <p className="text-sm text-muted-foreground">Auto-logout after 30 minutes of inactivity</p>
+                  </div>
+                  <Switch defaultChecked data-testid="toggle-session-timeout" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  Monitoring & Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Real-time Monitoring</h4>
+                    <p className="text-sm text-muted-foreground">Monitor all system activities in real-time</p>
+                  </div>
+                  <Switch defaultChecked data-testid="toggle-monitoring" />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Email Alerts</h4>
+                    <p className="text-sm text-muted-foreground">Send alerts for security incidents</p>
+                  </div>
+                  <Switch defaultChecked data-testid="toggle-email-alerts" />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Audit Logging</h4>
+                    <p className="text-sm text-muted-foreground">Log all administrative actions</p>
+                  </div>
+                  <Switch defaultChecked data-testid="toggle-audit-logging" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
