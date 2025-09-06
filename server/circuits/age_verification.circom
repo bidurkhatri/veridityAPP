@@ -1,18 +1,19 @@
 pragma circom 2.0.0;
 
-include "../node_modules/circomlib/circuits/comparators.circom";
-include "../node_modules/circomlib/circuits/gates.circom";
+include "../../node_modules/circomlib/circuits/comparators.circom";
+include "../../node_modules/circomlib/circuits/gates.circom";
+include "../../node_modules/circomlib/circuits/bitify.circom";
 
 // Age verification circuit
 // Proves that user's age is >= minimum age without revealing exact age
 template AgeVerification() {
     // Private inputs (secret)
-    signal private input birthYear;
-    signal private input birthMonth;
-    signal private input birthDay;
-    signal private input currentYear;
-    signal private input currentMonth;
-    signal private input currentDay;
+    signal input birthYear;
+    signal input birthMonth;
+    signal input birthDay;
+    signal input currentYear;
+    signal input currentMonth;
+    signal input currentDay;
     
     // Public inputs
     signal input minAge;
@@ -55,6 +56,7 @@ template AgeVerification() {
     component and1 = AND();
     and1.a <== sameMonth;
     and1.b <== dayNotPassed;
+    birthdayNotPassed <== and1.out;
     
     component or1 = OR();
     or1.a <== monthNotPassed;

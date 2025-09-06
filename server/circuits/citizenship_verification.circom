@@ -1,16 +1,17 @@
 pragma circom 2.0.0;
 
-include "../node_modules/circomlib/circuits/poseidon.circom";
-include "../node_modules/circomlib/circuits/comparators.circom";
+include "../../node_modules/circomlib/circuits/poseidon.circom";
+include "../../node_modules/circomlib/circuits/comparators.circom";
+include "../../node_modules/circomlib/circuits/gates.circom";
 
 // Citizenship verification circuit
 // Proves valid Nepali citizenship without revealing citizenship number
 template CitizenshipVerification() {
     // Private inputs (secret)
-    signal private input citizenshipNumber[16];
-    signal private input district;
-    signal private input issueYear;
-    signal private input gender;
+    signal input citizenshipNumber[16];
+    signal input district;
+    signal input issueYear;
+    signal input gender;
     
     // Public inputs
     signal input salt;
@@ -25,6 +26,8 @@ template CitizenshipVerification() {
     // Validate citizenship number format
     // Nepali citizenship numbers have specific patterns
     component citizenshipDigitChecks[16];
+    component upperChecks[16];
+    component digitAnds[16];
     signal validDigits[16];
     
     for (var i = 0; i < 16; i++) {
@@ -32,15 +35,15 @@ template CitizenshipVerification() {
         citizenshipDigitChecks[i].in[0] <== citizenshipNumber[i];
         citizenshipDigitChecks[i].in[1] <== 0;
         
-        component upperCheck = GreaterEqThan(4);
-        upperCheck.in[0] <== 10;
-        upperCheck.in[1] <== citizenshipNumber[i];
+        upperChecks[i] = GreaterEqThan(4);
+        upperChecks[i].in[0] <== 10;
+        upperChecks[i].in[1] <== citizenshipNumber[i];
         
-        component and1 = AND();
-        and1.a <== citizenshipDigitChecks[i].out;
-        and1.b <== upperCheck.out;
+        digitAnds[i] = AND();
+        digitAnds[i].a <== citizenshipDigitChecks[i].out;
+        digitAnds[i].b <== upperChecks[i].out;
         
-        validDigits[i] <== and1.out;
+        validDigits[i] <== digitAnds[i].out;
     }
     
     // All digits must be valid (0-9)
@@ -166,12 +169,21 @@ template CitizenshipVerification() {
     isValid <== finalAnd6.out;
     
     // Generate citizenship hash for uniqueness (without revealing number)
-    component hasher = Poseidon(17);  // 16 digits + salt
-    for (var i = 0; i < 16; i++) {
-        hasher.inputs[i] <== citizenshipNumber[i];
+    // Use multiple Poseidon hashes since 17 inputs might be too many
+    component hasher1 = Poseidon(8);  // First 8 digits
+    component hasher2 = Poseidon(8);  // Last 8 digits  
+    component hasher3 = Poseidon(3);  // Combine both hashes + salt
+    
+    for (var i = 0; i < 8; i++) {
+        hasher1.inputs[i] <== citizenshipNumber[i];
+        hasher2.inputs[i] <== citizenshipNumber[i + 8];
     }
-    hasher.inputs[16] <== salt;
-    citizenshipHash <== hasher.out;
+    
+    hasher3.inputs[0] <== hasher1.out;
+    hasher3.inputs[1] <== hasher2.out;
+    hasher3.inputs[2] <== salt;
+    
+    citizenshipHash <== hasher3.out;
 }
 
 component main = CitizenshipVerification();
