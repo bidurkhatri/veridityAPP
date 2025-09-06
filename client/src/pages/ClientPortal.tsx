@@ -275,7 +275,7 @@ export default function ClientPortal() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xl">
                     {organization.name.charAt(0)}
                   </div>
                   <div>
@@ -297,7 +297,7 @@ export default function ClientPortal() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Success Rate</span>
-                    <span className="font-medium text-green-600">{organization.successRate}%</span>
+                    <span className="font-medium text-success-text">{organization.successRate}%</span>
                   </div>
                 </div>
               </CardContent>
@@ -423,7 +423,7 @@ export default function ClientPortal() {
                           Suspend
                         </Button>
                       ) : (
-                        <Button variant="default" size="sm" data-testid={`activate-member-${member.id}`}>
+                        <Button variant="secondary" size="sm" data-testid={`activate-member-${member.id}`}>
                           Activate
                         </Button>
                       )}
