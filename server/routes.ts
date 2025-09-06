@@ -20,6 +20,9 @@ import { marketExpansionService } from "./internationalization/market-expansion"
 import { WebSocketServer } from "ws";
 import { z } from "zod";
 
+// In-memory storage for verification requests (in production this would be in database)
+const verificationRequests = new Map<string, any>();
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -168,7 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         id: latestProof.id,
         proofType: proofType?.name || 'Unknown',
-        proof: latestProof.proof,
+        proof: latestProof.proofData,
         publicSignals: latestProof.publicSignals,
         status: latestProof.status,
         createdAt: latestProof.createdAt
@@ -321,34 +324,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // V1 API - QR request endpoint for verifiers
   app.post('/api/v1/qr/request', apiRateLimit, async (req, res) => {
     try {
-      const { aud, claim, exp } = req.body;
+      const { organizationId, requiredProofType, callbackUrl, expiryMinutes = 10 } = req.body;
       
-      const nonce = generateNonce();
-      const qrRequest = {
-        v: 1,
-        aud: aud || 'veridity_demo',
-        claim: claim || 'age_over_18',
-        nonce,
-        exp: exp || Math.floor(Date.now() / 1000) + (15 * 60) // 15 minutes
+      if (!organizationId || !requiredProofType) {
+        return res.status(400).json({ 
+          message: "organizationId and requiredProofType are required" 
+        });
+      }
+
+      // Verify organization exists
+      const organizations = await storage.getOrganizations();
+      const organization = organizations.find(org => org.id === organizationId);
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+
+      // Generate verification request QR code
+      const qrResult = await QRCodeService.generateVerificationRequestQR(
+        organizationId,
+        requiredProofType,
+        callbackUrl,
+        expiryMinutes
+      );
+
+      // Store the request for status tracking
+      const requestId = qrResult.requestData.id;
+      // Note: For now we'll track requests in memory, later can add to database
+      // TODO: Add verification request table to schema
+      const requestData = {
+        id: requestId,
+        organizationId,
+        requiredProofType,
+        nonce: qrResult.requestData.nonce,
+        callbackUrl,
+        status: 'pending',
+        expiresAt: new Date(qrResult.requestData.expiresAt * 1000),
+        createdAt: new Date()
       };
-      
-      res.json(qrRequest);
-    } catch (error) {
+      // Store in memory for now (in production this would be in database)
+      verificationRequests.set(requestId, requestData);
+
+      res.json({
+        requestId,
+        qrCodeDataUrl: qrResult.qrCodeDataUrl,
+        nonce: qrResult.requestData.nonce,
+        expiresAt: qrResult.requestData.expiresAt,
+        statusUrl: `/api/v1/status/${requestId}`
+      });
+    } catch (error: any) {
       console.error('QR request error:', error);
-      res.status(500).json({ message: 'Failed to generate QR request' });
+      res.status(500).json({ message: error.message || 'Failed to generate QR request' });
     }
   });
   
   // V1 API - Status check endpoint
   app.get('/api/v1/status/:id', async (req, res) => {
-    const { id } = req.params;
-    
-    // Mock status response
-    res.json({
-      id,
-      status: 'verified',
-      timestamp: new Date().toISOString()
-    });
+    try {
+      const { id } = req.params;
+      
+      // Get verification request status (from memory for now)
+      const request = verificationRequests.get(id);
+      if (!request) {
+        return res.status(404).json({ message: "Verification request not found" });
+      }
+
+      // Check if request has expired
+      const now = new Date();
+      const isExpired = request.expiresAt && request.expiresAt < now;
+
+      let status = request.status;
+      if (isExpired && status === 'pending') {
+        status = 'expired';
+        // Update status in memory
+        request.status = 'expired';
+      }
+
+      // Get associated verification if completed (would query database in production)
+      let verificationDetails = null;
+      if (status === 'completed' || status === 'verified') {
+        // TODO: Query actual verification from database when implemented
+        verificationDetails = {
+          verificationId: `verification_${id}`,
+          proofType: request.requiredProofType,
+          verifiedAt: new Date().toISOString(),
+          organizationId: request.organizationId
+        };
+      }
+
+      res.json({
+        id,
+        status,
+        timestamp: request.createdAt.toISOString(),
+        expiresAt: request.expiresAt?.toISOString(),
+        organizationId: request.organizationId,
+        requiredProofType: request.requiredProofType,
+        verification: verificationDetails
+      });
+    } catch (error: any) {
+      console.error('Status check error:', error);
+      res.status(500).json({ message: error.message || 'Failed to get status' });
+    }
   });
   
   // V1 API - Mock proof generation for testing
