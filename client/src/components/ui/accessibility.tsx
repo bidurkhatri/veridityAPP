@@ -101,13 +101,13 @@ export function Heading({ level, visualLevel, className, children, ...props }: H
     h6: "text-base font-medium",
   };
 
-  return (
-    <Tag 
-      className={cn(headingClasses[visualClass as keyof typeof headingClasses], className)} 
-      {...props}
-    >
-      {children}
-    </Tag>
+  return React.createElement(
+    Tag,
+    {
+      className: cn(headingClasses[visualClass as keyof typeof headingClasses], className),
+      ...props,
+    },
+    children
   );
 }
 
