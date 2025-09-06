@@ -1,0 +1,340 @@
+
+
+## P0 — Platform-wide Design System (foundational)
+
+**Problems observed**
+
+* Visual inconsistency between screens (light vs. dark, gradients, badges, card elevation).
+* “Demo template” vibe: generic icons, placeholder image blocks, minimal motion.
+* Typography + spacing vary by page; some cramped, some airy.
+* Low contrast in gradients/dark mode areas; illegible small labels; excessively precise numbers (e.g., `46.219853...%`).
+* Inconsistent button variants (ghost/outline/solid/gradient), disabled state styling not uniform.
+* Iconography mixed weights; some missing icons (blank tiles in proof type grid).
+* Bottom nav is present but top-level context/breadcrumbs vary.
+
+**Tasks**
+
+1. **Design Tokens v1 (Figma + code)**
+
+   * Colors (light/dark + high-contrast), typography scale, radius, elevation, spacing, motion durations/curves, shadows, borders.
+   * Tailwind CSS variables + CSS custom properties for light/dark/high-contrast.
+   * **Done when:** tokens exist in Figma + exported to code; app compiles with tokens only.
+
+2. **Component Library Unification (shadcn/radix variants)**
+
+   * Buttons (primary/secondary/tertiary/danger/quiet), Inputs, Select, DatePicker, Tabs, SegmentedControl, Cards, EmptyState, Toast, Badge/StatusPill, Stepper, Modal/Sheet, Toolbar, Data Tiles, Tag, Pagination, Table, Stat KPIs, Progress, Skeleton, Tooltip, Dropdown, Alert, Banner.
+   * **Done when:** All pages use these components; no screen-level bespoke styles.
+
+3. **Icon System**
+
+   * Switch fully to **Lucide** (single set), 1.5px stroke, size 18/20/24 with consistent padding.
+   * Create 8–12 **Veridity custom glyphs** (ZK shield, QR verify, Proof, Wallet, Audit, AI shield, Chain, GOV).
+   * **Done when:** No “blank image squares” in tiles; icons mapped in tokens.
+
+4. **Typography + Density**
+
+   * Type ramp (H1: 28/36, H2: 22/28, H3: 18/24, Body: 14/20, Small: 12/18).
+   * Line-height rules + max 80ch width for long text.
+   * **Done when:** All headings/body follow ramp; truncation handled with tooltip.
+
+5. **Theme + Modes**
+
+   * Light default; Dark polished (true dark, not grey), **High-contrast** AAA mode.
+   * Remove harsh multicolor gradients behind form pages. Replace with subtle noise/soft radial.
+   * **Done when:** WCAG AA for text/icons; theme toggle persisted.
+
+6. **Motion & Micro-Interactions**
+
+   * Page transitions (fade/slide 120ms), button hover/press, empty-state micro-motion, QR success pulse, share countdown tick.
+   * **Done when:** Motion tokens used; prefers-reduced-motion respected.
+
+---
+
+## P0 — Critical UX Bugs & Accessibility
+
+**Observed**
+
+* **Language toggle** in Voice Settings selects the *other* tab (English press → Nepali highlights).
+* **Nepali/English TTS** quality poor; wrong voices; rate/pitch controls ineffective.
+* **Select dropdown z-index/portal bug**: province select overlays labels/fields.
+* Disabled CTA “Proceed to Generate” state ambiguous; no inline validation hints.
+* Inconsistent date formats; mixed placeholders.
+* Contrast issues in dark/share/history screens.
+
+**Tasks**
+
+1. **Fix Language Toggle Logic (Tabs/Segmented Control)**
+
+   * Bind active state to value, not index; RTL/LTR safe.
+   * **Acceptance:** Pressing “English” highlights English; persists across route.
+
+2. **Replace TTS Provider + Fallback**
+
+   * Use high-quality TTS (e.g., local on-device where possible) with **ne-NP** voice; fallback to cloud with caching.
+   * Expose **rate (0.8–1.2)** and **pitch (-2…+2)**; save per-language.
+   * **Acceptance:** Sample sentences in EN/NE are intelligible; MOS ≥ 4 in internal QA.
+
+3. **Select / DatePicker via Radix + Portal**
+
+   * Use Radix Select with `Portal`; fix stacking context (`z-50`), collision detection, and scroll locking.
+   * **Acceptance:** No overlapping inputs; mobile sheet pattern for selects.
+
+4. **Validation & CTA Clarity**
+
+   * Inline validation messages under fields; CTA shows reason when disabled.
+   * **Acceptance:** With any missing required field, CTA disabled + helper text explains.
+
+5. **A11y Pass (WCAG 2.2 AA)**
+
+   * Focus outlines visible; skip-to-content; roles for nav/main; ARIA on steppers; keyboard trap elimination.
+   * **Acceptance:** Axe score 100%; tab order matches visual order.
+
+---
+
+## P1 — Page-by-Page Improvements
+
+### 1) **Welcome / Portal Switcher**
+
+**Findings**
+
+* Sparse white space; reads like a dashboard template.
+* “Switch Role (Demo)” small; role context unclear.
+
+**Tasks**
+
+* Add **hero identity strip** (user avatar, role chip, environment badge).
+* Convert three portal tiles to **card grid** with brief bullets + icon.
+* Add **Quick Start** (Generate Proof, Scan QR, View Docs).
+* **Acceptance:** 5s test—users identify where to go next without reading dense text.
+
+---
+
+### 2) **Customer Portal (My Identity)**
+
+**Findings**
+
+* KPI tiles basic; no trends or next best action.
+* Expiring proofs banner shows negative “-423 days” (confusing).
+* Quick actions look like simple list items.
+
+**Tasks**
+
+* KPI tiles: add trend chevrons; secondary metric badge (growth %).
+* Expiring proofs: show **“Expired”** state with action “Renew now”.
+* Quick Actions → **Action Cards** with icons and short help text.
+* Profile Overview: surface **verification level**, backup status, passkey status.
+* **Acceptance:** No negative day counts; actions are card-based with icons.
+
+---
+
+### 3) **Proof Generation Flow (Type → Enter Data → Generate)**
+
+**Findings**
+
+* Beautiful structure, but: placeholder icons, form alignment, privacy note blends in, stepper light.
+* Disabled primary CTA unclear; tooltips missing on labels (e.g., Minimum Age).
+* Input types could be smarter (numeric keyboard, masks).
+
+**Tasks**
+
+* Add **illustrated icons** per proof type (Address/Age/Citizenship/Education/Income).
+* Elevate **Privacy Note** (shield icon + info link).
+* Stepper with **current/complete** states + mobile sticky footer for CTA.
+* Field improvements:
+
+  * `DOB`: masked input + date picker; min/max age checks.
+  * `Citizenship No.`: pattern + checksum (if applicable), **verifier-side hashing**.
+  * `Income`: numeric keypad, thousand separators while typing.
+  * `Education Level`: controlled vocabulary + auto-fill **institution** list (local cache).
+* **Acceptance:** Zero layout overlap; form completion success < 90s for first-time user.
+
+---
+
+### 4) **Share (QR, Link, PDF)**
+
+**Findings**
+
+* Dark panel is stylish; QR section dominant (good). Countdown text small; share buttons under-emphasized; “Privacy Protected” note tiny.
+
+**Tasks**
+
+* Move countdown into **pill timer** above QR; animate subtle sweep.
+* Share actions row: **Copy Link / Share / Save PDF** as primary buttons with clear hierarchy.
+* “Privacy Protected” → info card with link to **What’s shared?** (public signals only).
+* **Acceptance:** Users can copy link in < 2s; clear that only proof is shared.
+
+---
+
+### 5) **History**
+
+**Findings**
+
+* Great filters; list items minimal; no details peek.
+* Export PDF button cramped near list.
+
+**Tasks**
+
+* Each item: show **verifier**, **scope**, **expiry**, **status pill** (verified/pending/failed), **actions** (View, Share, Revoke).
+* Add **row expand** for proof meta (public signals hash, created, circuit version).
+* Move Export to top toolbar; allow **CSV/PDF**.
+* **Acceptance:** Users can find last verified proof in < 5s; export under 3 clicks.
+
+---
+
+### 6) **Settings / Wallet Backup**
+
+**Findings**
+
+* Solid content: Passkey, Recovery phrase. But controls are plain; auto-delete proofs duration stepper tiny; section contrast low.
+
+**Tasks**
+
+* Turn **Passkey** + **Recovery Phrase** into **setup cards** with progress and risk labels.
+* Auto-delete proofs: **Segmented control** (Off / 7d / 30d / 90d / Custom).
+* Group **Privacy & Security** with toggles: Notifications, Biometrics, High-contrast Mode.
+* **Acceptance:** Backup completion path is 2 steps; duration control big, tappable.
+
+---
+
+### 7) **Organization Dashboard (Client Portal)**
+
+**Findings**
+
+* KPIs good, but **Quick Actions** look like text fields; activity lacks visual hierarchy.
+
+**Tasks**
+
+* KPI cards → add **sparkline** and badge (↑/↓).
+* Quick Actions → **primary action cards** with icons (API key, Webhooks, SDK, Docs).
+* Recent Activity → timeline with category chips (Security/Billing/Team).
+* **Acceptance:** Time-to-API-key generation < 3 clicks from entry.
+
+---
+
+### 8) **Admin Portal: Dashboard / Users / Security / System / Analytics / Support**
+
+**Findings**
+
+* Memory usage shows long decimals; uptime “0 days, 0 hours”; analytics chart grid empty placeholders.
+* Security events readable but no severity colors; access control list looks like static text.
+* Support pane good but “Live chat console” CTA is text only.
+
+**Tasks**
+
+* Format KPIs to **one decimal**; friendly units (e.g., 46.2%).
+* Uptime should show **rolling 30-day** + incidents log link.
+* Security Events: severity tags (High/Med/Low) with color; link to event detail.
+* Access Control: turn policies into **toggle list** with tooltips & edit drawers.
+* Analytics: show **real charts** (stacked area for proofs, line for latency).
+* Support: **Open Chat Console** as a button; queues in table with SLA badge.
+* **Acceptance:** No fake numbers; every tile clickable; charts populated with mock or real series.
+
+---
+
+## P1 — Content & Microcopy
+
+**Tasks**
+
+* Replace “Your data is processed locally…” paragraph with **short, punchy** line + “Learn more” link to technical explainer.
+* Normalize labels: Title Case for headers, Sentence case for body and buttons.
+* Clarify statuses: “verified/pending/failed” → **Verified / Pending / Failed** with consistent pill colors.
+* **Acceptance:** Readability test (Hemingway grade ≤ 6).
+
+---
+
+## P1 — Internationalization, Localization, and Date/Number Formats
+
+**Tasks**
+
+* **Locale-aware** formatting for dates (e.g., `6 Sep 2025, 7:59 PM`) and numbers (`1,247,891`).
+* Nepali language: audit all strings (remove leftover keys like `form.minimumAge` ghosts).
+* Add **language switcher** persistent in header; reflect immediately without reload.
+* **Acceptance:** 100% coverage for EN/NE strings; no key leaks on UI.
+
+---
+
+## P2 — Visual Delight & Brand
+
+**Tasks**
+
+* Apply the **new Veridity logo** across splash/top bar/login/empty states.
+* Introduce **brand illustrations** for each proof type and empty states (minimal, outline).
+* Add **success screen** with celebratory micro-motion (shield check burst).
+* **Acceptance:** Brand assets consistent; no generic placeholders remain.
+
+---
+
+## P2 — Discoverability & Guidance
+
+**Tasks**
+
+* Add **first-run coach marks** (3–5 tips) for Customer Portal.
+* Add **inline “Why we ask this?”** help near sensitive inputs (citizenship, income).
+* On proof success, offer **Next steps**: Share QR / Save PDF / Add to Wallet.
+* **Acceptance:** First-time user completes a proof unaided in < 2 minutes.
+
+---
+
+## Engineering Implementation Tasks (paired with design)
+
+* **Refactor UI to Design Tokens**
+
+  * Tailwind `:root` CSS vars; convert legacy classes.
+* **Radix UI adoption**
+
+  * Select, Dialog, Tooltip, Tabs, Popover, Sheet, Toast with `Portal`.
+* **Accessibility pipeline**
+
+  * Add ESLint a11y rules; CI Axe checks on key routes.
+* **Number/date utilities**
+
+  * Centralize with `Intl.*` helpers; remove manual formatting.
+* **Metrics formatting**
+
+  * Utility to format memory/uptime/percentages; no long decimals.
+* **Stateful stepper & sticky footer CTA**
+
+  * Stepper reflects validity; CTA shows missing fields.
+* **TTS abstraction**
+
+  * Pluggable providers; voice map per locale; cache samples.
+
+---
+
+## Figma Deliverables (what the design team should produce)
+
+* **Veridity Design System v1**
+
+  * Tokens page; component library with Autolayout; documentation.
+* **Patterns**
+
+  * Proof flow (6 variants), Share/QR, History list + details, Settings backup, Organization, Admin dashboards.
+* **Prototypes**
+
+  * Mobile and desktop flows for **Generate Proof** and **Share** (happy path + error).
+* **Spec Exports**
+
+  * Redlines + `@measure` notes (spacing, sizes, states); icon font; illustration set.
+
+---
+
+## Quick Wins (ship this week)
+
+* Fix **language toggle** bug.
+* Replace **Select** with Radix Select + Portal (z-index fix).
+* Format **memory/uptime** and remove comical decimals.
+* Style **CTA disabled** with helper text.
+* Add **countdown pill** on Share QR.
+* Swap placeholders with **Lucide icons** immediately.
+
+---
+
+## Success Metrics (after rollout)
+
+* Form completion rate **+20%** (Generate Proof).
+* Time-to-share QR **< 5s** median from Share screen.
+* Support tickets about “can’t select province/district” **−90%**.
+* Axe accessibility score **≥ 98** across critical pages.
+* NPS for UI polish (internal survey) **+25** points.
+
+
