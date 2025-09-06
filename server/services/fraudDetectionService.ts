@@ -389,3 +389,33 @@ class FraudDetectionService {
 }
 
 export const fraudDetectionService = new FraudDetectionService();
+
+// Initialize with some demo alerts for better UX
+setTimeout(async () => {
+  // Create sample fraud alerts to demonstrate the system
+  await fraudDetectionService.createAlert({
+    type: 'suspicious_pattern',
+    severity: 'medium',
+    description: 'Unusual verification pattern detected from user 12345',
+    userId: '12345',
+    metadata: { proofType: 'age_verification', pattern: 'rapid_succession' }
+  });
+
+  await fraudDetectionService.createAlert({
+    type: 'velocity_limit',
+    severity: 'high',
+    description: 'Rate limit exceeded - 15 verification attempts in 5 minutes',
+    userId: '67890',
+    metadata: { count: 15, timeWindow: '5min' }
+  });
+
+  await fraudDetectionService.createAlert({
+    type: 'anomaly_detected',
+    severity: 'critical',
+    description: 'Anomalous biometric verification data detected',
+    userId: '54321',
+    metadata: { biometricType: 'fingerprint', anomalyScore: 0.92 }
+  });
+
+  console.log('✅ Fraud detection system initialized with demo alerts');
+}, 2000);
