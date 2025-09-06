@@ -117,7 +117,9 @@ export function validateTranslationCoverage(): {
   };
 }
 
-// Hook for using translations
+// Hook for using translations  
+import * as React from "react";
+
 export function useTranslations() {
   const [currentLanguage, setCurrentLanguage] = React.useState<'en' | 'ne'>('en');
   
