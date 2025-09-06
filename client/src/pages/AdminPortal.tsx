@@ -134,7 +134,7 @@ export default function AdminPortal() {
         <Card data-testid="health-cpu">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">CPU Usage</CardTitle>
-            <Cpu className="h-4 w-4 text-muted-foreground" />
+            <Cpu className="h-4 w-4 text-text-tertiary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatPercentage(systemHealth?.cpu)}</div>
@@ -145,7 +145,7 @@ export default function AdminPortal() {
         <Card data-testid="health-memory">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Memory Usage</CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
+            <Database className="h-4 w-4 text-text-tertiary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatPercentage(systemHealth?.memory)}</div>
@@ -156,7 +156,7 @@ export default function AdminPortal() {
         <Card data-testid="health-disk">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Disk Usage</CardTitle>
-            <HardDrive className="h-4 w-4 text-muted-foreground" />
+            <HardDrive className="h-4 w-4 text-text-tertiary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatPercentage(systemHealth?.disk)}</div>
@@ -167,7 +167,7 @@ export default function AdminPortal() {
         <Card data-testid="health-uptime">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">System Uptime</CardTitle>
-            <Server className="h-4 w-4 text-green-500" />
+            <Server className="h-4 w-4 text-success-text" />
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold">{systemHealth?.uptime}</div>

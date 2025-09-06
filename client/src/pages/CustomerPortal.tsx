@@ -167,7 +167,7 @@ export default function CustomerPortal() {
         <Card data-testid="stat-active-proofs">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Proofs</CardTitle>
-            <Shield className="h-4 w-4 text-green-500" />
+            <Shield className="h-4 w-4 text-success-text" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{userProofs?.filter(p => p.status === 'active').length || 0}</div>
@@ -178,7 +178,7 @@ export default function CustomerPortal() {
         <Card data-testid="stat-total-shares">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Shares</CardTitle>
-            <Share2 className="h-4 w-4 text-blue-500" />
+            <Share2 className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -191,7 +191,7 @@ export default function CustomerPortal() {
         <Card data-testid="stat-verifications">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Verifications</CardTitle>
-            <CheckCircle className="h-4 w-4 text-purple-500" />
+            <CheckCircle className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -204,7 +204,7 @@ export default function CustomerPortal() {
         <Card data-testid="stat-member-since">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Member Since</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <Clock className="h-4 w-4 text-text-tertiary" />
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold">
