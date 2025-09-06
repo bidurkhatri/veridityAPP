@@ -98,7 +98,7 @@ export default function Help() {
   };
 
   return (
-    <div className="min-h-screen bg-background apple-blur-bg">
+    <div className="min-h-screen bg-canvas bg-gradient-subtle">
       <AppHeader 
         title={t('nav.help')}
         type="secondary"
@@ -107,17 +107,17 @@ export default function Help() {
         currentLanguage={language}
       />
 
-      <main className="container mx-auto px-4 py-6 max-w-4xl space-y-8">
+      <main className="container mx-auto px-6 py-8 max-w-4xl space-y-12 fade-in">
         {/* Search */}
-        <Card className="apple-card apple-glass border-0 apple-shadow">
+        <Card className="card-base elevation-sm">
           <CardContent className="p-6">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-text-tertiary" />
               <Input
                 placeholder={language === 'np' ? 'प्रश्न खोज्नुहोस्...' : 'Search for help...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-surface border-border-default focus:border-brand-600 focus:ring-2 focus:ring-brand-200 focus:ring-opacity-50"
                 data-testid="input-search-help"
               />
             </div>
@@ -125,61 +125,69 @@ export default function Help() {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="apple-card apple-glass border-0 apple-shadow cursor-pointer hover:scale-105 transition-transform">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="card-base card-interactive elevation-sm cursor-pointer">
             <CardContent className="p-6 text-center">
-              <Book className="h-8 w-8 text-primary mx-auto mb-3" />
-              <h3 className="font-medium text-foreground mb-2">User Guide</h3>
-              <p className="text-sm text-muted-foreground">Step-by-step tutorials</p>
+              <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Book className="h-6 w-6 text-brand-700" />
+              </div>
+              <h3 className="font-semibold text-text-primary mb-2">User Guide</h3>
+              <p className="text-sm text-text-secondary">Step-by-step tutorials</p>
             </CardContent>
           </Card>
 
-          <Card className="apple-card apple-glass border-0 apple-shadow cursor-pointer hover:scale-105 transition-transform">
+          <Card className="card-base card-interactive elevation-sm cursor-pointer">
             <CardContent className="p-6 text-center">
-              <MessageSquare className="h-8 w-8 text-secondary mx-auto mb-3" />
-              <h3 className="font-medium text-foreground mb-2">Live Chat</h3>
-              <p className="text-sm text-muted-foreground">Get instant help</p>
+              <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="h-6 w-6 text-success-700" />
+              </div>
+              <h3 className="font-semibold text-text-primary mb-2">Live Chat</h3>
+              <p className="text-sm text-text-secondary">Get instant help</p>
             </CardContent>
           </Card>
 
-          <Card className="apple-card apple-glass border-0 apple-shadow cursor-pointer hover:scale-105 transition-transform">
+          <Card className="card-base card-interactive elevation-sm cursor-pointer">
             <CardContent className="p-6 text-center">
-              <Shield className="h-8 w-8 text-accent mx-auto mb-3" />
-              <h3 className="font-medium text-foreground mb-2">Security Guide</h3>
-              <p className="text-sm text-muted-foreground">Privacy best practices</p>
+              <div className="w-12 h-12 bg-info-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-6 w-6 text-info-700" />
+              </div>
+              <h3 className="font-semibold text-text-primary mb-2">Security Guide</h3>
+              <p className="text-sm text-text-secondary">Privacy best practices</p>
             </CardContent>
           </Card>
         </div>
 
         {/* FAQ Section */}
-        <Card className="apple-card apple-glass border-0 apple-shadow">
+        <Card className="card-base elevation-sm">
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
-              <HelpCircle className="mr-3 h-6 w-6 text-primary" />
+              <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center mr-3">
+                <HelpCircle className="h-5 w-5 text-brand-700" />
+              </div>
               {language === 'np' ? 'बारम्बार सोधिने प्रश्नहरू' : 'Frequently Asked Questions'}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {filteredFAQs.map((faq) => (
-              <div key={faq.id} className="border border-border/20 rounded-lg">
+              <div key={faq.id} className="border border-border-subtle rounded-lg overflow-hidden">
                 <button
-                  className="w-full p-4 text-left flex items-center justify-between hover:bg-muted/20 transition-colors"
+                  className="w-full p-4 text-left flex items-center justify-between hover:bg-surface-secondary transition-all btn-base"
                   onClick={() => setExpandedFAQ(expandedFAQ === faq.id ? null : faq.id)}
                   data-testid={`faq-question-${faq.id}`}
                 >
-                  <span className="font-medium text-foreground">
+                  <span className="font-medium text-text-primary">
                     {language === 'np' ? faq.questionNepali : faq.question}
                   </span>
                   {expandedFAQ === faq.id ? (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    <ChevronDown className="h-4 w-4 text-text-tertiary" />
                   ) : (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    <ChevronRight className="h-4 w-4 text-text-tertiary" />
                   )}
                 </button>
                 
                 {expandedFAQ === faq.id && (
-                  <div className="px-4 pb-4 text-sm text-muted-foreground border-t border-border/20">
-                    <div className="pt-3">
+                  <div className="px-4 pb-4 text-sm text-text-secondary border-t border-border-subtle bg-surface-secondary/50">
+                    <div className="pt-3 leading-relaxed">
                       {language === 'np' ? faq.answerNepali : faq.answer}
                     </div>
                   </div>
@@ -190,34 +198,40 @@ export default function Help() {
         </Card>
 
         {/* Contact Support */}
-        <Card className="apple-card apple-glass border-0 apple-shadow">
+        <Card className="card-base elevation-sm">
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
-              <MessageSquare className="mr-3 h-6 w-6 text-primary" />
+              <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center mr-3">
+                <MessageSquare className="h-5 w-5 text-success-700" />
+              </div>
               {language === 'np' ? 'सम्पर्क सहायता' : 'Contact Support'}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8">
             {/* Contact Options */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3 p-4 bg-muted/20 rounded-lg">
-                <Mail className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">Email Support</p>
-                  <p className="text-sm text-muted-foreground">help@veridity.np</p>
-                  <Badge variant="secondary" className="mt-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-center space-x-4 p-4 bg-surface-secondary rounded-xl border border-border-subtle">
+                <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
+                  <Mail className="h-5 w-5 text-brand-700" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-text-primary">Email Support</p>
+                  <p className="text-sm text-text-secondary">help@veridity.np</p>
+                  <Badge variant="secondary" className="mt-2 bg-neutral-100 text-neutral-700 border-neutral-200">
                     <Clock className="h-3 w-3 mr-1" />
                     24-48 hours
                   </Badge>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 p-4 bg-muted/20 rounded-lg">
-                <Phone className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="font-medium text-foreground">Phone Support</p>
-                  <p className="text-sm text-muted-foreground">+977-1-4444-5555</p>
-                  <Badge variant="secondary" className="mt-1">
+              <div className="flex items-center space-x-4 p-4 bg-surface-secondary rounded-xl border border-border-subtle">
+                <div className="w-10 h-10 bg-info-100 rounded-lg flex items-center justify-center">
+                  <Phone className="h-5 w-5 text-info-700" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-text-primary">Phone Support</p>
+                  <p className="text-sm text-text-secondary">+977-1-4444-5555</p>
+                  <Badge variant="secondary" className="mt-2 bg-neutral-100 text-neutral-700 border-neutral-200">
                     <Clock className="h-3 w-3 mr-1" />
                     9 AM - 6 PM
                   </Badge>
@@ -264,7 +278,7 @@ export default function Help() {
               
               <Button 
                 onClick={handleContactSubmit}
-                className="apple-gradient apple-button border-0 shadow-lg"
+                className="btn-base brand-primary elevation-sm hover:elevation-md transition-all"
                 data-testid="button-send-message"
               >
                 <MessageSquare className="h-4 w-4 mr-2" />
@@ -275,10 +289,12 @@ export default function Help() {
         </Card>
 
         {/* Resources */}
-        <Card className="apple-card apple-glass border-0 apple-shadow">
+        <Card className="card-base elevation-sm">
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
-              <Book className="mr-3 h-6 w-6 text-primary" />
+              <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center mr-3">
+                <Book className="h-5 w-5 text-info-700" />
+              </div>
               {language === 'np' ? 'उपयोगी स्रोतहरू' : 'Helpful Resources'}
             </CardTitle>
           </CardHeader>
@@ -287,56 +303,64 @@ export default function Help() {
               <div className="space-y-3">
                 <Button 
                   variant="ghost" 
-                  className="justify-start h-auto p-3"
+                  className="justify-start h-auto p-4 hover:bg-surface-secondary transition-all btn-base"
                   data-testid="link-user-guide"
                 >
-                  <FileText className="h-4 w-4 mr-3" />
-                  <div className="text-left">
-                    <div className="font-medium">User Guide</div>
-                    <div className="text-xs text-muted-foreground">Complete setup and usage</div>
+                  <div className="w-8 h-8 bg-brand-50 rounded-lg flex items-center justify-center mr-3">
+                    <FileText className="h-4 w-4 text-brand-600" />
                   </div>
-                  <ExternalLink className="h-3 w-3 ml-auto" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-text-primary">User Guide</div>
+                    <div className="text-xs text-text-tertiary">Complete setup and usage</div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-text-quaternary" />
                 </Button>
 
                 <Button 
                   variant="ghost" 
-                  className="justify-start h-auto p-3"
+                  className="justify-start h-auto p-4 hover:bg-surface-secondary transition-all btn-base"
                   data-testid="link-privacy-policy"
                 >
-                  <Shield className="h-4 w-4 mr-3" />
-                  <div className="text-left">
-                    <div className="font-medium">Privacy Policy</div>
-                    <div className="text-xs text-muted-foreground">How we protect your data</div>
+                  <div className="w-8 h-8 bg-success-50 rounded-lg flex items-center justify-center mr-3">
+                    <Shield className="h-4 w-4 text-success-600" />
                   </div>
-                  <ExternalLink className="h-3 w-3 ml-auto" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-text-primary">Privacy Policy</div>
+                    <div className="text-xs text-text-tertiary">How we protect your data</div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-text-quaternary" />
                 </Button>
               </div>
 
               <div className="space-y-3">
                 <Button 
                   variant="ghost" 
-                  className="justify-start h-auto p-3"
+                  className="justify-start h-auto p-4 hover:bg-surface-secondary transition-all btn-base"
                   data-testid="link-security-guide"
                 >
-                  <Shield className="h-4 w-4 mr-3" />
-                  <div className="text-left">
-                    <div className="font-medium">Security Best Practices</div>
-                    <div className="text-xs text-muted-foreground">Keep your identity safe</div>
+                  <div className="w-8 h-8 bg-warning-50 rounded-lg flex items-center justify-center mr-3">
+                    <Shield className="h-4 w-4 text-warning-600" />
                   </div>
-                  <ExternalLink className="h-3 w-3 ml-auto" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-text-primary">Security Best Practices</div>
+                    <div className="text-xs text-text-tertiary">Keep your identity safe</div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-text-quaternary" />
                 </Button>
 
                 <Button 
                   variant="ghost" 
-                  className="justify-start h-auto p-3"
+                  className="justify-start h-auto p-4 hover:bg-surface-secondary transition-all btn-base"
                   data-testid="link-developer-docs"
                 >
-                  <FileText className="h-4 w-4 mr-3" />
-                  <div className="text-left">
-                    <div className="font-medium">Developer Documentation</div>
-                    <div className="text-xs text-muted-foreground">Integration guides for organizations</div>
+                  <div className="w-8 h-8 bg-info-50 rounded-lg flex items-center justify-center mr-3">
+                    <FileText className="h-4 w-4 text-info-600" />
                   </div>
-                  <ExternalLink className="h-3 w-3 ml-auto" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-text-primary">Developer Documentation</div>
+                    <div className="text-xs text-text-tertiary">Integration guides for organizations</div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-text-quaternary" />
                 </Button>
               </div>
             </div>
@@ -344,29 +368,32 @@ export default function Help() {
         </Card>
 
         {/* System Status */}
-        <Card className="apple-card apple-glass border-0 apple-shadow">
+        <Card className="card-base elevation-sm">
           <CardHeader>
-            <CardTitle className="text-lg">
+            <CardTitle className="text-lg flex items-center">
+              <div className="w-6 h-6 bg-success-100 rounded-full flex items-center justify-center mr-3">
+                <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
+              </div>
               {language === 'np' ? 'प्रणाली स्थिति' : 'System Status'}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Identity Verification</span>
-                <Badge className="bg-green-500 text-white">Operational</Badge>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
+                <span className="text-sm font-medium text-text-primary">Identity Verification</span>
+                <Badge className="bg-success-500 text-text-inverse border-0 px-3 py-1">Operational</Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Government Integration</span>
-                <Badge className="bg-green-500 text-white">Operational</Badge>
+              <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
+                <span className="text-sm font-medium text-text-primary">Government Integration</span>
+                <Badge className="bg-success-500 text-text-inverse border-0 px-3 py-1">Operational</Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Mobile App</span>
-                <Badge className="bg-green-500 text-white">Operational</Badge>
+              <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
+                <span className="text-sm font-medium text-text-primary">Mobile App</span>
+                <Badge className="bg-success-500 text-text-inverse border-0 px-3 py-1">Operational</Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">QR Code Service</span>
-                <Badge className="bg-green-500 text-white">Operational</Badge>
+              <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
+                <span className="text-sm font-medium text-text-primary">QR Code Service</span>
+                <Badge className="bg-success-500 text-text-inverse border-0 px-3 py-1">Operational</Badge>
               </div>
             </div>
           </CardContent>

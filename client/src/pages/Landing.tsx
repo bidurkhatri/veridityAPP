@@ -8,35 +8,28 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-background apple-blur-bg relative overflow-hidden">
-      {/* Floating Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
-        <div className="absolute top-40 right-20 w-48 h-48 bg-secondary/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-accent/5 rounded-full blur-3xl"></div>
-      </div>
-      
+    <div className="min-h-screen bg-canvas bg-gradient-subtle relative overflow-hidden">
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16 relative z-10">
-        <div className="text-center mb-16 apple-fade-in">
+      <div className="container mx-auto px-6 py-20 relative z-10">
+        <div className="text-center mb-24 fade-in">
           <div className="flex justify-center mb-8">
-            <div className="w-24 h-24 apple-gradient rounded-3xl flex items-center justify-center apple-shadow apple-scale-in">
-              <Shield className="h-12 w-12 text-white" />
+            <div className="w-20 h-20 brand-gradient rounded-2xl flex items-center justify-center elevation-lg scale-in">
+              <Shield className="h-10 w-10 text-text-inverse" />
             </div>
           </div>
           
-          <h1 className="text-6xl font-bold apple-gradient-text mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold brand-gradient-text mb-6 tracking-tight">
             Veridity
           </h1>
-          <p className="text-2xl text-muted-foreground mb-3 font-medium">
+          <p className="text-xl md:text-2xl text-text-secondary mb-4 font-medium">
             Privacy-First Digital Identity Platform
           </p>
-          <p className="text-xl text-muted-foreground mb-12 font-devanagari font-medium">
+          <p className="text-lg md:text-xl text-text-tertiary mb-12 font-devanagari font-medium">
             प्राइभेसी-केन्द्रित डिजिटल पहिचान प्लेटफर्म
           </p>
           
           <div className="max-w-3xl mx-auto mb-12">
-            <p className="text-xl text-muted-foreground leading-relaxed">
+            <p className="text-lg md:text-xl text-text-secondary leading-relaxed">
               Prove your identity attributes securely without revealing sensitive personal data. 
               Nepal's first zero-knowledge proof platform for secure digital verification.
             </p>
@@ -45,7 +38,7 @@ export default function Landing() {
           <Button 
             onClick={handleLogin}
             size="lg"
-            className="px-12 py-6 text-lg font-medium apple-gradient apple-button border-0 shadow-lg"
+            className="btn-base brand-primary px-12 py-4 text-lg font-semibold elevation-sm hover:elevation-md transition-all"
             data-testid="button-get-started"
           >
             Get Started
@@ -53,40 +46,40 @@ export default function Landing() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 apple-fade-in">
-          <Card className="text-center apple-card apple-glass border-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 slide-in-right">
+          <Card className="text-center card-base card-interactive elevation-sm">
             <CardContent className="p-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-6 apple-shadow">
-                <Lock className="h-8 w-8 text-white" />
+              <div className="w-16 h-16 brand-primary rounded-xl flex items-center justify-center mx-auto mb-6 elevation-sm">
+                <Lock className="h-8 w-8 text-text-inverse" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-4">Zero-Knowledge Proofs</h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <h3 className="text-xl font-bold text-text-primary mb-4">Zero-Knowledge Proofs</h3>
+              <p className="text-text-secondary leading-relaxed">
                 Prove claims about yourself without revealing the underlying data. 
                 Your privacy is mathematically guaranteed.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="text-center apple-card apple-glass border-0">
+          <Card className="text-center card-base card-interactive elevation-sm">
             <CardContent className="p-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-secondary to-accent rounded-2xl flex items-center justify-center mx-auto mb-6 apple-shadow">
-                <Smartphone className="h-8 w-8 text-white" />
+              <div className="w-16 h-16 bg-success-600 rounded-xl flex items-center justify-center mx-auto mb-6 elevation-sm">
+                <Smartphone className="h-8 w-8 text-text-inverse" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-4">Mobile-First Design</h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <h3 className="text-xl font-bold text-text-primary mb-4">Mobile-First Design</h3>
+              <p className="text-text-secondary leading-relaxed">
                 Works offline on typical Android devices. Perfect for Nepal's 
                 connectivity challenges with rural-friendly design.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="text-center apple-card apple-glass border-0">
+          <Card className="text-center card-base card-interactive elevation-sm">
             <CardContent className="p-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent to-primary rounded-2xl flex items-center justify-center mx-auto mb-6 apple-shadow">
-                <Globe className="h-8 w-8 text-white" />
+              <div className="w-16 h-16 bg-info-600 rounded-xl flex items-center justify-center mx-auto mb-6 elevation-sm">
+                <Globe className="h-8 w-8 text-text-inverse" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-4">Bilingual Support</h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <h3 className="text-xl font-bold text-text-primary mb-4">Bilingual Support</h3>
+              <p className="text-text-secondary leading-relaxed">
                 Full support for English and Nepali (Devanagari script) 
                 to serve all citizens of Nepal.
               </p>
@@ -95,87 +88,95 @@ export default function Landing() {
         </div>
 
         {/* Use Cases */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-foreground mb-8">Trusted by Organizations</h2>
+        <div className="text-center mb-20">
+          <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-12">Trusted by Organizations</h2>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <Card className="p-6 hover:bg-muted/50 transition-colors">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
-                <Users className="h-6 w-6 text-primary" />
+            <Card className="card-base card-interactive p-6 elevation-xs">
+              <div className="w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Users className="h-6 w-6 text-brand-700" />
               </div>
-              <h4 className="font-medium text-foreground">Government</h4>
-              <p className="text-sm text-muted-foreground">सरकार</p>
+              <h4 className="font-semibold text-text-primary">Government</h4>
+              <p className="text-sm text-text-tertiary font-devanagari">सरकार</p>
             </Card>
             
-            <Card className="p-6 hover:bg-muted/50 transition-colors">
-              <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
-                <Users className="h-6 w-6 text-secondary" />
+            <Card className="card-base card-interactive p-6 elevation-xs">
+              <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Users className="h-6 w-6 text-success-700" />
               </div>
-              <h4 className="font-medium text-foreground">Universities</h4>
-              <p className="text-sm text-muted-foreground">विश्वविद्यालयहरू</p>
+              <h4 className="font-semibold text-text-primary">Universities</h4>
+              <p className="text-sm text-text-tertiary font-devanagari">विश्वविद्यालयहरू</p>
             </Card>
             
-            <Card className="p-6 hover:bg-muted/50 transition-colors">
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-2">
-                <Users className="h-6 w-6 text-accent" />
+            <Card className="card-base card-interactive p-6 elevation-xs">
+              <div className="w-12 h-12 bg-info-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Users className="h-6 w-6 text-info-700" />
               </div>
-              <h4 className="font-medium text-foreground">Banks</h4>
-              <p className="text-sm text-muted-foreground">बैंकहरू</p>
+              <h4 className="font-semibold text-text-primary">Banks</h4>
+              <p className="text-sm text-text-tertiary font-devanagari">बैंकहरू</p>
             </Card>
             
-            <Card className="p-6 hover:bg-muted/50 transition-colors">
-              <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-                <Users className="h-6 w-6 text-primary" />
+            <Card className="card-base card-interactive p-6 elevation-xs">
+              <div className="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Users className="h-6 w-6 text-warning-700" />
               </div>
-              <h4 className="font-medium text-foreground">Enterprises</h4>
-              <p className="text-sm text-muted-foreground">व्यवसायिक संस्थाहरू</p>
+              <h4 className="font-semibold text-text-primary">Enterprises</h4>
+              <p className="text-sm text-text-tertiary font-devanagari">व्यवसायिक संस्थाहरू</p>
             </Card>
           </div>
         </div>
 
         {/* Benefits */}
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-8">
-            <h2 className="text-2xl font-bold text-foreground text-center mb-8">
+        <Card className="card-base elevation-sm border border-brand-200 bg-surface">
+          <CardContent className="p-8 md:p-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-text-primary text-center mb-12">
               Why Choose Veridity?
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-start space-x-3">
-                <CheckCircle className="h-5 w-5 text-primary mt-1" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <CheckCircle className="h-6 w-6 text-brand-600 mt-1" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-foreground">Privacy Guaranteed</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-semibold text-text-primary mb-2">Privacy Guaranteed</h3>
+                  <p className="text-text-secondary leading-relaxed">
                     Your personal data never leaves your device. Only cryptographic proofs are shared.
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-start space-x-3">
-                <CheckCircle className="h-5 w-5 text-primary mt-1" />
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <CheckCircle className="h-6 w-6 text-brand-600 mt-1" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-foreground">Lightning Fast</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-semibold text-text-primary mb-2">Lightning Fast</h3>
+                  <p className="text-text-secondary leading-relaxed">
                     Generate proofs in under 3 seconds, verify in milliseconds.
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-start space-x-3">
-                <CheckCircle className="h-5 w-5 text-primary mt-1" />
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <CheckCircle className="h-6 w-6 text-brand-600 mt-1" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-foreground">Works Offline</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-semibold text-text-primary mb-2">Works Offline</h3>
+                  <p className="text-text-secondary leading-relaxed">
                     Generate proofs without internet connection. Perfect for rural areas.
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-start space-x-3">
-                <CheckCircle className="h-5 w-5 text-primary mt-1" />
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <CheckCircle className="h-6 w-6 text-brand-600 mt-1" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-foreground">Cost Effective</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-semibold text-text-primary mb-2">Cost Effective</h3>
+                  <p className="text-text-secondary leading-relaxed">
                     Each verification costs less than $0.05 in computational resources.
                   </p>
                 </div>
@@ -185,8 +186,8 @@ export default function Landing() {
         </Card>
 
         {/* Footer */}
-        <div className="text-center mt-16 pt-8 border-t border-border">
-          <p className="text-muted-foreground">
+        <div className="text-center mt-20 pt-8 border-t border-border-default">
+          <p className="text-text-tertiary">
             Made with ❤️ for Nepal | Built on cutting-edge cryptography
           </p>
         </div>
