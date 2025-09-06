@@ -147,7 +147,7 @@ export function VerificationStatus() {
     }
   };
 
-  const sendTestVerification = () => {
+  const sendTestVerification = async () => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       toast({
         title: "Connection error",
@@ -157,19 +157,37 @@ export function VerificationStatus() {
       return;
     }
 
-    const testProof = {
-      type: 'verify_proof',
-      id: `test_${Date.now()}`,
-      proofType: 'age_over_18',
-      proof: {
-        pi_a: ["0x123", "0x456", "1"],
-        pi_b: [["0x789", "0xabc"], ["0xdef", "0x012"], ["1", "0"]],
-        pi_c: ["0x345", "0x678", "1"]
-      },
-      publicSignals: ["1", "12345678901234567890", Date.now().toString()]
-    };
+    try {
+      // Get user's latest proof for real verification test
+      const response = await fetch('/api/proofs/latest');
+      if (!response.ok) {
+        throw new Error('No proofs available for testing');
+      }
+      
+      const latestProof = await response.json();
+      
+      const verificationRequest = {
+        type: 'verify_proof',
+        id: `verification_${Date.now()}`,
+        proofId: latestProof.id,
+        proofType: latestProof.proofType,
+        proof: latestProof.proof,
+        publicSignals: latestProof.publicSignals
+      };
 
-    wsRef.current.send(JSON.stringify(testProof));
+      wsRef.current.send(JSON.stringify(verificationRequest));
+      
+      toast({
+        title: "Test verification sent",
+        description: `Testing verification for ${latestProof.proofType} proof`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Test failed",
+        description: error.message || "No proofs available for testing",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusIcon = (status: string) => {

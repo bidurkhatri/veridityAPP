@@ -149,6 +149,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's latest proof for testing and verification
+  app.get('/api/proofs/latest', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const proofs = await storage.getUserProofs(userId, 1); // Get only the latest proof
+      
+      if (proofs.length === 0) {
+        return res.status(404).json({ message: "No proofs found" });
+      }
+
+      const latestProof = proofs[0];
+      
+      // Get proof type name
+      const proofTypes = await storage.getProofTypes();
+      const proofType = proofTypes.find(pt => pt.id === latestProof.proofTypeId);
+      
+      res.json({
+        id: latestProof.id,
+        proofType: proofType?.name || 'Unknown',
+        proof: latestProof.proof,
+        publicSignals: latestProof.publicSignals,
+        status: latestProof.status,
+        createdAt: latestProof.createdAt
+      });
+    } catch (error) {
+      console.error("Error fetching latest proof:", error);
+      res.status(500).json({ message: "Failed to fetch latest proof" });
+    }
+  });
+
   // Get user's proof history with verification details
   app.get('/api/proofs/history', isAuthenticated, async (req: any, res) => {
     try {
@@ -466,6 +496,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Call original close method
       originalShutdown(callback);
     });
+    
+    return httpServer;
   };
   
   // ZK Circuit and verification status endpoints
