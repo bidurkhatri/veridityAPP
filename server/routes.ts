@@ -607,6 +607,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate shareable QR code for user's latest proof
+  app.get('/api/qr/generate-share', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get user's most recent proof
+      const proofs = await storage.getUserProofs(userId, 1);
+      if (proofs.length === 0) {
+        return res.status(404).json({ message: "No proofs found" });
+      }
+
+      const proof = proofs[0];
+      
+      // Get proof type
+      const proofTypes = await storage.getProofTypes();
+      const proofType = proofTypes.find(pt => pt.id === proof.proofTypeId);
+      
+      if (!proofType) {
+        return res.status(404).json({ message: "Proof type not found" });
+      }
+
+      const qrResult = await QRCodeService.generateProofQR(
+        proof.id,
+        proofType.name,
+        proof.publicSignals,
+        15 // 15 minutes expiry
+      );
+
+      res.json(qrResult);
+    } catch (error: any) {
+      console.error("Error generating shareable QR code:", error);
+      res.status(500).json({ message: "Failed to generate shareable QR code" });
+    }
+  });
+
   app.post('/api/qr/verification-request', async (req, res) => {
     try {
       const { organizationId, requiredProofType, callbackUrl, expiryMinutes = 10 } = req.body;

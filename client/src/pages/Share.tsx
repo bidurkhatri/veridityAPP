@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/lib/i18n";
 import { AppHeader } from "@/components/AppHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   QrCode, 
   Share as ShareIcon, 
@@ -28,8 +30,15 @@ export default function Share() {
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
   const [brightness, setBrightness] = useState(1);
 
-  // Mock sharing link for demonstration
-  const mockSharingLink = "https://veridity.np/verify/abc123def456";
+  // Generate shareable QR code data
+  const { data: shareData, isLoading: isGenerating } = useQuery<{
+    qrCodeDataUrl: string;
+    shareableUrl: string;
+    expiresAt: string;
+  }>({
+    queryKey: ['/api/qr/generate-share'],
+    staleTime: 14 * 60 * 1000, // 14 minutes (refresh before expiry)
+  });
 
   // Countdown timer effect
   useEffect(() => {
@@ -71,7 +80,7 @@ export default function Share() {
       title: "Copy Link",
       description: "Expires in 15 minutes",
       icon: Copy,
-      action: () => navigator.clipboard.writeText(mockSharingLink),
+      action: () => shareData && navigator.clipboard.writeText(shareData.shareableUrl),
       testId: "option-copy-link"
     },
     {
@@ -193,14 +202,28 @@ export default function Share() {
                     onMouseLeave={resetBrightness}
                   >
                     {timeLeft > 0 ? (
-                      <div className="w-64 h-64 border-4 border-gray-900 rounded-xl flex items-center justify-center bg-white">
-                        <div className="text-center">
-                          <QrCode className="h-32 w-32 text-gray-900 mx-auto mb-2" />
-                          <div className="text-xs text-gray-600 font-mono">
-                            {mockSharingLink.slice(-12)}
+                      isGenerating ? (
+                        <div className="w-64 h-64 border-4 border-gray-300 rounded-xl flex items-center justify-center bg-white">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-2"></div>
+                            <div className="text-sm text-gray-600">Generating QR...</div>
                           </div>
                         </div>
-                      </div>
+                      ) : shareData?.qrCodeDataUrl ? (
+                        <img 
+                          src={shareData.qrCodeDataUrl} 
+                          alt="QR Code for sharing proof" 
+                          className="w-64 h-64 object-contain rounded-xl border-4 border-gray-300 bg-white"
+                          data-testid="img-qr-code"
+                        />
+                      ) : (
+                        <div className="w-64 h-64 border-4 border-gray-300 rounded-xl flex items-center justify-center bg-white">
+                          <div className="text-center">
+                            <QrCode className="h-32 w-32 text-gray-400 mx-auto mb-2" />
+                            <div className="text-sm text-gray-600">No QR data available</div>
+                          </div>
+                        </div>
+                      )
                     ) : (
                       <div className="text-center text-gray-400">
                         <Clock className="h-16 w-16 mx-auto mb-2" />
@@ -234,7 +257,9 @@ export default function Share() {
                       size="sm"
                       onClick={async () => {
                         setCopying(true);
-                        await navigator.clipboard.writeText(mockSharingLink);
+                        if (shareData) {
+                          await navigator.clipboard.writeText(shareData.shareableUrl);
+                        }
                         setTimeout(() => setCopying(false), 2000);
                       }}
                       className="apple-button"
