@@ -73,4 +73,33 @@ export function SegmentedControl({
   );
 }
 
+// Pre-configured for auto-delete settings
+export function AutoDeleteSegmentedControl({
+  value,
+  onChange,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  const options = [
+    { value: 'off', label: 'Off' },
+    { value: '7d', label: '7 days' },
+    { value: '30d', label: '30 days' },
+    { value: '90d', label: '90 days' },
+    { value: 'custom', label: 'Custom' },
+  ];
+
+  return (
+    <SegmentedControl
+      options={options}
+      value={value}
+      onChange={onChange}
+      className={className}
+      size="sm"
+    />
+  );
+}
+
 export type { SegmentedControlOption, SegmentedControlProps };
