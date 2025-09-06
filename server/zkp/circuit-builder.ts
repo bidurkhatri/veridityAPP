@@ -175,9 +175,9 @@ export class CircuitBuilder {
       try {
         const circuitDir = join(this.keysPath, circuit);
         
-        // Check for our compiled simple circuits
-        const r1cs = existsSync(join(circuitDir, 'simple_age.r1cs'));
-        const wasm = existsSync(join(circuitDir, 'simple_age_js', 'simple_age.wasm'));
+        // Check for compiled circuits with proper naming
+        const r1cs = existsSync(join(circuitDir, `${circuit}.r1cs`));
+        const wasm = existsSync(join(circuitDir, `${circuit}_js`, `${circuit}.wasm`));
         const zkey = existsSync(join(this.keysPath, `${circuit}_final.zkey`));
         const vkey = existsSync(join(this.keysPath, `${circuit}_vkey.json`));
         
