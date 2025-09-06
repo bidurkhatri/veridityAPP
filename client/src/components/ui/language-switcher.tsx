@@ -31,8 +31,31 @@ export function LanguageSwitcher({
 }: LanguageSwitcherProps) {
   const currentLang = languages.find(lang => lang.code === currentLanguage);
 
+  // Enhanced language change with immediate persistence
+  const handleLanguageChange = React.useCallback((language: string) => {
+    localStorage.setItem('veridity-language', language);
+    onLanguageChange(language);
+    
+    // Immediate UI feedback
+    const currentBtn = document.querySelector(`[data-testid="language-option-${language}"]`);
+    if (currentBtn) {
+      currentBtn.classList.add('bg-primary/10');
+      setTimeout(() => {
+        currentBtn.classList.remove('bg-primary/10');
+      }, 200);
+    }
+  }, [onLanguageChange]);
+
+  // Load saved language on mount
+  React.useEffect(() => {
+    const savedLanguage = localStorage.getItem('veridity-language');
+    if (savedLanguage && savedLanguage !== currentLanguage && languages.find(l => l.code === savedLanguage)) {
+      onLanguageChange(savedLanguage);
+    }
+  }, [currentLanguage, onLanguageChange, languages]);
+
   return (
-    <Select value={currentLanguage} onValueChange={onLanguageChange}>
+    <Select value={currentLanguage} onValueChange={handleLanguageChange}>
       <SelectTrigger 
         className="w-auto min-w-[120px]"
         data-testid="language-switcher"
@@ -48,6 +71,7 @@ export function LanguageSwitcher({
             key={language.code} 
             value={language.code}
             data-testid={`language-option-${language.code}`}
+            className="transition-all duration-200"
           >
             <div className="flex items-center justify-between w-full">
               <span>{language.nativeName}</span>
@@ -60,4 +84,27 @@ export function LanguageSwitcher({
       </SelectContent>
     </Select>
   );
+}
+
+// Hook for persistent language state
+export function useLanguage() {
+  const [currentLanguage, setCurrentLanguage] = React.useState<string>('en');
+
+  // Load language from localStorage on mount
+  React.useEffect(() => {
+    const savedLanguage = localStorage.getItem('veridity-language');
+    if (savedLanguage) {
+      setCurrentLanguage(savedLanguage);
+    }
+  }, []);
+
+  const changeLanguage = React.useCallback((language: string) => {
+    localStorage.setItem('veridity-language', language);
+    setCurrentLanguage(language);
+  }, []);
+
+  return {
+    currentLanguage,
+    changeLanguage,
+  };
 }
