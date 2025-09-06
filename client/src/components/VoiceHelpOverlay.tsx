@@ -159,7 +159,7 @@ export function VoiceHelpOverlay({ isOpen, onClose, language }: VoiceHelpOverlay
                     <Mic className="h-5 w-5" />
                     <span>{t.title}</span>
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-text-secondary mt-1">
                     {t.subtitle}
                   </p>
                 </div>
@@ -177,21 +177,21 @@ export function VoiceHelpOverlay({ isOpen, onClose, language }: VoiceHelpOverlay
                 {/* Commands by category */}
                 {Object.entries(groupedCommands).map(([category, cmds]) => (
                   <div key={category} className="space-y-3">
-                    <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                    <h3 className="font-medium text-sm text-text-tertiary uppercase tracking-wide">
                       {t.categories[category as keyof typeof t.categories]}
                     </h3>
                     <div className="space-y-2">
                       {cmds.map((cmd, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                          className="flex items-center justify-between p-3 bg-surface-secondary/50 rounded-lg"
                         >
                           <div className="flex items-center space-x-3">
                             <Badge variant="outline" className="font-mono text-xs">
                               "{cmd.phrase}"
                             </Badge>
                           </div>
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-sm text-text-tertiary">
                             {cmd.description}
                           </span>
                         </div>

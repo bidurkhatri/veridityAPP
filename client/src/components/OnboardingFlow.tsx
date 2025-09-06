@@ -153,7 +153,7 @@ export function OnboardingFlow({ language, onComplete, onSkip }: OnboardingFlowP
                 <CardTitle className="text-2xl mb-2">
                   {currentStepData.title[language]}
                 </CardTitle>
-                <p className="text-muted-foreground text-base leading-relaxed">
+                <p className="text-text-secondary text-base leading-relaxed">
                   {currentStepData.description[language]}
                 </p>
               </CardHeader>
@@ -190,8 +190,8 @@ export function OnboardingFlow({ language, onComplete, onSkip }: OnboardingFlowP
                     index === currentStep
                       ? 'bg-primary'
                       : completedSteps.has(index)
-                      ? 'bg-green-500'
-                      : 'bg-muted'
+                      ? 'bg-success-bg'
+                      : 'bg-surface-secondary'
                   }`}
                 />
               ))}

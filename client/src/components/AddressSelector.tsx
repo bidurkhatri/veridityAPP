@@ -181,7 +181,7 @@ export function AddressSelector({
                 data-testid={`municipality-${municipality.id}`}
               >
                 {municipality.name}
-                <span className="text-xs text-muted-foreground ml-2">
+                <span className="text-xs text-text-tertiary ml-2">
                   ({municipality.type.replace('-', ' ')})
                 </span>
               </SelectItem>
