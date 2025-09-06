@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation, type Language } from '@/lib/i18n';
 import {
@@ -44,6 +45,19 @@ export function DocumentUpload({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [metadata, setMetadata] = useState<Record<string, string>>({});
+  const [showCamera, setShowCamera] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Cleanup camera stream on unmount
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [stream]);
 
   // Document upload mutation
   const uploadMutation = useMutation({
@@ -175,6 +189,86 @@ export function DocumentUpload({
     });
   };
 
+  // Camera functionality
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: 'environment', // Use back camera on mobile
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      });
+      setStream(mediaStream);
+      setShowCamera(true);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      toast({
+        title: "Camera Error",
+        description: "Unable to access camera. Please check permissions.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    if (!context) return;
+
+    // Set canvas size to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Draw the video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Convert canvas to blob
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        // Create file with proper name and type
+        const file = Object.assign(blob, {
+          name: `camera-capture-${timestamp}.jpg`,
+          lastModified: Date.now()
+        }) as File;
+        
+        // Add the captured file to selected files
+        if (selectedFiles.length < maxFiles) {
+          setSelectedFiles(prev => [...prev, file]);
+          toast({
+            title: "Photo Captured",
+            description: "Photo added to selected files"
+          });
+        } else {
+          toast({
+            title: "Max Files Reached",
+            description: `You can only upload ${maxFiles} files`,
+            variant: "destructive"
+          });
+        }
+      }
+    }, 'image/jpeg', 0.9);
+
+    stopCamera();
+  };
+
   const triggerFileSelect = () => {
     fileInputRef.current?.click();
   };
@@ -278,13 +372,7 @@ export function DocumentUpload({
               </Button>
               <Button
                 variant="outline"
-                onClick={() => {
-                  // TODO: Implement camera capture
-                  toast({
-                    title: "Camera Capture",
-                    description: "Camera capture will be implemented next"
-                  });
-                }}
+                onClick={startCamera}
                 data-testid="button-take-photo"
               >
                 <Camera className="h-4 w-4 mr-2" />
@@ -398,6 +486,58 @@ export function DocumentUpload({
           </div>
         </CardContent>
       </Card>
+
+      {/* Camera Modal */}
+      <Dialog open={showCamera} onOpenChange={setShowCamera}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle>Camera Capture</DialogTitle>
+            <DialogDescription>
+              Position your document within the frame and tap capture
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Camera overlay guide */}
+              <div className="absolute inset-4 border-2 border-white border-dashed rounded-lg flex items-center justify-center">
+                <div className="text-white text-sm text-center">
+                  <p>Position document here</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <Button
+                onClick={capturePhoto}
+                className="flex-1 apple-gradient"
+                data-testid="button-capture-photo"
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Capture Photo
+              </Button>
+              <Button
+                variant="outline"
+                onClick={stopCamera}
+                data-testid="button-cancel-camera"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Hidden canvas for photo capture */}
+      <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 }
