@@ -530,6 +530,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin user management endpoints
+  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
+    try {
+      // In production, verify admin role here
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const usersData = await storage.getAllUsers(limit, offset);
+      res.json(usersData);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.put('/api/admin/users/:userId/role', isAuthenticated, async (req: any, res) => {
+    try {
+      // In production, verify admin role here
+      const { userId } = req.params;
+      const { role } = req.body;
+      
+      if (!['customer', 'client', 'admin'].includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
+      }
+      
+      await storage.updateUserRole(userId, role);
+      
+      // Create audit log
+      await storage.createAuditLog({
+        action: 'user_role_updated',
+        entityType: 'user',
+        entityId: userId,
+        userId: req.user.claims.sub,
+        metadata: { newRole: role, adminUserId: req.user.claims.sub }
+      });
+      
+      const updatedUser = await storage.getUser(userId);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  // Admin audit log endpoints
+  app.get('/api/admin/audit-logs', isAuthenticated, async (req: any, res) => {
+    try {
+      // In production, verify admin role here
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const filter: any = {};
+      if (req.query.userId) filter.userId = req.query.userId;
+      if (req.query.entityType) filter.entityType = req.query.entityType;
+      if (req.query.action) filter.action = req.query.action;
+      if (req.query.startDate) filter.startDate = new Date(req.query.startDate);
+      if (req.query.endDate) filter.endDate = new Date(req.query.endDate);
+      
+      const auditData = await storage.getAuditLogs(limit, offset, filter);
+      res.json(auditData);
+    } catch (error) {
+      console.error("Error fetching audit logs:", error);
+      res.status(500).json({ message: "Failed to fetch audit logs" });
+    }
+  });
+
+  // Admin system statistics endpoints
+  app.get('/api/admin/user-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      // In production, verify admin role here
+      const userStats = await storage.getUserRoleStats();
+      res.json(userStats);
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Failed to fetch user stats" });
+    }
+  });
+
+  app.get('/api/admin/system-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      // In production, verify admin role here
+      const systemStats = await storage.getSystemStats();
+      res.json(systemStats);
+    } catch (error) {
+      console.error("Error fetching system stats:", error);
+      res.status(500).json({ message: "Failed to fetch system stats" });
+    }
+  });
+
+  // Admin system health endpoint
+  app.get('/api/admin/health', isAuthenticated, async (req: any, res) => {
+    try {
+      // In production, verify admin role here
+      const health = await healthMonitor.getHealth();
+      const metrics = healthMonitor.getMetrics();
+      
+      res.json({
+        ...health,
+        metrics
+      });
+    } catch (error) {
+      console.error("Error fetching system health:", error);
+      res.status(500).json({ message: "Failed to fetch system health" });
+    }
+  });
+
   // WebSocket server for real-time verification
   const httpServer = createServer(app);
   

@@ -48,40 +48,30 @@ export default function AdminPortal() {
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState('all');
 
-  // Mock system health data
-  const systemHealth: SystemHealth = {
-    cpu: 68,
-    memory: 74,
-    disk: 45,
-    uptime: '15 days, 8 hours',
-    activeUsers: 1247,
-    totalRequests: 45231
-  };
-
-  // Mock users data
-  const { data: users } = useQuery({
-    queryKey: ['/api/admin/users'],
-    queryFn: () => Promise.resolve([
-      {
-        id: '1',
-        email: 'user1@example.com',
-        name: 'John Doe',
-        status: 'active',
-        lastLogin: '2024-01-15T10:30:00Z',
-        totalProofs: 15,
-        riskLevel: 'low'
-      },
-      {
-        id: '2',
-        email: 'user2@example.com',
-        name: 'Jane Smith',
-        status: 'suspended',
-        lastLogin: '2024-01-14T15:45:00Z',
-        totalProofs: 3,
-        riskLevel: 'high'
-      }
-    ] as User[])
+  // Fetch real system health data
+  const { data: systemHealth } = useQuery<SystemHealth>({
+    queryKey: ['/api/admin/health'],
+    select: (data: any) => ({
+      cpu: Math.round(data.cpu?.usage || 0),
+      memory: data.memory?.percentage || 0,
+      disk: 45, // TODO: Add disk usage to health endpoint
+      uptime: `${Math.floor(data.uptime / 86400)} days, ${Math.floor((data.uptime % 86400) / 3600)} hours`,
+      activeUsers: data.metrics?.requests || 0,
+      totalRequests: data.metrics?.totalRequests || 0
+    })
   });
+
+  // Fetch real users data
+  const { data: usersResponse } = useQuery<{users: User[], total: number}>({
+    queryKey: ['/api/admin/users', userSearchTerm, userStatusFilter],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/users?limit=50&offset=0');
+      if (!response.ok) throw new Error('Failed to fetch users');
+      return response.json();
+    }
+  });
+
+  const users = usersResponse?.users || [];
 
   const filteredUsers = users?.filter((user: User) => {
     const matchesSearch = user.email.toLowerCase().includes(userSearchTerm.toLowerCase()) ||

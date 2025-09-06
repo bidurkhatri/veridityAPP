@@ -84,6 +84,37 @@ export interface IStorage {
     status: string;
   }>>;
   
+  getAllUsers(limit?: number, offset?: number): Promise<{
+    users: User[];
+    total: number;
+  }>;
+  
+  getAuditLogs(limit?: number, offset?: number, filter?: {
+    userId?: string;
+    entityType?: string;
+    action?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<{
+    logs: AuditLog[];
+    total: number;
+  }>;
+  
+  getUserRoleStats(): Promise<{
+    total: number;
+    admins: number;
+    clients: number;
+    customers: number;
+  }>;
+  
+  getSystemStats(): Promise<{
+    totalUsers: number;
+    totalProofs: number;
+    totalVerifications: number;
+    totalOrganizations: number;
+    dailyActiveUsers: number;
+  }>;
+  
   // Audit operations
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
 }
@@ -396,10 +427,158 @@ export class DatabaseStorage implements IStorage {
       type: proofTypeMap.get(p.proofTypeId) || 'Unknown Type',
       organization: p.organizationId ? (organizationMap.get(p.organizationId) || 'Unknown Organization') : 'Self-Verified',
       status: (p.verificationStatus || p.status) as 'verified' | 'failed' | 'pending',
-      createdAt: p.createdAt.toISOString(),
+      createdAt: p.createdAt ? p.createdAt.toISOString() : new Date().toISOString(),
       verifiedAt: p.verificationCreatedAt?.toISOString(),
       referenceId: `VRF-${p.id.slice(0, 8).toUpperCase()}`
     }));
+  }
+
+  async getAllUsers(limit: number = 50, offset: number = 0): Promise<{
+    users: User[];
+    total: number;
+  }> {
+    // Get paginated users
+    const userResults = await db
+      .select()
+      .from(users)
+      .orderBy(desc(users.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    // Get total count
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(users);
+
+    return {
+      users: userResults,
+      total: totalResult.count
+    };
+  }
+
+  async getAuditLogs(
+    limit: number = 50, 
+    offset: number = 0, 
+    filter?: {
+      userId?: string;
+      entityType?: string;
+      action?: string;
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ): Promise<{
+    logs: AuditLog[];
+    total: number;
+  }> {
+    let query = db.select().from(auditLogs);
+    
+    // Apply filters
+    const conditions = [];
+    if (filter?.userId) {
+      conditions.push(eq(auditLogs.userId, filter.userId));
+    }
+    if (filter?.entityType) {
+      conditions.push(eq(auditLogs.entityType, filter.entityType));
+    }
+    if (filter?.action) {
+      conditions.push(eq(auditLogs.action, filter.action));
+    }
+    if (filter?.startDate) {
+      conditions.push(sql`${auditLogs.createdAt} >= ${filter.startDate}`);
+    }
+    if (filter?.endDate) {
+      conditions.push(sql`${auditLogs.createdAt} <= ${filter.endDate}`);
+    }
+
+    // Get paginated results
+    const logResults = conditions.length > 0
+      ? await query.where(and(...conditions)).orderBy(desc(auditLogs.createdAt)).limit(limit).offset(offset)
+      : await query.orderBy(desc(auditLogs.createdAt)).limit(limit).offset(offset);
+
+    // Get total count with same filters
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(auditLogs)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+    return {
+      logs: logResults,
+      total: totalResult.count
+    };
+  }
+
+  async getUserRoleStats(): Promise<{
+    total: number;
+    admins: number;
+    clients: number;
+    customers: number;
+  }> {
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(users);
+
+    const [adminResult] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.role, 'admin'));
+
+    const [clientResult] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.role, 'client'));
+
+    const [customerResult] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.role, 'customer'));
+
+    return {
+      total: totalResult.count,
+      admins: adminResult.count,
+      clients: clientResult.count,
+      customers: customerResult.count
+    };
+  }
+
+  async getSystemStats(): Promise<{
+    totalUsers: number;
+    totalProofs: number;
+    totalVerifications: number;
+    totalOrganizations: number;
+    dailyActiveUsers: number;
+  }> {
+    const [usersResult] = await db
+      .select({ count: count() })
+      .from(users);
+
+    const [proofsResult] = await db
+      .select({ count: count() })
+      .from(proofs);
+
+    const [verificationsResult] = await db
+      .select({ count: count() })
+      .from(verifications);
+
+    const [organizationsResult] = await db
+      .select({ count: count() })
+      .from(organizations);
+
+    // Daily active users - users who created proofs today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const [dailyActiveResult] = await db
+      .select({ count: count() })
+      .from(proofs)
+      .where(sql`${proofs.createdAt} >= ${today}`);
+
+    return {
+      totalUsers: usersResult.count,
+      totalProofs: proofsResult.count,
+      totalVerifications: verificationsResult.count,
+      totalOrganizations: organizationsResult.count,
+      dailyActiveUsers: dailyActiveResult.count
+    };
   }
 }
 
