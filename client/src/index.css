@@ -196,6 +196,75 @@
   --timing-ease-in: cubic-bezier(0.4, 0, 1, 1);
   --timing-ease-out: cubic-bezier(0, 0, 0.2, 1);
   --timing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Motion & Animation */
+  --duration-fast: 120ms;
+  --duration-medium: 200ms;
+  --duration-slow: 300ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --text-primary: hsl(0, 0%, 0%);
+  --text-secondary: hsl(0, 0%, 25%);
+  --text-tertiary: hsl(0, 0%, 40%);
+  --bg-canvas: hsl(0, 0%, 100%);
+  --bg-surface: hsl(0, 0%, 98%);
+  --bg-surface-secondary: hsl(0, 0%, 95%);
+  --border-default: hsl(0, 0%, 20%);
+  --border-focus: hsl(220, 100%, 30%);
+  --focus-ring: hsl(220, 100%, 30%);
+  --primary: hsl(220, 100%, 20%);
+  --primary-foreground: hsl(0, 0%, 100%);
+}
+
+/* Typography System */
+.prose {
+  max-width: 80ch;
+  line-height: 1.6;
+}
+
+.prose p {
+  margin-bottom: 1.5em;
+  line-height: 1.7;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  line-height: 1.25;
+  font-weight: 600;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+}
+
+.prose h1 { font-size: 2.5rem; }
+.prose h2 { font-size: 2rem; }
+.prose h3 { font-size: 1.5rem; }
+.prose h4 { font-size: 1.25rem; }
+.prose h5 { font-size: 1.125rem; }
+.prose h6 { font-size: 1rem; }
+
+/* Text truncation with tooltip */
+.text-truncate-tooltip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
   
   /* Legacy compatibility mappings */
   --primary: 151 74% 38%;
