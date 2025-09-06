@@ -474,7 +474,7 @@ export default function ProofGeneration() {
                   </div>
                 </div>
 
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentStep(1)}
@@ -482,13 +482,20 @@ export default function ProofGeneration() {
                   >
                     Back
                   </Button>
-                  <Button 
-                    onClick={() => setCurrentStep(3)}
-                    disabled={!Object.keys(formData).length}
-                    data-testid="button-proceed-generate"
-                  >
-                    Proceed to Generate
-                  </Button>
+                  <div className="flex flex-col items-end space-y-2">
+                    <Button 
+                      onClick={() => setCurrentStep(3)}
+                      disabled={!Object.keys(formData).length}
+                      data-testid="button-proceed-generate"
+                    >
+                      Proceed to Generate
+                    </Button>
+                    {!Object.keys(formData).length && (
+                      <p className="text-xs text-muted-foreground" data-testid="helper-text-form">
+                        Please fill in the required fields above to proceed
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>

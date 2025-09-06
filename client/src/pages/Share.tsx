@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AnimatedCountdown } from "@/components/ui/countdown-pill";
 import { useTranslation } from "@/lib/i18n";
 import { AppHeader } from "@/components/AppHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -127,7 +128,7 @@ export default function Share() {
           <CardContent className="p-4">
             <div className="flex rounded-xl bg-muted/20 p-1 space-x-1">
               <Button
-                variant={activeTab === 'qr' ? 'default' : 'ghost'}
+                variant={activeTab === 'qr' ? 'primary' : 'ghost'}
                 className={`flex-1 ${activeTab === 'qr' ? 'apple-gradient apple-button border-0' : ''}`}
                 onClick={() => setActiveTab('qr')}
                 data-testid="tab-share"
@@ -136,7 +137,7 @@ export default function Share() {
                 Share
               </Button>
               <Button
-                variant={activeTab === 'scan' ? 'default' : 'ghost'}
+                variant={activeTab === 'scan' ? 'primary' : 'ghost'}
                 className={`flex-1 ${activeTab === 'scan' ? 'apple-gradient apple-button border-0' : ''}`}
                 onClick={() => setActiveTab('scan')}
                 data-testid="tab-scan"
@@ -238,11 +239,14 @@ export default function Share() {
 
                 {/* QR Info */}
                 <div className="text-center space-y-4">
-                  <div className="flex items-center justify-center space-x-2 text-sm">
-                    <Clock className={`h-4 w-4 ${timeLeft < 60 ? 'text-destructive' : 'text-muted-foreground'}`} />
-                    <span className={timeLeft < 60 ? 'text-destructive font-medium' : 'text-muted-foreground'}>
-                      Expires in {formatTime(timeLeft)}
-                    </span>
+                  <div className="flex items-center justify-center">
+                    <AnimatedCountdown 
+                      timeLeft={timeLeft}
+                      size="md"
+                      format="short"
+                      onExpire={() => console.log('QR Code expired')}
+                      data-testid="countdown-timer"
+                    />
                   </div>
                   
                   {timeLeft < 60 && (
