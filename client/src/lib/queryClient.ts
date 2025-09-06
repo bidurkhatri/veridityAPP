@@ -49,9 +49,29 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Infinity,
       retry: false,
+      onError: (error: unknown) => {
+        console.error('Query error:', error);
+      },
     },
     mutations: {
       retry: false,
+      onError: (error: unknown) => {
+        console.error('Mutation error:', error);
+      },
     },
   },
+});
+
+// Add global error handler for React Query
+queryClient.setMutationDefaults(['*'], {
+  onError: (error: unknown) => {
+    console.error('Mutation failed:', error);
+  },
+});
+
+// Catch any unhandled query errors
+queryClient.getQueryCache().subscribe((event) => {
+  if (event.type === 'queryError') {
+    console.error('Query cache error:', event.query.state.error);
+  }
 });
