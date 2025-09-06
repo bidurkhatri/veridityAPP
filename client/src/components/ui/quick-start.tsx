@@ -147,7 +147,7 @@ export function QuickStart({
               {/* Action button */}
               <Button
                 onClick={action.onClick}
-                variant={action.completed ? "outline" : "default"}
+                variant={action.completed ? "outline" : "primary"}
                 size="sm"
                 className="flex-shrink-0"
                 data-testid={`quick-start-action-${action.id}`}
@@ -169,7 +169,7 @@ export function CustomerQuickStart() {
 
   const handleActionClick = (actionId: string) => {
     // Mark action as completed (in real app, this would be based on actual completion)
-    setCompletedActions(prev => new Set([...prev, actionId]));
+    setCompletedActions(prev => new Set(Array.from(prev).concat(actionId)));
     
     // Route to appropriate page based on action
     switch (actionId) {
