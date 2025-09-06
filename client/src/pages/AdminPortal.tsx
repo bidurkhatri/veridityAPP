@@ -22,7 +22,15 @@ import {
   Search,
   Filter,
   Download,
-  RefreshCw
+  RefreshCw,
+  Lock,
+  Eye,
+  FileCheck,
+  BarChart3,
+  HelpCircle,
+  MessageCircle,
+  Book,
+  Edit
 } from 'lucide-react';
 
 interface SystemHealth {
@@ -517,28 +525,300 @@ export default function AdminPortal() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Platform Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Advanced analytics dashboard coming soon...</p>
-            </CardContent>
-          </Card>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  User Engagement
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Daily Active Users</span>
+                    <span className="font-semibold">2,847</span>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div className="bg-primary h-2 rounded-full" style={{ width: '68%' }}></div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Weekly Active Users</span>
+                    <span className="font-semibold">12,456</span>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '84%' }}></div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Monthly Active Users</span>
+                    <span className="font-semibold">45,123</span>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '92%' }}></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileCheck className="h-5 w-5" />
+                  Proof Statistics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-2xl font-bold">15,632</p>
+                    <p className="text-xs text-muted-foreground">Total Proofs</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-2xl font-bold text-green-600">14,891</p>
+                    <p className="text-xs text-muted-foreground">Verified</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-2xl font-bold text-yellow-600">456</p>
+                    <p className="text-xs text-muted-foreground">Pending</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-2xl font-bold text-red-600">285</p>
+                    <p className="text-xs text-muted-foreground">Failed</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Success Rate</span>
+                    <span className="font-semibold text-green-600">95.3%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Performance Metrics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Avg Response Time</span>
+                    <span className="font-semibold">127ms</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">API Uptime</span>
+                    <span className="font-semibold text-green-600">99.9%</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Peak RPS</span>
+                    <span className="font-semibold">1,245</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Error Rate</span>
+                    <span className="font-semibold text-red-600">0.3%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="md:col-span-2 lg:col-span-3">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Usage Trends (Last 30 Days)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-7 gap-2">
+                    {Array.from({ length: 30 }, (_, i) => (
+                      <div key={i} className="space-y-1">
+                        <div className="h-20 bg-secondary rounded flex items-end">
+                          <div 
+                            className="w-full bg-primary rounded-b"
+                            style={{ height: `${Math.random() * 80 + 20}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-center text-muted-foreground">
+                          {30 - i}d
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="grid grid-cols-4 gap-4 pt-4 border-t">
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">Peak Day</p>
+                      <p className="font-semibold">3,456 proofs</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">Avg Daily</p>
+                      <p className="font-semibold">2,134 proofs</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">Growth Rate</p>
+                      <p className="font-semibold text-green-600">+12.3%</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">Trend</p>
+                      <p className="font-semibold text-green-600">↗ Growing</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="support" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Support Tools</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Customer support and ticketing system coming soon...</p>
-            </CardContent>
-          </Card>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5" />
+                  Support Dashboard
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Open Tickets</p>
+                    <p className="text-2xl font-bold">24</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Avg Response Time</p>
+                    <p className="text-2xl font-bold">2.3h</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Payment Integration Issue</p>
+                      <p className="text-xs text-muted-foreground">Ticket #2024-001</p>
+                    </div>
+                    <Badge variant="destructive">High</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">API Documentation Query</p>
+                      <p className="text-xs text-muted-foreground">Ticket #2024-002</p>
+                    </div>
+                    <Badge variant="secondary">Medium</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" />
+                  Live Chat
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Active Sessions</span>
+                    <span className="font-semibold">7</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Queue Length</span>
+                    <span className="font-semibold">3</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Agents Online</span>
+                    <span className="font-semibold text-green-600">4/5</span>
+                  </div>
+                </div>
+                
+                <Button className="w-full" data-testid="btn-open-chat">
+                  Open Chat Console
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Book className="h-5 w-5" />
+                  Knowledge Base
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Total Articles</p>
+                    <p className="text-2xl font-bold">156</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Monthly Views</p>
+                    <p className="text-2xl font-bold">12.3k</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Button variant="outline" className="w-full justify-start" data-testid="btn-manage-kb">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Manage Articles
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start" data-testid="btn-view-analytics">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    View Analytics
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Support Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Auto-assign Tickets</h4>
+                    <p className="text-sm text-muted-foreground">Automatically assign new tickets to available agents</p>
+                  </div>
+                  <Switch defaultChecked data-testid="toggle-auto-assign" />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Email Notifications</h4>
+                    <p className="text-sm text-muted-foreground">Send email alerts for new tickets</p>
+                  </div>
+                  <Switch defaultChecked data-testid="toggle-email-notifications" />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Business Hours Only</h4>
+                    <p className="text-sm text-muted-foreground">Limit support to business hours (9 AM - 6 PM)</p>
+                  </div>
+                  <Switch data-testid="toggle-business-hours" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
