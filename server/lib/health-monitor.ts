@@ -4,6 +4,7 @@
 
 import { performance } from 'perf_hooks';
 import os from 'os';
+import { execSync } from 'child_process';
 
 export interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -13,6 +14,12 @@ export interface HealthStatus {
     used: number;
     total: number;
     percentage: number;
+  };
+  disk: {
+    used: number;
+    total: number;
+    percentage: number;
+    availableGB: number;
   };
   cpu: {
     usage: number;
@@ -70,6 +77,29 @@ export class HealthMonitor {
     // CPU usage
     const cpus = os.cpus();
     const load = os.loadavg();
+    
+    // Disk usage
+    let diskInfo = { used: 0, total: 50 * 1024 * 1024 * 1024, percentage: 0, availableGB: 50 };
+    try {
+      const diskOutput = execSync('df -B1 /', { encoding: 'utf8' });
+      const lines = diskOutput.trim().split('\n');
+      if (lines.length > 1) {
+        const fields = lines[1].split(/\s+/);
+        if (fields.length >= 4) {
+          const totalBytes = parseInt(fields[1]);
+          const usedBytes = parseInt(fields[2]);
+          const availableBytes = parseInt(fields[3]);
+          diskInfo = {
+            used: usedBytes,
+            total: totalBytes,
+            percentage: Math.round((usedBytes / totalBytes) * 100),
+            availableGB: Math.round(availableBytes / (1024 * 1024 * 1024) * 10) / 10
+          };
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to get disk usage:', error);
+    }
 
     // Database check
     let dbStatus: { connected: boolean; responseTime?: number } = { connected: false };
@@ -126,6 +156,7 @@ export class HealthMonitor {
         total: totalMem,
         percentage: Math.round((usedMem / totalMem) * 100)
       },
+      disk: diskInfo,
       cpu: {
         usage: load[0],
         load

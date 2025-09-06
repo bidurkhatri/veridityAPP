@@ -54,7 +54,7 @@ export default function AdminPortal() {
     select: (data: any) => ({
       cpu: Math.round(data.cpu?.usage || 0),
       memory: data.memory?.percentage || 0,
-      disk: 45, // TODO: Add disk usage to health endpoint
+      disk: data.disk?.percentage || 0,
       uptime: `${Math.floor(data.uptime / 86400)} days, ${Math.floor((data.uptime % 86400) / 3600)} hours`,
       activeUsers: data.metrics?.requests || 0,
       totalRequests: data.metrics?.totalRequests || 0
