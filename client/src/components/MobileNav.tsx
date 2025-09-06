@@ -1,16 +1,11 @@
 import { Link, useLocation } from "wouter";
 import { Home, Shield, Share, History, Settings } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 const MobileNav = () => {
   const [location] = useLocation();
   const { t } = useTranslation('en');
-  const isMobile = useIsMobile();
-  
-  // Don't render on desktop
-  if (!isMobile) return null;
 
   const navItems = [
     {
@@ -44,6 +39,10 @@ const MobileNav = () => {
       testId: "tab-settings"
     }
   ];
+
+  // Don't show on customer portal or other dedicated portal pages as they have their own navigation
+  const isPortalPage = location.includes('-portal');
+  if (isPortalPage) return null;
 
   return (
     <nav 

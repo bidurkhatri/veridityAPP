@@ -39,9 +39,10 @@ function Router() {
   const isMobile = useIsMobile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   
-  // Routes that should show mobile navigation
-  const mobileRoutes = ['/home', '/prove', '/share', '/history', '/settings', '/generate', '/verify'];
-  const shouldShowMobileNav = isMobile && mobileRoutes.includes(location);
+  // Routes that should NOT show mobile navigation (portal views have their own navigation)
+  const portalRoutes = ['/admin-portal', '/client-portal', '/customer-portal', '/enterprise'];
+  // Show mobile nav on mobile devices for non-portal routes
+  const shouldShowMobileNav = isMobile && !portalRoutes.includes(location);
   
   // Check if user has seen onboarding
   useEffect(() => {
