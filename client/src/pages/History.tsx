@@ -42,37 +42,7 @@ export default function History() {
     queryKey: ['/api/proofs/history'],
   });
 
-  // Mock data for demonstration
-  const mockProofs: ProofHistoryItem[] = [
-    {
-      id: '1',
-      type: 'Age Verification (18+)',
-      organization: 'Nepal Rastra Bank',
-      status: 'verified',
-      createdAt: '2025-01-02T10:30:00Z',
-      verifiedAt: '2025-01-02T10:31:00Z',
-      referenceId: 'VRF-2025-001'
-    },
-    {
-      id: '2',
-      type: 'Citizenship Verification',
-      organization: 'Nepal Government',
-      status: 'verified',
-      createdAt: '2025-01-01T14:20:00Z',
-      verifiedAt: '2025-01-01T14:21:00Z',
-      referenceId: 'VRF-2025-002'
-    },
-    {
-      id: '3',
-      type: 'Education Verification',
-      organization: 'Tribhuvan University',
-      status: 'pending',
-      createdAt: '2025-01-01T09:15:00Z',
-      referenceId: 'VRF-2025-003'
-    }
-  ];
-
-  const historyData = proofs.length > 0 ? proofs : mockProofs;
+  const historyData = proofs;
 
   // Filter and search functionality
   const filteredData = historyData.filter(item => {

@@ -32,6 +32,15 @@ export interface IStorage {
   getProof(id: string): Promise<Proof | undefined>;
   getUserProofs(userId: string, limit?: number): Promise<Proof[]>;
   updateProofStatus(id: string, status: string): Promise<void>;
+  getProofHistory(userId: string): Promise<Array<{
+    id: string;
+    type: string;
+    organization: string;
+    status: 'verified' | 'failed' | 'pending';
+    createdAt: string;
+    verifiedAt?: string;
+    referenceId: string;
+  }>>;
   
   // Proof type operations
   getProofTypes(): Promise<ProofType[]>;
@@ -346,6 +355,50 @@ export class DatabaseStorage implements IStorage {
         hour12: true 
       }),
       status: v.status
+    }));
+  }
+
+  async getProofHistory(userId: string): Promise<Array<{
+    id: string;
+    type: string;
+    organization: string;
+    status: 'verified' | 'failed' | 'pending';
+    createdAt: string;
+    verifiedAt?: string;
+    referenceId: string;
+  }>> {
+    // Get user's proofs with their verifications
+    const userProofs = await db
+      .select({
+        id: proofs.id,
+        proofTypeId: proofs.proofTypeId,
+        status: proofs.status,
+        createdAt: proofs.createdAt,
+        verificationId: verifications.id,
+        verificationStatus: verifications.status,
+        verificationCreatedAt: verifications.createdAt,
+        organizationId: verifications.organizationId
+      })
+      .from(proofs)
+      .leftJoin(verifications, eq(proofs.id, verifications.proofId))
+      .where(eq(proofs.userId, userId))
+      .orderBy(desc(proofs.createdAt));
+
+    // Get proof types and organizations for mapping
+    const proofTypesList = await this.getProofTypes();
+    const proofTypeMap = new Map(proofTypesList.map(pt => [pt.id, pt.name]));
+    
+    const organizationsList = await this.getOrganizations();
+    const organizationMap = new Map(organizationsList.map(org => [org.id, org.name]));
+
+    return userProofs.map(p => ({
+      id: p.id,
+      type: proofTypeMap.get(p.proofTypeId) || 'Unknown Type',
+      organization: p.organizationId ? (organizationMap.get(p.organizationId) || 'Unknown Organization') : 'Self-Verified',
+      status: (p.verificationStatus || p.status) as 'verified' | 'failed' | 'pending',
+      createdAt: p.createdAt.toISOString(),
+      verifiedAt: p.verificationCreatedAt?.toISOString(),
+      referenceId: `VRF-${p.id.slice(0, 8).toUpperCase()}`
     }));
   }
 }

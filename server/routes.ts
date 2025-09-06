@@ -149,6 +149,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's proof history with verification details
+  app.get('/api/proofs/history', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const historyData = await storage.getProofHistory(userId);
+      res.json(historyData);
+    } catch (error) {
+      console.error("Error fetching proof history:", error);
+      res.status(500).json({ message: "Failed to fetch proof history" });
+    }
+  });
+
   // V1 API - Enhanced verification with security
   app.post('/api/v1/verify', verifyRateLimit, validateNonce(), async (req: any, res) => {
     try {
