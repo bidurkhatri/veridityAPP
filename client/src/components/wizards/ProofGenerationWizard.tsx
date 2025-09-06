@@ -816,6 +816,96 @@ function HelpContent({ stepId }: { stepId: string }) {
           </ul>
         </div>
       )
+    },
+    'proof-details': {
+      en: (
+        <div>
+          <p className="mb-2"><strong>Proof Details:</strong></p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li><strong>Age Range:</strong> Select the minimum age threshold required</li>
+            <li><strong>Income Range:</strong> Choose from predefined income brackets</li>
+            <li><strong>Education Level:</strong> Select highest completed level</li>
+            <li><strong>Additional Requirements:</strong> Specify any other criteria needed</li>
+          </ul>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Only the minimum required information for verification will be processed.
+          </p>
+        </div>
+      ),
+      np: (
+        <div>
+          <p className="mb-2"><strong>प्रमाण विवरणहरू:</strong></p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li><strong>उमेर दायरा:</strong> चाहिएको न्यूनतम उमेर सीमा छान्नुहोस्</li>
+            <li><strong>आम्दानी दायरा:</strong> पूर्वनिर्धारित आम्दानी समूहहरूबाट छान्नुहोस्</li>
+            <li><strong>शिक्षा स्तर:</strong> सबैभन्दा उच्च पूरा गरेको स्तर छान्नुहोस्</li>
+            <li><strong>अतिरिक्त आवश्यकताहरू:</strong> अन्य चाहिने मापदण्डहरू निर्दिष्ट गर्नुहोस्</li>
+          </ul>
+          <p className="mt-2 text-sm text-muted-foreground">
+            प्रमाणीकरणको लागि न्यूनतम आवश्यक जानकारी मात्र प्रशोधन गरिनेछ।
+          </p>
+        </div>
+      )
+    },
+    'privacy-consent': {
+      en: (
+        <div>
+          <p className="mb-2"><strong>Privacy & Consent:</strong></p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li><strong>Zero-Knowledge:</strong> Your personal data never leaves your device</li>
+            <li><strong>Minimal Disclosure:</strong> Only the required proof result is shared</li>
+            <li><strong>Consent Control:</strong> You decide what information to verify</li>
+            <li><strong>Data Expiry:</strong> Proofs expire automatically for security</li>
+          </ul>
+          <p className="mt-2 text-sm text-blue-600 font-medium">
+            💡 Remember: You're only sharing the fact that you meet the criteria, not your actual data.
+          </p>
+        </div>
+      ),
+      np: (
+        <div>
+          <p className="mb-2"><strong>गोपनीयता र सहमति:</strong></p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li><strong>शून्य-ज्ञान:</strong> तपाईंको व्यक्तिगत डेटा तपाईंको यन्त्रबाट बाहिर जाँदैन</li>
+            <li><strong>न्यूनतम खुलासा:</strong> केवल आवश्यक प्रमाण परिणाम साझा गरिन्छ</li>
+            <li><strong>सहमति नियन्त्रण:</strong> तपाईं के जानकारी प्रमाणित गर्ने निर्णय गर्नुहुन्छ</li>
+            <li><strong>डेटा समाप्ति:</strong> सुरक्षाको लागि प्रमाणहरू स्वचालित रूपमा समाप्त हुन्छन्</li>
+          </ul>
+          <p className="mt-2 text-sm text-blue-600 font-medium">
+            💡 सम्झनुहोस्: तपाईं केवल मापदण्ड पूरा गर्ने तथ्य साझा गर्दै हुनुहुन्छ, तपाईंको वास्तविक डेटा होइन।
+          </p>
+        </div>
+      )
+    },
+    'review-generate': {
+      en: (
+        <div>
+          <p className="mb-2"><strong>Review & Generate:</strong></p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li><strong>Final Check:</strong> Verify all information is correct</li>
+            <li><strong>Processing Time:</strong> Usually takes 10-30 seconds</li>
+            <li><strong>QR Code:</strong> Your proof will be generated as a secure QR code</li>
+            <li><strong>Sharing:</strong> Present the QR code to the requesting organization</li>
+          </ul>
+          <p className="mt-2 text-sm text-green-600 font-medium">
+            ✅ Once generated, your proof is cryptographically secure and verifiable.
+          </p>
+        </div>
+      ),
+      np: (
+        <div>
+          <p className="mb-2"><strong>समीक्षा र उत्पादन:</strong></p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li><strong>अन्तिम जाँच:</strong> सबै जानकारी सही छ भनेर प्रमाणित गर्नुहोस्</li>
+            <li><strong>प्रशोधन समय:</strong> सामान्यतया १०-३० सेकेन्ड लाग्छ</li>
+            <li><strong>QR कोड:</strong> तपाईंको प्रमाण सुरक्षित QR कोडको रूपमा उत्पन्न हुनेछ</li>
+            <li><strong>साझाकरण:</strong> अनुरोध गर्ने संस्थालाई QR कोड प्रस्तुत गर्नुहोस्</li>
+          </ul>
+          <p className="mt-2 text-sm text-green-600 font-medium">
+            ✅ एक पटक उत्पन्न भएपछि, तपाईंको प्रमाण क्रिप्टोग्राफिक रूपमा सुरक्षित र प्रमाणित गर्न मिल्ने छ।
+          </p>
+        </div>
+      )
     }
   };
 

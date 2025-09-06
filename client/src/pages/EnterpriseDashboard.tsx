@@ -18,6 +18,16 @@ import {
   Eye,
   BarChart3
 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
 interface MultiSigRequirement {
   id: string;
@@ -321,12 +331,41 @@ export default function EnterpriseDashboard() {
                 <CardDescription>Success rates over time</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
-                  <div className="text-center text-muted-foreground">
-                    <BarChart3 className="h-12 w-12 mx-auto mb-2" />
-                    <p>Analytics chart placeholder</p>
-                    <p className="text-sm">Integration with chart library needed</p>
-                  </div>
+                <div className="h-64">
+                  <LineChart
+                    width={500}
+                    height={250}
+                    data={[
+                      { name: 'Mon', success: 94, failed: 6 },
+                      { name: 'Tue', success: 97, failed: 3 },
+                      { name: 'Wed', success: 89, failed: 11 },
+                      { name: 'Thu', success: 95, failed: 5 },
+                      { name: 'Fri', success: 92, failed: 8 },
+                      { name: 'Sat', success: 98, failed: 2 },
+                      { name: 'Sun', success: 96, failed: 4 }
+                    ]}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="success" 
+                      stroke="#10b981" 
+                      strokeWidth={2}
+                      name="Success Rate (%)"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="failed" 
+                      stroke="#ef4444" 
+                      strokeWidth={2}
+                      name="Failed Rate (%)"
+                    />
+                  </LineChart>
                 </div>
               </CardContent>
             </Card>
