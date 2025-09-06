@@ -27,7 +27,7 @@
 
 ## Overview
 
-Veridity is a privacy-first digital identity verification platform designed specifically for East Asian markets, with initial focus on Nepal. The platform leverages Zero-Knowledge Proofs (ZKP) to enable users to prove specific identity attributes (age, citizenship, education, income) without revealing sensitive personal data.
+Veridity is a production-ready, privacy-first digital identity verification platform designed specifically for East Asian markets, with initial focus on Nepal. The platform leverages Zero-Knowledge Proofs (ZKP) to enable users to prove specific identity attributes (age, citizenship, education, income) without revealing sensitive personal data.
 
 ### Mission
 
