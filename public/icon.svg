@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="#1a365d" stroke="#2d5a87" stroke-width="8"/>
+  
+  <!-- Shield shape -->
+  <path d="M256 80 L330 120 L330 200 Q330 280 256 350 Q182 280 182 200 L182 120 Z" fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Inner verification symbol -->
+  <circle cx="256" cy="200" r="60" fill="#1a365d" opacity="0.8"/>
+  
+  <!-- Checkmark -->
+  <path d="M230 200 L245 215 L282 175" stroke="#ffffff" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- ZK symbol -->
+  <text x="256" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#1a365d">ZK</text>
+  
+  <!-- Nepal flag colors accent -->
+  <rect x="200" y="400" width="20" height="30" fill="#dc143c"/>
+  <rect x="220" y="400" width="20" height="30" fill="#003893"/>
+  <rect x="292" y="400" width="20" height="30" fill="#dc143c"/>
+  
+  <!-- Dots for modern tech look -->
+  <circle cx="180" cy="150" r="4" fill="#ffffff" opacity="0.6"/>
+  <circle cx="332" cy="150" r="4" fill="#ffffff" opacity="0.6"/>
+  <circle cx="180" cy="250" r="4" fill="#ffffff" opacity="0.6"/>
+  <circle cx="332" cy="250" r="4" fill="#ffffff" opacity="0.6"/>
+</svg>
