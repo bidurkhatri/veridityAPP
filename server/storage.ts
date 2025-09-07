@@ -347,22 +347,24 @@ export class DatabaseStorage implements IStorage {
           )
         );
 
-      // Get unique users
+      // Get unique users (join through proofs to get userId)
       const [uniqueUsersResult] = await db
-        .select({ count: sql<number>`COUNT(DISTINCT ${verifications.userId})` })
+        .select({ count: sql<number>`COUNT(DISTINCT ${proofs.userId})` })
         .from(verifications)
+        .innerJoin(proofs, eq(verifications.proofId, proofs.id))
         .where(sql`${verifications.createdAt} >= ${monthStart}`);
 
       // Get proof type statistics
       const proofTypeStats = await db
         .select({ 
-          type: proofs.proofType,
+          type: proofTypes.name,
           count: count()
         })
         .from(proofs)
         .innerJoin(verifications, eq(proofs.id, verifications.proofId))
+        .innerJoin(proofTypes, eq(proofs.proofTypeId, proofTypes.id))
         .where(sql`${verifications.createdAt} >= ${monthStart}`)
-        .groupBy(proofs.proofType)
+        .groupBy(proofTypes.name)
         .orderBy(desc(count()))
         .limit(3);
 
@@ -370,13 +372,14 @@ export class DatabaseStorage implements IStorage {
       const recentActivity = await db
         .select({
           id: verifications.id,
-          type: proofs.proofType,
+          type: proofTypes.name,
           status: verifications.status,
           timestamp: verifications.createdAt,
-          userId: verifications.userId
+          userId: proofs.userId
         })
         .from(verifications)
         .innerJoin(proofs, eq(verifications.proofId, proofs.id))
+        .innerJoin(proofTypes, eq(proofs.proofTypeId, proofTypes.id))
         .where(sql`${verifications.createdAt} >= ${monthStart}`)
         .orderBy(desc(verifications.createdAt))
         .limit(10);
@@ -477,9 +480,10 @@ export class DatabaseStorage implements IStorage {
         id: verifications.id,
         status: verifications.status,
         createdAt: verifications.createdAt,
-        proofTypeId: verifications.proofTypeId
+        proofTypeId: proofs.proofTypeId
       })
       .from(verifications)
+      .innerJoin(proofs, eq(verifications.proofId, proofs.id))
       .orderBy(desc(verifications.createdAt))
       .limit(limit);
 
@@ -490,11 +494,11 @@ export class DatabaseStorage implements IStorage {
     return results.map(v => ({
       id: v.id,
       type: proofTypeMap.get(v.proofTypeId) || 'Unknown Type',
-      timestamp: new Date(v.createdAt).toLocaleTimeString('en-US', { 
+      timestamp: v.createdAt ? new Date(v.createdAt).toLocaleTimeString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit',
         hour12: true 
-      }),
+      }) : 'Unknown',
       status: v.status
     }));
   }
