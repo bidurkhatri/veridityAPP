@@ -62,13 +62,14 @@ export default {
         "56": "var(--spacing-56)",
         "64": "var(--spacing-64)",
       },
-      // Modern Border Radius System
+      // Brief-Specified Border Radius System
       borderRadius: {
         none: "var(--radius-none)",
-        sm: "var(--radius-sm)",
-        DEFAULT: "var(--radius-base)",
-        md: "var(--radius-md)",
-        lg: "var(--radius-lg)",
+        xs: "var(--radius-xs)",     /* 6px */
+        sm: "var(--radius-sm)",     /* 10px */
+        DEFAULT: "var(--radius-base)", /* 10px - inputs */
+        md: "var(--radius-md)",     /* 14px - cards */
+        lg: "var(--radius-lg)",     /* 20px - prominent CTAs */
         xl: "var(--radius-xl)",
         "2xl": "var(--radius-2xl)",
         full: "var(--radius-full)",

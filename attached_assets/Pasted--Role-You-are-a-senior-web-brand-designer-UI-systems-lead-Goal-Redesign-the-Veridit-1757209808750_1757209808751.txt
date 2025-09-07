@@ -1,0 +1,169 @@
+
+
+**Role:** You are a senior web brand designer + UI systems lead.
+**Goal:** Redesign the Veridity UI so it feels premium, consistent, and production-ready (not like a demo template). Build a cohesive **brand system + component library** and refactor all screens (Customer, Client, Admin portals; Home/Prove/Share/History/Settings) to use it. Maintain privacy-first tone.
+
+**Deliverables**
+
+1. **Figma:** Design Tokens (light/dark/high-contrast), components (buttons, inputs, selects, datepicker, segmented control, cards, steppers, tables, stats, badges, empty states, toasts, banners, dialogs/sheets), page templates for all screens, interaction specs, redlines.
+2. **Code-ready tokens:** Tailwind CSS variables + CSS custom properties.
+3. **Iconography:** Single set (Lucide) + 8–12 custom Veridity glyphs (ZK shield, Proof, QR Verify, Wallet Backup, Audit, AI Fraud, Chain, Government).
+4. **Content polish:** Microcopy guidelines, status/badge naming, validation messages.
+5. **Accessibility:** WCAG 2.2 AA, keyboard order, focus states, reduced motion.
+
+**Design System (tokens)**
+
+* **Palette**
+  `--brand-emerald-600:#10B981; --brand-teal-500:#06B6D4; --accent-purple-500:#7C3AED; --error-600:#DC2626; --warning-600:#D97706; --success-600:#16A34A; --gray-900:#0F172A; --gray-700:#334155; --gray-100:#F1F5F9;`
+  Gradients: `brand` = teal→emerald (45°).
+* **Typography**
+  H1 28/36 • H2 22/28 • H3 18/24 • Body 14/20 • Small 12/18.
+  Font: Inter/Manrope; numeric tabular for KPIs.
+* **Radius & Elevation**
+  xs 6 • sm 10 • md 14 • lg 20; shadows: `e1/e2/e3` with subtle ambient.
+* **Spacing/Grid**
+  8-pt scale: 4/8/12/16/20/24/32/40/64; container max 1200.
+* **Motion**
+  120ms/180ms ease-out; reduced-motion safe.
+
+**Patterns to Implement**
+
+* **Sticky stepper footer** with primary CTA and disabled-reason message.
+* **Radix Select/DatePicker with Portal** (fix all z-index overlap).
+* **Status pills** (Verified/Pending/Failed) with clear colors + icons.
+* **Share screen**: timer pill above QR, primary action row (Copy/Share/PDF), “What’s shared?” explainer card.
+* **History**: filter chips + expandable rows (verifier, circuit ver., expiry, hashes).
+* **Settings**: Wallet Backup cards (Passkey/Recovery), segmented control for auto-delete (Off/7d/30d/90d/Custom).
+* **KPI tiles**: trend chevrons + sparklines, 1-decimal formatting.
+* **Language toggle**: segmented control bound to value (no index glitches).
+
+**Quality Bar**
+
+* Axe a11y score ≥ 98; contrast AA; forms validated inline; no long decimals; consistent icon sizes; zero placeholder squares.
+
+---
+
+# ✅ Full Task & Template Issue List (with fixes)
+
+## P0 — Cross-system fixes
+
+* **Inconsistent visual language** (template vibe).
+  **Fix:** Ship tokens + unified component library; remove bespoke page styles.
+* **Gradient/contrast issues** in dark sections.
+  **Fix:** True dark theme, softer radial background; verify AA contrast.
+* **Typography inconsistency**.
+  **Fix:** Enforce ramp + line-height; max line width; tabular numerals for stats.
+* **Icon mismatch/missing**.
+  **Fix:** Standardize on Lucide 1.5px; add custom Veridity glyphs; replace all blanks.
+* **Button chaos** (many variants).
+  **Fix:** Primary/Secondary/Tertiary/Destructive/Quiet only; clear sizes (sm/md/lg); loading + disabled states.
+* **Spacing density drifts**.
+  **Fix:** 8pt grid; page gutters 24–32; tile paddings 16/20.
+
+## P0 — Interaction & A11y
+
+* **Language toggle selects the wrong tab.**
+  **Fix:** Bind segmented control to language code; persist to storage.
+* **Select/DatePicker overlap (z-index bug).**
+  **Fix:** Radix Select/Popover with `Portal`; collision detection enabled.
+* **Disabled primary CTAs lack reason.**
+  **Fix:** Show inline hint under CTA (“Select Province to continue”).
+* **Focus & keyboard order inconsistent.**
+  **Fix:** Landmarks (header/nav/main), visible focus rings, ESC to close dialogs.
+* **Contrast on dark screens** (Share, History).
+  **Fix:** Audit tokens; elevate text/controls to AA/AAA where needed.
+
+## P1 — Page templates
+
+**Welcome / Portal Switcher**
+
+* Add identity strip (avatar, role chip, env badge).
+* Convert portal links to 3 action cards with icons + bullets.
+* Add Quick Start (Generate Proof / Scan QR / Docs).
+
+**Customer Portal (My Identity)**
+
+* KPI tiles: trends & badges; fix “-423 days” → **Expired** label + Renew action.
+* Quick Actions as icon cards; Profile shows verification level + backup status.
+
+**Proof Flow (Type → Enter → Generate)**
+
+* Illustrated icons per proof type.
+* Sticky stepper footer; helper tooltips on Age, Income, Citizenship fields.
+* Smart inputs: DOB mask; numeric keypad for Income; pattern/length for IDs.
+
+**Share**
+
+* Timer pill above QR; action row with Copy/Share/PDF (primary styling).
+* “What gets shared?” card (public signals only, never plaintext data).
+
+**History**
+
+* Row expand for meta (verifier, hash, circuit ver., expiry); top toolbar export CSV/PDF.
+
+**Settings / Wallet Backup**
+
+* Passkey/Recovery as progress cards; segmented control for auto-delete.
+* Group Privacy & Security toggles; add high-contrast mode.
+
+**Client (Organization)**
+
+* KPI cards with sparklines; action cards (API keys/Webhooks/SDK/Docs).
+* Activity as timeline with category chips.
+
+**Admin**
+
+* Round percentages to 1 decimal; uptime as rolling 30-day; tiles clickable to detail.
+* Security events with severity tags; Access Control as toggleable policy list.
+* Analytics with real charts; Support: make Chat Console a primary button.
+
+## P1 — Content & Microcopy
+
+* Replace long privacy paragraph with compact line + “Learn more”.
+* Normalize case rules (Sentence case for buttons/labels).
+* Status language unified (Verified / Pending / Failed).
+
+## P1 — Internationalization
+
+* Remove leaked i18n keys (e.g., `form.minimumAge`); 100% EN/NE coverage.
+* Header language switcher persistent; instant update without full reload.
+* Locale date/number formatting via `Intl.*`.
+
+## P2 — Brand & Delight
+
+* Roll out the new **Veridity logo** to top bar/login/empty states.
+* Lightweight line illustrations for each proof; success micro-animation (shield burst).
+* Coach marks for first-run; “Why we ask this?” inline explainer links.
+
+## Engineering Hand-off
+
+* Tailwind variables + CSS vars for tokens; `data-theme` for light/dark/HC.
+* Radix primitives: Select/Tabs/Tooltip/Dialog/Sheet/Toast/Popover with Portal.
+* Utility formatters: numbers/percentages/uptime; remove long decimals.
+* Axe CI check on key routes; ESLint a11y rules.
+* TTS abstraction (if kept in scope): map high-quality EN/NE voices; save per-language rate/pitch.
+
+---
+
+## Tiny Style Guide (use immediately)
+
+* **Primary** `#10B981` (emerald-600), hover `#059669`; **Gradient** teal-500 `#06B6D4` → emerald-600.
+* **Text**: on light `#0F172A`, on dark `#F8FAFC`.
+* **Surface**: light `#FFFFFF`, dark `#0B1220`; cards `#0F1626`.
+* **Error/Warning/Success**: `#DC2626` / `#D97706` / `#16A34A`.
+* **Radius**: 14 (cards), 10 (inputs), 20 (prominent CTAs).
+* **Focus ring**: 2px `#06B6D4` outside border; keyboard only.
+
+---
+
+## Acceptance Criteria (definition of done)
+
+* Every screen uses the new tokens/components; **no ad-hoc CSS**.
+* Axe score ≥ 98; all text/icon contrast AA.
+* Forms: inline validation, disabled CTA reason present.
+* No z-index overlaps; selects and popovers never cover other inputs.
+* Stats formatted human-readably (no long decimals, friendly units).
+* Visual tests: light/dark/high-contrast parity.
+* Brand applied: logo, icons, illustrations—no placeholders.
+
+
