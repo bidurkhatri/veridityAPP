@@ -192,7 +192,7 @@ export function HistoryList({
 
                           <div className="flex items-center gap-1">
                             <Button
-                              variant="ghost"
+                              variant="quiet"
                               size="sm"
                               onClick={() => toggleExpanded(item.id)}
                               data-testid={`expand-${item.id}`}
@@ -206,7 +206,7 @@ export function HistoryList({
                             
                             {actualStatus === 'expired' && (
                               <Button
-                                variant="outline"
+                                variant="secondary"
                                 size="sm"
                                 className="text-primary"
                                 data-testid={`renew-${item.id}`}
@@ -235,9 +235,9 @@ export function HistoryList({
                                   {item.metadata.publicSignalsHash.slice(0, 32)}...
                                 </code>
                                 <Button
-                                  variant="ghost"
+                                  variant="quiet"
                                   size="sm"
-                                  onClick={() => copyToClipboard(item.metadata.publicSignalsHash!)}
+                                  onClick={() => copyToClipboard(item.metadata?.publicSignalsHash || '')}
                                   data-testid={`copy-hash-${item.id}`}
                                 >
                                   <Copy className="h-3 w-3" />
@@ -250,7 +250,7 @@ export function HistoryList({
                             <div>
                               <label className="text-text-tertiary">Circuit Version:</label>
                               <div className="mt-1">
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="secondary" className="text-xs">
                                   v{item.metadata.circuitVersion}
                                 </Badge>
                               </div>
@@ -278,7 +278,7 @@ export function HistoryList({
 
                         <div className="flex items-center gap-2 pt-2">
                           <Button
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
                             onClick={() => onItemClick?.(item)}
                             data-testid={`view-details-${item.id}`}
@@ -287,7 +287,7 @@ export function HistoryList({
                             View Details
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
                             data-testid={`download-${item.id}`}
                           >

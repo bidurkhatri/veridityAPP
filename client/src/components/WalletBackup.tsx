@@ -208,7 +208,7 @@ export function WalletBackup({ onBackupComplete }: WalletBackupProps) {
               <h4 className="font-medium text-sm mb-3">Restore Options</h4>
               <div className="flex space-x-2">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={restoreFromPasskey}
                   className="flex-1 apple-button"
@@ -218,7 +218,7 @@ export function WalletBackup({ onBackupComplete }: WalletBackupProps) {
                   Passkey
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   className="flex-1 apple-button"
                   disabled={!backupStatus.hasMnemonic}
@@ -299,7 +299,7 @@ export function WalletBackup({ onBackupComplete }: WalletBackupProps) {
           {/* Controls */}
           <div className="flex space-x-2">
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() => setShowMnemonic(!showMnemonic)}
               className="flex-1 apple-button"
@@ -308,7 +308,7 @@ export function WalletBackup({ onBackupComplete }: WalletBackupProps) {
               {showMnemonic ? 'Hide' : 'Reveal'}
             </Button>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={copyMnemonic}
               disabled={!showMnemonic}
