@@ -9,6 +9,30 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-canvas bg-gradient-subtle relative overflow-hidden">
+      {/* Identity Strip - Brief Requirements */}
+      <div className="bg-surface border-b border-border-default">
+        <div className="container mx-auto px-6 py-3">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-brand-emerald-600 rounded-sm flex items-center justify-center">
+                  <Shield className="h-3 w-3 text-white" />
+                </div>
+                <span className="font-medium text-text-primary">Nepal's First ZK Platform</span>
+              </div>
+              <div className="hidden md:flex items-center gap-2 text-text-tertiary">
+                <CheckCircle className="h-4 w-4 text-success-text" />
+                <span>Government Approved</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-text-tertiary">
+              <span>🔒 99.9% Uptime</span>
+              <span>⚡ Zero Data Storage</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       {/* Hero Section */}
       <div className="container mx-auto px-6 py-20 relative z-10">
         <div className="text-center mb-24 fade-in">
@@ -35,14 +59,25 @@ export default function Landing() {
             </p>
           </div>
 
-          <Button 
-            onClick={handleLogin}
-            size="lg"
-            className="btn-base brand-primary px-12 py-4 text-lg font-semibold elevation-sm hover:elevation-md transition-all"
-            data-testid="button-get-started"
-          >
-            Get Started
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={handleLogin}
+              size="lg"
+              variant="primary"
+              className="px-12 py-4 text-lg font-semibold"
+              data-testid="button-get-started"
+            >
+              Get Started
+            </Button>
+            <Button 
+              size="lg"
+              variant="secondary"
+              className="px-12 py-4 text-lg font-semibold"
+              data-testid="button-learn-more"
+            >
+              Learn More
+            </Button>
+          </div>
         </div>
 
         {/* Features Grid */}
