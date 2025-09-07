@@ -209,7 +209,7 @@ export function ShareActions({
         {/* Secondary Actions */}
         <div className="flex gap-2 pt-2 border-t border-border-default">
           <Button
-            variant="ghost"
+            variant="quiet"
             size="sm"
             onClick={handleViewQR}
             data-testid="qr-code-button"
@@ -220,7 +220,7 @@ export function ShareActions({
           </Button>
           
           <Button
-            variant="ghost"
+            variant="quiet"
             size="sm"
             data-testid="add-to-wallet-button"
             className="flex-1"

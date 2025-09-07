@@ -93,7 +93,7 @@ export function CoachMarks({ marks, onComplete, onSkip, isVisible = true }: Coac
                   </div>
                 </div>
                 <Button
-                  variant="ghost"
+                  variant="quiet"
                   size="sm"
                   onClick={handleSkip}
                   className="p-1"
@@ -111,7 +111,7 @@ export function CoachMarks({ marks, onComplete, onSkip, isVisible = true }: Coac
 
                 {mark.action && (
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={mark.action.onClick}
                     className="w-full"
@@ -125,7 +125,7 @@ export function CoachMarks({ marks, onComplete, onSkip, isVisible = true }: Coac
               {/* Navigation */}
               <div className="flex items-center justify-between pt-2">
                 <Button
-                  variant="ghost"
+                  variant="quiet"
                   size="sm"
                   onClick={handleSkip}
                   data-testid="coach-marks-skip"
@@ -136,7 +136,7 @@ export function CoachMarks({ marks, onComplete, onSkip, isVisible = true }: Coac
                 <div className="flex items-center gap-2">
                   {!isFirst && (
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       onClick={handlePrevious}
                       data-testid="coach-marks-previous"
