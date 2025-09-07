@@ -13,22 +13,23 @@ import {
 
 // Validate required QR security environment variables
 if (!process.env.QR_SIGNING_SECRET) {
-  console.error('❌ QR_SIGNING_SECRET environment variable is required');
-  throw new Error('QR_SIGNING_SECRET environment variable is required for secure QR generation');
+  console.warn('⚠️  QR_SIGNING_SECRET environment variable not provided - using development fallback');
+  console.warn('⚠️  Please set QR_SIGNING_SECRET for production security');
 }
 
 if (!process.env.QR_ENCRYPTION_KEY) {
-  console.error('❌ QR_ENCRYPTION_KEY environment variable is required');
-  throw new Error('QR_ENCRYPTION_KEY environment variable is required for secure QR encryption');
+  console.warn('⚠️  QR_ENCRYPTION_KEY environment variable not provided - using development fallback');  
+  console.warn('⚠️  Please set QR_ENCRYPTION_KEY for production security');
 }
 
-if (process.env.QR_ENCRYPTION_KEY.length !== 32) {
+if (process.env.QR_ENCRYPTION_KEY && process.env.QR_ENCRYPTION_KEY.length !== 32) {
   console.error('❌ QR_ENCRYPTION_KEY must be exactly 32 characters for AES-256');
   throw new Error('QR_ENCRYPTION_KEY must be exactly 32 characters for AES-256 encryption');
 }
 
-const QR_SIGNING_SECRET = process.env.QR_SIGNING_SECRET;
-const QR_ENCRYPTION_KEY = process.env.QR_ENCRYPTION_KEY;
+// Use provided secrets or development fallbacks
+const QR_SIGNING_SECRET = process.env.QR_SIGNING_SECRET || 'dev-qr-signing-secret-32-chars-min';
+const QR_ENCRYPTION_KEY = process.env.QR_ENCRYPTION_KEY || 'dev-qr-encryption-key-32-chars!!!';
 
 // Nonce storage for replay attack prevention (use Redis in production)
 const usedNonces = new Set<string>();
