@@ -1,0 +1,85 @@
+Act as a senior full-stack engineer and ship-ready product designer. Refactor Veridity’s auth, theming, navigation, QR flows, dashboards, and RBAC so the app is production-grade (no demo affordances). Implement the following and deliver code + tests + screenshots.
+
+1) Authentication (replace Replit auth)
+
+Add Email+Password, Passkeys (WebAuthn), and OAuth (Google, GitHub, Microsoft, Apple). Optional SAML/OIDC SSO for orgs.
+
+Remove all “demo” and role switcher UI/routes.
+
+Implement server-enforced RBAC (user, org_admin, admin) with route guards and policy checks on every API.
+
+DoD: Login screen shows the above methods; post-login lands on role dashboard; unauthorized routes return 403; no switch-role anywhere.
+
+2) Role-based Home (no multi-portal landing)
+
+On login, route to role dashboard:
+
+user: proofs summary, quick actions (Generate, Share, History).
+
+org_admin: API keys, webhooks, usage, verification logs.
+
+admin: system health, incidents, user management, security events.
+
+Remove multi-portal cards from Home; keep a small role chip in header.
+
+DoD: Users only see features they’re permitted to use; deep links honor RBAC.
+
+3) Theming (global Light/Dark)
+
+Add theme toggle in the header on every page (desktop + mobile overflow). Respect system preference; persist in storage.
+
+Migrate all screens to semantic tokens; fix contrast so AA/AAA passes.
+
+Fix white-on-white buttons in Light mode; implement states (hover/active/disabled/loading).
+
+DoD: Toggle appears everywhere; Axe score ≥ 98; no invisible text; visual parity across themes.
+
+4) QR flows (working end-to-end)
+
+Implement QR payload schema with version, nonce, expiry (TTL), and signature; show countdown pill and “Expired” state.
+
+Fix Generate QR and Scan QR (mobile camera & desktop) with error states and success screen.
+
+Deep-link handler /verify/:token validates nonce + expiry; revoke on first use if configured.
+
+DoD: QR can be generated, scanned, verified across devices; expired/used codes fail with clear UI.
+
+5) Buttons, Inputs, Navigation
+
+Audit all buttons; wire missing handlers; add loading spinners and disabled reasons.
+
+Add Back button on subpages + breadcrumbs on desktop; support hardware back on mobile.
+
+Replace all Select/Popover/DatePicker with Radix + Portal (no z-index overlap).
+
+DoD: No dead buttons; back navigation available; popovers don’t clip/overlap inputs.
+
+6) Production polish
+
+Error boundaries + 404/403 pages; toast system for success/errors; skeletons replaced with real data.
+
+Locale-aware dates/numbers; EN/NE strings complete; language toggle stable.
+
+Security headers (CSP/HSTS/COOP/COEP), rate limits, CSRF where applicable.
+
+DoD: Headers present; i18n 100%; no placeholder “template” visuals.
+
+7) Tests & Docs
+
+E2E (auth, role routing, QR generate/scan/verify), unit tests for RBAC & theme store, visual regression for light/dark.
+
+Update README: auth providers, env vars, theme tokens, QR spec, RBAC matrix.
+
+DoD: CI green; screenshots of each role dashboard (light/dark); QR demo GIF.
+
+Acceptance criteria (concise)
+
+No demo/switch-role anywhere; RBAC enforced server-side.
+
+Global theme toggle; AA/AAA contrast; zero invisible text.
+
+QR works across platforms with nonce/expiry; expired codes blocked.
+
+All primary actions respond; back navigation exists on every flow.
+
+Home = role dashboard (user/org_admin/admin), not a portal picker.

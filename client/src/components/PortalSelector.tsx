@@ -14,7 +14,7 @@ import {
   Users,
   RotateCcw
 } from 'lucide-react';
-import RoleAssigner from '@/components/RoleAssigner';
+// RoleAssigner removed for production
 
 interface UserWithRole {
   id: string;
@@ -112,29 +112,7 @@ export default function PortalSelector() {
           </div>
         </div>
 
-        {/* Demo Role Switcher */}
-        <div className="text-center mb-6">
-          <Button
-            variant="outline"
-            onClick={() => setShowRoleAssigner(!showRoleAssigner)}
-            data-testid="toggle-role-assigner"
-          >
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Switch Role (Demo)
-          </Button>
-        </div>
-
-        {showRoleAssigner && (
-          <div className="mb-8">
-            <RoleAssigner 
-              currentRole={user.role} 
-              onRoleChanged={() => {
-                refetch();
-                setShowRoleAssigner(false);
-              }}
-            />
-          </div>
-        )}
+        {/* Demo role switcher removed for production */}
 
         {/* Portal Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
