@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/veridity-icons';
 import { useTranslation } from '@/lib/i18n';
 import { StickyFooter } from '@/components/ui/sticky-footer';
+import { DOBInput, NumericInput } from '@/components/ui/smart-inputs';
 
 interface WizardStep {
   id: string;
@@ -446,31 +447,25 @@ function BasicInfoStep({ formData, updateFormData, language }: any) {
         />
       </div>
 
-      <div>
-        <Label htmlFor="dob">
-          {language === 'np' ? 'जन्म मिति' : 'Date of Birth'} *
-        </Label>
-        <Input
-          id="dob"
-          type="date"
-          value={formData.personalInfo.dateOfBirth}
-          onChange={(e) => updateFormData('personalInfo', { dateOfBirth: e.target.value })}
-          className="mt-1"
-        />
-      </div>
+      <DOBInput
+        id="dob"
+        label={language === 'np' ? 'जन्म मिति' : 'Date of Birth'}
+        value={formData.personalInfo.dateOfBirth}
+        onChange={(value) => updateFormData('personalInfo', { dateOfBirth: value })}
+        format="YYYY-MM-DD"
+        required
+        helperText={language === 'np' ? 'YYYY-MM-DD ढाँचामा प्रविष्ट गर्नुहोस्' : 'Enter in YYYY-MM-DD format'}
+      />
 
-      <div>
-        <Label htmlFor="citizenship">
-          {language === 'np' ? 'नागरिकता नम्बर' : 'Citizenship Number'} *
-        </Label>
-        <Input
-          id="citizenship"
-          value={formData.personalInfo.citizenshipNumber}
-          onChange={(e) => updateFormData('personalInfo', { citizenshipNumber: e.target.value })}
-          placeholder={language === 'np' ? '१२३४५६७८९' : '123456789'}
-          className="mt-1"
-        />
-      </div>
+      <NumericInput
+        id="citizenship"
+        label={language === 'np' ? 'नागरिकता नम्बर' : 'Citizenship Number'}
+        value={formData.personalInfo.citizenshipNumber}
+        onChange={(value) => updateFormData('personalInfo', { citizenshipNumber: value })}
+        pattern="citizenship"
+        required
+        helperText={language === 'np' ? 'XX-XX-XX-XXXXX ढाँचामा प्रविष्ट गर्नुहोस्' : 'Enter in XX-XX-XX-XXXXX format'}
+      />
 
       <div>
         <Label htmlFor="province">
