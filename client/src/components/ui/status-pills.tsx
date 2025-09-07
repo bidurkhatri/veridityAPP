@@ -26,12 +26,12 @@ const statusConfig = {
   failed: {
     label: 'Failed',
     icon: XCircle,
-    className: 'text-danger-text bg-danger-bg border-danger-border',
+    className: 'text-error-text bg-error-bg border-error-border',
   },
   expired: {
     label: 'Expired',
     icon: AlertCircle,
-    className: 'text-danger-text bg-danger-bg/50 border-danger-border',
+    className: 'text-error-text bg-error-bg/50 border-error-border',
   },
   processing: {
     label: 'Processing',

@@ -9,32 +9,27 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary - Brand colors for main actions
-        primary: "bg-brand-600 text-text-inverse hover:bg-brand-700 active:bg-brand-800 elevation-sm hover:elevation-md active:elevation-xs",
+        // Primary - Brief spec: emerald-600 with hover emerald-hover
+        primary: "bg-brand-emerald-600 text-text-inverse hover:bg-brand-emerald-hover active:bg-brand-emerald-hover/90 elevation-sm hover:elevation-md active:elevation-xs",
         
-        // Secondary - Neutral colors for secondary actions
+        // Secondary - Neutral with border 
         secondary: "bg-surface-secondary border border-border-default text-text-primary hover:bg-surface-tertiary hover:border-border-strong active:bg-neutral-200",
         
-        // Success - Green colors for positive actions
-        success: "bg-success-600 text-text-inverse hover:bg-success-700 active:bg-success-800 elevation-sm hover:elevation-md active:elevation-xs",
+        // Tertiary - Minimal with subtle background
+        tertiary: "bg-transparent border border-border-default text-text-primary hover:bg-surface-secondary hover:border-border-strong active:bg-surface-tertiary",
         
-        // Destructive - Red colors for dangerous actions
-        destructive: "bg-danger-600 text-text-inverse hover:bg-danger-700 active:bg-danger-800 elevation-sm hover:elevation-md active:elevation-xs",
+        // Destructive - Red for dangerous actions
+        destructive: "bg-error-600 text-text-inverse hover:bg-error-700 active:bg-error-700/90 elevation-sm hover:elevation-md active:elevation-xs",
         
-        // Outline - Bordered transparent background
-        outline: "border border-border-default bg-transparent text-text-primary hover:bg-surface-secondary hover:border-border-strong active:bg-surface-tertiary",
-        
-        // Ghost - No background, minimal styling
-        ghost: "bg-transparent text-text-primary hover:bg-surface-secondary active:bg-surface-tertiary",
+        // Quiet - No background, minimal styling
+        quiet: "bg-transparent text-text-primary hover:bg-surface-secondary active:bg-surface-tertiary",
       },
       size: {
-        // 5 sizes as per acceptance criteria
-        xs: "h-8 px-3 py-1 text-xs rounded-md [&_svg]:size-3",
-        sm: "h-9 px-4 py-2 text-sm rounded-md [&_svg]:size-4",
-        md: "h-10 px-5 py-2.5 text-sm rounded-lg [&_svg]:size-4",
-        lg: "h-12 px-6 py-3 text-base rounded-lg [&_svg]:size-5",
-        xl: "h-14 px-8 py-4 text-lg rounded-xl [&_svg]:size-6",
-        icon: "h-10 w-10 rounded-lg [&_svg]:size-4",
+        // Brief specifications: clear sizes sm/md/lg
+        sm: "h-9 px-4 py-2 text-sm rounded-sm [&_svg]:size-4",           /* 10px radius */
+        md: "h-10 px-5 py-2.5 text-sm rounded-md [&_svg]:size-4",        /* 14px radius */
+        lg: "h-12 px-6 py-3 text-base rounded-lg [&_svg]:size-5",        /* 20px radius */
+        icon: "h-10 w-10 rounded-md [&_svg]:size-4",
       },
       loading: {
         true: "cursor-wait opacity-70",
