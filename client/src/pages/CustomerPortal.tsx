@@ -163,7 +163,7 @@ export default function CustomerPortal() {
           <Badge variant={getVerificationBadgeVariant(userProfile.verificationLevel)}>
             {userProfile.verificationLevel}
           </Badge>
-          <Button variant="outline" size="sm" data-testid="upgrade-verification">
+          <Button variant="secondary" size="sm" data-testid="upgrade-verification">
             Upgrade
           </Button>
         </div>
@@ -418,13 +418,13 @@ export default function CustomerPortal() {
                       </div>
                     </div>
                     <div className="flex gap-2 ml-4">
-                      <Button variant="outline" size="sm" data-testid={`share-proof-${proof.id}`}>
+                      <Button variant="secondary" size="sm" data-testid={`share-proof-${proof.id}`}>
                         <Share2 className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" data-testid={`view-proof-${proof.id}`}>
+                      <Button variant="secondary" size="sm" data-testid={`view-proof-${proof.id}`}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" data-testid={`download-proof-${proof.id}`}>
+                      <Button variant="secondary" size="sm" data-testid={`download-proof-${proof.id}`}>
                         <Download className="h-4 w-4" />
                       </Button>
                     </div>
@@ -490,7 +490,7 @@ export default function CustomerPortal() {
               <div className="pt-6 border-t">
                 <h4 className="font-medium mb-4">Data Export & Deletion</h4>
                 <div className="flex gap-3">
-                  <Button variant="outline" data-testid="export-data">
+                  <Button variant="secondary" data-testid="export-data">
                     <Download className="h-4 w-4 mr-2" />
                     Export My Data
                   </Button>
@@ -522,7 +522,7 @@ export default function CustomerPortal() {
                     <h4 className="font-medium">Two-Factor Authentication</h4>
                     <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
                   </div>
-                  <Button variant="outline" data-testid="setup-2fa">
+                  <Button variant="secondary" data-testid="setup-2fa">
                     Setup
                   </Button>
                 </div>
@@ -637,19 +637,19 @@ export default function CustomerPortal() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button className="w-full justify-start" variant="outline" data-testid="view-faq">
+              <Button className="w-full justify-start" variant="secondary" data-testid="view-faq">
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Frequently Asked Questions
               </Button>
-              <Button className="w-full justify-start" variant="outline" data-testid="contact-support">
+              <Button className="w-full justify-start" variant="secondary" data-testid="contact-support">
                 <Smartphone className="h-4 w-4 mr-2" />
                 Contact Support
               </Button>
-              <Button className="w-full justify-start" variant="outline" data-testid="video-tutorials">
+              <Button className="w-full justify-start" variant="secondary" data-testid="video-tutorials">
                 <Globe className="h-4 w-4 mr-2" />
                 Video Tutorials
               </Button>
-              <Button className="w-full justify-start" variant="outline" data-testid="report-issue">
+              <Button className="w-full justify-start" variant="secondary" data-testid="report-issue">
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 Report an Issue
               </Button>
