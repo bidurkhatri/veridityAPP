@@ -48,7 +48,7 @@ export function AppHeader({
           <div className="flex items-center min-w-[64px]">
             {type === 'sub' && (
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onClick={handleBack}
                 className="p-2 h-9 w-9"
@@ -99,7 +99,7 @@ export function BackButton({ href = '#' }: { href?: string }) {
   
   return (
     <Button
-      variant="ghost"
+      variant="secondary"
       size="sm"
       onClick={() => navigate(href)}
       className="p-2 h-9 w-9"
@@ -114,7 +114,7 @@ export function BackButton({ href = '#' }: { href?: string }) {
 export function OverflowButton({ onClick }: { onClick?: () => void }) {
   return (
     <Button
-      variant="ghost"
+      variant="secondary"
       size="sm"
       onClick={onClick}
       className="p-2 h-9 w-9"

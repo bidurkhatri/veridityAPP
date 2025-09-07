@@ -65,7 +65,7 @@ const MobileNav = () => {
               aria-current={isActive ? 'page' : undefined}
               className={cn(
                 "flex flex-col items-center justify-center space-y-1 p-1 rounded-xl",
-                "min-h-[44px] min-w-[44px] transition-colors duration-200",
+                "min-h-[48px] min-w-[48px] transition-colors duration-200",
                 isActive 
                   ? "text-brand-primary" 
                   : "text-text-muted hover:text-text-primary"
@@ -73,7 +73,7 @@ const MobileNav = () => {
               data-testid={item.testId}
             >
               <Icon className="h-5 w-5" />
-              <span className="text-xs font-medium leading-none">
+              <span className="text-[10px] sm:text-xs font-medium leading-none">
                 {item.label}
               </span>
               <div className={cn(
