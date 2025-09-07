@@ -3,7 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AnimatedCountdown } from "@/components/ui/countdown-pill";
+import { CountdownPill } from "@/components/ui/countdown-pill";
+import { ShareActions } from "@/components/ui/share-actions";
 import { useTranslation } from "@/lib/i18n";
 import { AppHeader } from "@/components/AppHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -128,7 +129,7 @@ export default function Share() {
           <CardContent className="p-4">
             <div className="flex rounded-xl bg-muted/20 p-1 space-x-1">
               <Button
-                variant={activeTab === 'qr' ? 'primary' : 'ghost'}
+                variant={activeTab === 'qr' ? 'primary' : 'quiet'}
                 className={`flex-1 ${activeTab === 'qr' ? 'apple-gradient apple-button border-0' : ''}`}
                 onClick={() => setActiveTab('qr')}
                 data-testid="tab-share"
@@ -137,7 +138,7 @@ export default function Share() {
                 Share
               </Button>
               <Button
-                variant={activeTab === 'scan' ? 'primary' : 'ghost'}
+                variant={activeTab === 'scan' ? 'primary' : 'quiet'}
                 className={`flex-1 ${activeTab === 'scan' ? 'apple-gradient apple-button border-0' : ''}`}
                 onClick={() => setActiveTab('scan')}
                 data-testid="tab-scan"
@@ -240,7 +241,7 @@ export default function Share() {
                 {/* QR Info */}
                 <div className="text-center space-y-4">
                   <div className="flex items-center justify-center">
-                    <AnimatedCountdown 
+                    <CountdownPill 
                       timeLeft={timeLeft}
                       size="md"
                       format="short"
@@ -257,7 +258,7 @@ export default function Share() {
                   
                   <div className="flex items-center justify-center space-x-2">
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       onClick={async () => {
                         setCopying(true);
@@ -273,7 +274,7 @@ export default function Share() {
                       {copying ? 'Copied!' : 'Copy Link'}
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       className="apple-button"
                       data-testid="button-share-qr"
