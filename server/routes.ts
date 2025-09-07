@@ -52,6 +52,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Role-specific dashboard endpoints
+  app.get('/api/user/dashboard', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const stats = await storage.getUserStats(userId);
+      
+      res.json({
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email
+        },
+        stats
+      });
+    } catch (error) {
+      console.error("Error fetching user dashboard:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard data" });
+    }
+  });
+
+  app.get('/api/org-admin/dashboard', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user.role !== 'client' && user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Organization admin role required." });
+      }
+
+      // Mock data for organization dashboard
+      const data = {
+        organization: {
+          id: user.organizationId || "org-1",
+          name: "Sample Organization",
+          type: "enterprise",
+          isActive: true
+        },
+        stats: await storage.getOrganizationStats(user.organizationId || "org-1"),
+        apiKeys: [
+          {
+            id: "key-1",
+            name: "Production API Key",
+            lastUsed: "2 hours ago",
+            isActive: true
+          },
+          {
+            id: "key-2", 
+            name: "Development API Key",
+            lastUsed: "1 day ago",
+            isActive: true
+          }
+        ],
+        webhooks: [
+          {
+            id: "webhook-1",
+            url: "https://api.example.com/webhooks/veridity",
+            events: ["verification.completed", "proof.generated"],
+            status: "active" as const
+          }
+        ],
+        recentActivity: await storage.getRecentVerifications(10)
+      };
+
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching org admin dashboard:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard data" });
+    }
+  });
+
+  app.get('/api/admin/dashboard', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Administrator role required." });
+      }
+
+      const systemStats = await storage.getSystemStats();
+      const userStats = await storage.getUserRoleStats();
+      
+      const data = {
+        systemHealth: {
+          status: "healthy" as const,
+          uptime: "99.9%",
+          responseTime: 145,
+          errorRate: 0.02
+        },
+        userStats,
+        systemStats,
+        recentIncidents: [
+          {
+            id: "incident-1",
+            type: "performance" as const,
+            message: "API response time spike detected",
+            timestamp: "2 hours ago",
+            status: "resolved" as const
+          },
+          {
+            id: "incident-2",
+            type: "security" as const,
+            message: "Unusual login pattern detected",
+            timestamp: "5 hours ago", 
+            status: "investigating" as const
+          }
+        ],
+        securityEvents: [
+          {
+            id: "event-1",
+            event: "Failed login attempt",
+            user: "user@example.com",
+            timestamp: "1 hour ago",
+            severity: "medium" as const
+          },
+          {
+            id: "event-2",
+            event: "API key rotation",
+            user: "admin@example.com", 
+            timestamp: "3 hours ago",
+            severity: "low" as const
+          }
+        ]
+      };
+
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching admin dashboard:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard data" });
+    }
+  });
+
   // Role management is now handled through proper RBAC system
   // Demo role switching endpoint removed for production security
 

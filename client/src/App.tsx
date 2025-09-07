@@ -28,23 +28,89 @@ import Help from "@/pages/Help";
 import Privacy from "@/pages/Privacy";
 import OrganizationDashboard from "@/pages/OrganizationDashboard";
 import EnterpriseDashboard from "@/pages/EnterpriseDashboard";
-import AdminPortal from "@/pages/AdminPortal";
-import ClientPortal from "@/pages/ClientPortal";
-import CustomerPortal from "@/pages/CustomerPortal";
-import PortalSelector from "@/components/PortalSelector";
+import UserDashboard from "@/pages/UserDashboard";
+import OrgAdminDashboard from "@/pages/OrgAdminDashboard";
+import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
 
+interface RouterProps {
+  user?: {
+    role: 'customer' | 'client' | 'admin';
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
+function RoleBasedRouter({ user }: RouterProps) {
+  // Direct role-based routing for production
+  if (!user) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>;
+  }
+
+  // Route directly to role-specific dashboard
+  const getDashboardComponent = () => {
+    switch (user.role) {
+      case 'admin':
+        return AdminDashboard;
+      case 'client':
+        return OrgAdminDashboard;
+      case 'customer':
+      default:
+        return UserDashboard;
+    }
+  };
+
+  const DashboardComponent = getDashboardComponent();
+
+  return (
+    <Switch>
+      {/* Role-specific dashboard as home */}
+      <Route path="/" component={DashboardComponent} />
+      
+      {/* Core application routes */}
+      <Route path="/prove" component={ProofGeneration} />
+      <Route path="/share" component={Share} />
+      <Route path="/history" component={History} />
+      <Route path="/settings" component={Settings} />
+      
+      {/* Legacy routes for backward compatibility */}
+      <Route path="/generate" component={ProofGeneration} />
+      <Route path="/verify" component={Verification} />
+      
+      {/* Admin routes (protected by role-based access) */}
+      {user.role === 'admin' && (
+        <Route path="/admin" component={Admin} />
+      )}
+      
+      {/* Organization routes (protected by role-based access) */}
+      {(user.role === 'admin' || user.role === 'client') && (
+        <Route path="/organizations" component={OrganizationDashboard} />
+      )}
+      
+      {/* Support and Legal Pages */}
+      <Route path="/help" component={Help} />
+      <Route path="/privacy" component={Privacy} />
+      
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Check if user has seen onboarding
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem('veridity-onboarding-complete');
-    if (!hasSeenOnboarding && isAuthenticated && !isLoading) {
+    if (!hasSeenOnboarding && isAuthenticated && !isLoading && user) {
       setShowOnboarding(true);
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, user]);
   
   const handleOnboardingComplete = () => {
     localStorage.setItem('veridity-onboarding-complete', 'true');
@@ -73,35 +139,7 @@ function Router() {
           onSkip={handleOnboardingSkip}
         />
       )}
-      <Switch>
-        {/* Portal Selector - Main Entry Point */}
-        <Route path="/" component={PortalSelector} />
-        
-        {/* Mobile-first navigation structure as per PRD */}
-        <Route path="/home" component={Home} />
-        <Route path="/prove" component={ProofGeneration} />
-        <Route path="/share" component={Share} />
-        <Route path="/history" component={History} />
-        <Route path="/settings" component={Settings} />
-        
-        {/* Legacy routes for backward compatibility */}
-        <Route path="/generate" component={ProofGeneration} />
-        <Route path="/verify" component={Verification} />
-        <Route path="/admin" component={Admin} />
-        
-        {/* New Portal Routes */}
-        <Route path="/enterprise" component={EnterpriseDashboard} />
-        <Route path="/admin-portal" component={AdminPortal} />
-        <Route path="/client-portal" component={ClientPortal} />
-        <Route path="/customer-portal" component={CustomerPortal} />
-        
-        {/* Support and Legal Pages */}
-        <Route path="/help" component={Help} />
-        <Route path="/privacy" component={Privacy} />
-        <Route path="/organizations" component={OrganizationDashboard} />
-        
-        <Route component={NotFound} />
-      </Switch>
+      <RoleBasedRouter user={user as any} />
       <MobileNav />
     </>
   );
