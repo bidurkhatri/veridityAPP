@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, CheckCircle, Globe, Smartphone, Lock, Users } from "lucide-react";
+import { VeridityLogo } from "@/components/ui/veridity-icons";
 
 export default function Landing() {
   const handleLogin = () => {
@@ -16,7 +17,7 @@ export default function Landing() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-brand-emerald-600 rounded-sm flex items-center justify-center">
-                  <Shield className="h-3 w-3 text-white" />
+                  <VeridityLogo size={12} className="text-white" />
                 </div>
                 <span className="font-medium text-text-primary">Nepal's First ZK Platform</span>
               </div>
@@ -38,7 +39,7 @@ export default function Landing() {
         <div className="text-center mb-24 fade-in">
           <div className="flex justify-center mb-8">
             <div className="w-20 h-20 brand-gradient rounded-2xl flex items-center justify-center elevation-lg scale-in">
-              <Shield className="h-10 w-10 text-text-inverse" />
+              <VeridityLogo size={40} className="text-text-inverse" />
             </div>
           </div>
           
