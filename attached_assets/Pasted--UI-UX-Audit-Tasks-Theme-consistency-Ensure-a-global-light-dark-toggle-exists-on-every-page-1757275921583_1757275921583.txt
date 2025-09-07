@@ -1,0 +1,109 @@
+✅ UI & UX Audit Tasks
+	•	Theme consistency
+	•	Ensure a global light/dark toggle exists on every page, using the defined design tokens.
+	•	Verify contrast ratios meet WCAG AA/AAA in both themes; adjust colours in tailwind.config.ts or design tokens if necessary.
+	•	Confirm no Radix Select/Popover components bleed through layers; use portals and z‑index tokens.
+	•	Internationalization
+	•	Implement language toggling (English ↔ नपाली) across the entire site and mobile app.
+	•	Extract all static strings into en.json and np.json; log missing translations in development.
+	•	Use Intl for locale‑aware formatting of dates, numbers and currencies.
+	•	Mobile responsiveness
+	•	Audit all components (cards, grids, forms) on small screens. The marketing site’s “Trusted by Organizations” and “Why Choose Veridity?” sections should stack neatly on mobile.
+	•	Ensure touch targets are at least 44×44 px.
+	•	Accessibility (A11y)
+	•	Run axe and Lighthouse accessibility audits for each page in both themes; aim for ≥98 scores.
+	•	Provide aria-labels for icons (e.g., the lock icon on “Zero‑Knowledge Proofs”).
+	•	Ensure keyboard navigation covers all interactive elements, including dropdowns and date pickers.
+	•	Verify screen‑reader announcements for proof generation, QR scanning, and error states.
+	•	User flow clarity
+	•	Map core flows: landing → get started → sign‑up/log‑in → upload or generate proof → share via QR → verify → dashboard/history.
+	•	Identify missing or unclear CTAs (call‑to‑actions) on the marketing site—e.g., a “Get Started” button that leads to the actual app.
+	•	Provide onboarding tooltips or modals explaining zero‑knowledge proofs to first‑time users.
+
+⸻
+
+🔒 Security & Privacy Tasks (Backend)
+	•	Secret management
+	•	Remove all fallback hard‑coded secrets in server code; enforce mandatory env variables for SESSION_SECRET, QR_SIGNING_SECRET, QR_ENCRYPTION_KEY and DATABASE_URL.
+	•	Document secret rotation procedures in SECURITY.md.
+	•	CSRF & session integrity
+	•	Implement CSRF protection for state‑changing endpoints using csurf; expose a /api/csrf-token endpoint.
+	•	Enforce httpOnly, secure and sameSite=strict flags on cookies in production.
+	•	Rate limiting & idempotency
+	•	Use the DB‑based rate limiter in production; expose X‑RateLimit-* headers.
+	•	Add idempotency keys to POST routes to prevent duplicate proof generation.
+	•	Authentication & RBAC
+	•	Centralize role/permission checks; create an authorize(permission) middleware and remove inline role checks.
+	•	Remove any demo or role‑switch components; ensure each user sees only the appropriate dashboard.
+	•	Input validation & API contract
+	•	Define an OpenAPI 3.1 spec covering all endpoints; validate requests/responses against this spec.
+	•	Use Zod or Joi on every route; unify error responses ({ code, message, details }).
+	•	Audit logging & privacy
+	•	Insert audit log entries for authentication events, proof generation, verification and admin actions.
+	•	Ensure logs are structured (JSON), include trace IDs and redact PII (e.g., email, IP).
+	•	Provide endpoints for users to request data export and deletion (GDPR compliance).
+
+⸻
+
+🔐 Zero‑Knowledge Stack & Cryptography
+	•	Circuit compilation & benchmarking
+	•	Install circom and snarkjs; compile circuits/age.circom to generate .r1cs, .wasm and .zkey.
+	•	Record constraint counts; measure proof generation/verification times on desktop and mobile.
+	•	Maintain a CircuitVersionRegistry mapping circuit versions to PTAU files, zkey checksums and verification key hashes.
+	•	Secure QR codes
+	•	Replace in‑memory nonce set with a DB table to prevent replay attacks.
+	•	Use HMAC‑SHA256 signatures and AES‑GCM encryption for QR payloads; fail verification on signature/nonce/expiry errors.
+	•	Display expiry countdown in the UI; handle scanning of expired tokens gracefully.
+	•	PTAU provenance
+	•	Download or generate Powers‑of‑Tau files using a trusted source; document the ceremony; publish checksums.
+
+⸻
+
+🔌 API & Observability
+	•	Pagination & filtering
+	•	Add limit, offset, sort and filter query parameters to list endpoints (e.g., /api/user/dashboard).
+	•	Return total counts and next‑page indicators; update UI for infinite scroll or pagination.
+	•	Webhooks & retries
+	•	Sign webhooks with HMAC; include a timestamp; implement exponential backoff retries on failure.
+	•	Provide an endpoint to test webhook delivery.
+	•	OpenTelemetry
+	•	Integrate OTEL tracing for HTTP requests and database queries; propagate traceparent headers.
+	•	Expose metrics (p95 latencies) and logs to dashboards.
+
+⸻
+
+📱 Mobile & PWA
+	•	Service worker & offline mode
+	•	Register a service worker to cache static assets and API responses; implement background sync for queued proofs.
+	•	Update PWA manifest (icons, start_url, background color) and ensure “install” prompts work on Android/iOS.
+	•	Secure storage & deep links
+	•	In the React‑Native app, use expo-secure-store to store tokens and session info.
+	•	Handle universal links (veridity://) to open the app directly from QR codes or e‑mails.
+
+⸻
+
+🗃️ Data & Database
+	•	Schema & migrations
+	•	Define deletedAt columns for soft deletion on users, proofs and verifications; create migrations using Drizzle.
+	•	Add indexes to frequently queried fields (e.g., userId, createdAt, nonce).
+	•	Implement a retention policy and scheduled purge for soft‑deleted records.
+	•	Audit trail immutability
+	•	Ensure audit_logs cannot be updated or deleted; add signatures or digests for daily rollups.
+	•	Data export & delete SOP
+	•	Provide endpoints to export a user’s data (e.g., as JSON or PDF) and to request deletion; document manual steps for operators.
+
+⸻
+
+⚙️ DevOps, CI/CD & Documentation
+	•	CI/CD pipeline
+	•	Set up GitHub Actions (or similar) to run npm ci, type‑checks, unit tests, e2e tests, npm audit, osv‑scanner, gitleaks and Lighthouse/axe.
+	•	Fail builds on high‑severity vulnerabilities or accessibility violations.
+	•	Containerization
+	•	Create a multi‑stage Dockerfile for the server and client; add a docker-compose.yml for local development with Postgres/Redis.
+	•	Provide a Helm chart or Kubernetes manifests for deployment.
+	•	Monitoring & alerts
+	•	Define SLOs/SLIs for API latency, error rates and throughput; configure alerts in Prometheus/Grafana or equivalent.
+	•	Documentation
+	•	Expand README with environment variables, setup instructions, circuit build steps, and PWA usage.
+	•	Write SECURITY.md outlining security controls and secret rotation.
+	•	Publish a QR token specification, RBAC matrix, circuit registry and disaster recovery procedures
