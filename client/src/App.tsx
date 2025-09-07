@@ -12,6 +12,8 @@ import { VoiceNavigationNew as VoiceNavigation } from "@/components/VoiceNavigat
 import { PWACapabilities } from "@/components/PWACapabilities";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { AccessibilityProvider } from "@/components/AccessibilityProvider";
+import { HighContrastProvider } from "@/components/ui/high-contrast-theme";
 
 // Pages
 import Landing from "@/pages/Landing";
@@ -125,15 +127,19 @@ function AppWithTheme() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <OfflineIndicator />
-          <Router />
-          <VoiceNavigation 
-            currentLanguage={currentLanguage}
-            onLanguageChange={setCurrentLanguage}
-          />
-        </TooltipProvider>
+        <AccessibilityProvider>
+          <HighContrastProvider>
+            <TooltipProvider>
+              <Toaster />
+              <OfflineIndicator />
+              <Router />
+              <VoiceNavigation 
+                currentLanguage={currentLanguage}
+                onLanguageChange={setCurrentLanguage}
+              />
+            </TooltipProvider>
+          </HighContrastProvider>
+        </AccessibilityProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
