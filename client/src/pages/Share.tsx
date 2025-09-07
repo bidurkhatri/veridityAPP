@@ -245,7 +245,6 @@ export default function Share() {
                       timeLeft={timeLeft}
                       size="md"
                       format="short"
-                      onExpire={() => console.log('QR Code expired')}
                       data-testid="countdown-timer"
                     />
                   </div>
