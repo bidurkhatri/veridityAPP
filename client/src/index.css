@@ -266,6 +266,7 @@
   }
 }
   
+:root {
   /* Legacy compatibility mappings */
   --primary: 151 74% 38%;
   --primary-foreground: 0 0% 100%;
@@ -307,7 +308,7 @@
   /* Subtle gradients replacing harsh multicolor */
   --gradient-subtle: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface-secondary) 100%);
   --gradient-primary: linear-gradient(135deg, var(--brand-primary-500) 0%, var(--brand-primary-600) 100%);
-  --noise-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+  --noise-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNose' baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
 }
 
 .dark {
