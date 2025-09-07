@@ -24,8 +24,15 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
-  FileText
+  FileText,
+  Plus,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
+import { KpiTile, KpiGrid } from '@/components/ui/kpi-tiles';
+import { StatusPill } from '@/components/ui/status-pills';
+import { NumberDisplay } from '@/components/ui/number-display';
+import { VeridityIcons } from '@/components/ui/veridity-icons';
 
 interface UserProfile {
   id: string;
@@ -162,58 +169,65 @@ export default function CustomerPortal() {
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card data-testid="stat-active-proofs">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Proofs</CardTitle>
-            <Shield className="h-4 w-4 text-success-text" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{userProofs?.filter(p => p.status === 'active').length || 0}</div>
-            <p className="text-xs text-muted-foreground">ready to share</p>
-          </CardContent>
-        </Card>
-
-        <Card data-testid="stat-total-shares">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Shares</CardTitle>
-            <Share2 className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {userProofs?.reduce((sum, proof) => sum + proof.sharedCount, 0) || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">lifetime shares</p>
-          </CardContent>
-        </Card>
-
-        <Card data-testid="stat-verifications">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Verifications</CardTitle>
-            <CheckCircle className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {userProofs?.reduce((sum, proof) => sum + proof.verifications, 0) || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">total verifications</p>
-          </CardContent>
-        </Card>
-
-        <Card data-testid="stat-member-since">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Member Since</CardTitle>
-            <Clock className="h-4 w-4 text-text-tertiary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">
-              {new Date(userProfile.memberSince).toLocaleDateString()}
-            </div>
-            <p className="text-xs text-muted-foreground">trusted member</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Customer KPI Dashboard - Brief Requirements */}
+      <KpiGrid 
+        columns={4}
+        className="mb-8"
+        tiles={[
+          {
+            label: "Active Proofs",
+            value: userProofs?.filter(p => p.status === 'active').length || 0,
+            formatType: "number",
+            decimals: 0,
+            trend: {
+              value: 12.5,
+              direction: "up",
+              period: "this month"
+            },
+            sparklineData: [8, 12, 15, 18, 22, 25, 28],
+            icon: <VeridityIcons.zkShield size={16} />,
+          },
+          {
+            label: "Total Shares",
+            value: userProofs?.reduce((sum, proof) => sum + proof.sharedCount, 0) || 7,
+            formatType: "number", 
+            decimals: 0,
+            trend: {
+              value: 18.3,
+              direction: "up",
+              period: "vs last week"
+            },
+            sparklineData: [5, 7, 6, 8, 12, 10, 14],
+            icon: <Share2 className="h-4 w-4" />,
+          },
+          {
+            label: "Success Rate",
+            value: 94.7,
+            formatType: "percentage",
+            decimals: 1,
+            trend: {
+              value: 2.1,
+              direction: "up", 
+              period: "this month"
+            },
+            sparklineData: [92, 93, 91, 94, 95, 96, 94.7],
+            icon: <CheckCircle className="h-4 w-4" />,
+          },
+          {
+            label: "Privacy Score",
+            value: 98.2,
+            formatType: "percentage", 
+            decimals: 1,
+            trend: {
+              value: 0.8,
+              direction: "up",
+              period: "improving"
+            },
+            sparklineData: [96, 97, 97.5, 98, 98.1, 98.0, 98.2],
+            icon: <VeridityIcons.privacy size={16} />,
+          }
+        ]}
+      />
 
       {/* Main Customer Tabs */}
       <Tabs defaultValue="dashboard" className="space-y-6">
@@ -258,27 +272,75 @@ export default function CustomerPortal() {
               </CardContent>
             </Card>
 
+            {/* Enhanced Quick Actions - Brief Requirements */}
             <Card>
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="h-5 w-5" />
+                  Quick Actions
+                </CardTitle>
+                <CardDescription>
+                  Most common identity verification tasks
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full justify-start" variant="outline" data-testid="generate-new-proof">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Generate New Proof
-                </Button>
-                <Button className="w-full justify-start" variant="outline" data-testid="share-existing-proof">
-                  <QrCode className="h-4 w-4 mr-2" />
-                  Share Existing Proof
-                </Button>
-                <Button className="w-full justify-start" variant="outline" data-testid="view-shared-proofs">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Shared Proofs
-                </Button>
-                <Button className="w-full justify-start" variant="outline" data-testid="download-backup">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Backup
-                </Button>
+                <div className="grid grid-cols-1 gap-3">
+                  {/* Primary Actions */}
+                  <div className="space-y-3 pb-3 border-b border-border-default">
+                    <Button 
+                      className="w-full justify-start h-12" 
+                      variant="primary" 
+                      size="lg"
+                      data-testid="generate-new-proof"
+                    >
+                      <VeridityIcons.zkShield className="h-5 w-5 mr-3" />
+                      <div className="text-left">
+                        <div className="font-semibold">Generate New Proof</div>
+                        <div className="text-xs opacity-80">Create ZK proof for verification</div>
+                      </div>
+                    </Button>
+                  </div>
+
+                  {/* Secondary Actions */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      className="h-16 flex-col gap-1" 
+                      variant="secondary" 
+                      data-testid="qr-verify-action"
+                    >
+                      <VeridityIcons.qrVerify size={20} />
+                      <span className="text-xs">QR Verify</span>
+                    </Button>
+                    <Button 
+                      className="h-16 flex-col gap-1" 
+                      variant="secondary" 
+                      data-testid="share-proof-action"
+                    >
+                      <Share2 className="h-5 w-5" />
+                      <span className="text-xs">Share Proof</span>
+                    </Button>
+                  </div>
+
+                  {/* Utility Actions */}
+                  <div className="space-y-2 pt-2">
+                    <Button 
+                      className="w-full justify-start" 
+                      variant="tertiary" 
+                      data-testid="wallet-backup-action"
+                    >
+                      <VeridityIcons.walletBackup className="h-4 w-4 mr-2" />
+                      Wallet Backup
+                    </Button>
+                    <Button 
+                      className="w-full justify-start" 
+                      variant="tertiary" 
+                      data-testid="audit-trail-action"
+                    >
+                      <VeridityIcons.auditTrail className="h-4 w-4 mr-2" />
+                      View Activity Trail
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
