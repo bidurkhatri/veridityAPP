@@ -26,7 +26,7 @@ import {
   Smartphone,
   Zap
 } from 'lucide-react';
-import { useTranslation } from '@/lib/i18n/useTranslation';
+import { useTranslation } from '@/lib/i18n';
 
 interface WizardStep {
   id: string;
@@ -268,7 +268,7 @@ export function ProofGenerationWizard({ onComplete, initialData }: {
               </p>
             </div>
             <Button
-              variant="ghost"
+              variant="quiet"
               size="sm"
               onClick={() => toggleHelp(currentStepData.id)}
               className="text-blue-600"

@@ -135,7 +135,7 @@ export function ShareActions({
               </p>
             </div>
             <Button
-              variant="ghost"
+              variant="quiet"
               size="sm"
               className="text-xs"
               data-testid="privacy-details-link"
@@ -175,7 +175,7 @@ export function ShareActions({
 
           {/* Native Share */}
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={handleNativeShare}
             className="justify-start gap-3 h-auto py-3"
             data-testid="share-button"
@@ -191,7 +191,7 @@ export function ShareActions({
 
           {/* Save PDF */}
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={handleSavePDF}
             className="justify-start gap-3 h-auto py-3"
             data-testid="save-pdf-button"
