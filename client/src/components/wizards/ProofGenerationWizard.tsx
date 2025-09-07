@@ -33,6 +33,7 @@ import {
   EducationIcon 
 } from '@/components/ui/veridity-icons';
 import { useTranslation } from '@/lib/i18n';
+import { StickyFooter } from '@/components/ui/sticky-footer';
 
 interface WizardStep {
   id: string;
@@ -317,38 +318,24 @@ export function ProofGenerationWizard({ onComplete, initialData }: {
         </CardContent>
       </Card>
 
-      {/* Navigation Buttons */}
-      <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          onClick={prevStep}
-          disabled={currentStep === 0}
-          className="flex items-center gap-2"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          {language === 'np' ? 'पछाडि' : 'Back'}
-        </Button>
-
-        {currentStep === wizardSteps.length - 1 ? (
-          <Button
-            onClick={() => onComplete(formData)}
-            disabled={!stepValidation[currentStep]}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-          >
-            <Shield className="h-4 w-4" />
-            {language === 'np' ? 'प्रमाण बनाउनुहोस्' : 'Generate Proof'}
-          </Button>
-        ) : (
-          <Button
-            onClick={nextStep}
-            disabled={!stepValidation[currentStep]}
-            className="flex items-center gap-2"
-          >
-            {language === 'np' ? 'अगाडि' : 'Next'}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+      <StickyFooter
+        showProgress={true}
+        progressValue={progress}
+        secondaryAction={currentStep > 0 ? {
+          label: language === 'np' ? 'पछाडि' : 'Back',
+          onClick: prevStep
+        } : undefined}
+        primaryAction={{
+          label: currentStep === wizardSteps.length - 1 
+            ? (language === 'np' ? 'प्रमाण बनाउनुहोस्' : 'Generate Proof')
+            : (language === 'np' ? 'अगाडि' : 'Next'),
+          onClick: currentStep === wizardSteps.length - 1 
+            ? () => onComplete(formData)
+            : nextStep,
+          disabled: !stepValidation[currentStep],
+          variant: currentStep === wizardSteps.length - 1 ? "primary" : "primary"
+        }}
+      />
     </div>
   );
 }
