@@ -11,8 +11,7 @@ import {
   ArrowRight,
   Settings,
   BarChart3,
-  Users,
-  RotateCcw
+  Users
 } from 'lucide-react';
 // RoleAssigner removed for production
 
@@ -27,7 +26,7 @@ interface UserWithRole {
 }
 
 export default function PortalSelector() {
-  const [showRoleAssigner, setShowRoleAssigner] = useState(false);
+  // showRoleAssigner removed for production
   
   const { data: user, refetch } = useQuery<UserWithRole>({
     queryKey: ['/api/auth/user'],
