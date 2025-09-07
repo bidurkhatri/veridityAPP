@@ -31,6 +31,7 @@ import EnterpriseDashboard from "@/pages/EnterpriseDashboard";
 import UserDashboard from "@/pages/UserDashboard";
 import OrgAdminDashboard from "@/pages/OrgAdminDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
+import QRVerification from "@/pages/QRVerification";
 import NotFound from "@/pages/not-found";
 
 interface RouterProps {
@@ -91,6 +92,9 @@ function RoleBasedRouter({ user }: RouterProps) {
         <Route path="/organizations" component={OrganizationDashboard} />
       )}
       
+      {/* QR Verification Routes */}
+      <Route path="/verify-qr" component={QRVerification} />
+      
       {/* Support and Legal Pages */}
       <Route path="/help" component={Help} />
       <Route path="/privacy" component={Privacy} />
@@ -147,7 +151,6 @@ function Router() {
 
 function AppWithTheme() {
   useAutoThemeDetection();
-  useTheme(); // Initialize theme system
   const [currentLanguage, setCurrentLanguage] = useState<'en' | 'ne'>('en');
 
   // Load language from localStorage

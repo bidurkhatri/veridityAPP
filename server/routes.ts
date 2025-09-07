@@ -19,6 +19,8 @@ import { aiDocumentVerificationService } from "./ai/document-verification";
 import { marketExpansionService } from "./internationalization/market-expansion";
 import { WebSocketServer } from "ws";
 import { z } from "zod";
+import { qrSecurityService } from "./qr-service";
+import { QRGenerationRequestSchema } from "@shared/qr-schema";
 
 // In-memory storage for verification requests (in production this would be in database)
 const verificationRequests = new Map<string, any>();
@@ -183,6 +185,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching admin dashboard:", error);
       res.status(500).json({ message: "Failed to fetch dashboard data" });
+    }
+  });
+
+  // Secure QR Code Generation and Verification API
+  app.post('/api/qr/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      // Validate request using QR schema
+      const validation = QRGenerationRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: 'Invalid QR generation request',
+          details: validation.error 
+        });
+      }
+      
+      const request = validation.data;
+      
+      // Check rate limiting
+      const rateLimitOk = await qrSecurityService.checkRateLimit('generate', userId);
+      if (!rateLimitOk) {
+        return res.status(429).json({ error: 'Rate limit exceeded' });
+      }
+      
+      // Generate secure QR code
+      const qrResult = await qrSecurityService.generateSecureQR(
+        request,
+        user.id,
+        user.firstName + ' ' + user.lastName
+      );
+      
+      res.json({
+        success: true,
+        qr: qrResult,
+        message: 'Secure QR code generated successfully'
+      });
+      
+    } catch (error) {
+      console.error('QR generation error:', error);
+      res.status(500).json({ error: 'Failed to generate QR code' });
+    }
+  });
+
+  app.post('/api/qr/verify', async (req: any, res) => {
+    try {
+      const { token, checksum } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ error: 'Token is required' });
+      }
+      
+      // Check rate limiting for verification
+      const clientIp = req.ip || req.connection.remoteAddress;
+      const rateLimitOk = await qrSecurityService.checkRateLimit('verify', clientIp);
+      if (!rateLimitOk) {
+        return res.status(429).json({ error: 'Rate limit exceeded' });
+      }
+      
+      // Verify QR token
+      const result = await qrSecurityService.verifyQRToken(token, checksum);
+      
+      if (result.success) {
+        res.json({
+          success: true,
+          payload: result.payload,
+          metadata: result.metadata,
+          message: 'QR code verified successfully'
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error,
+          metadata: result.metadata
+        });
+      }
+      
+    } catch (error) {
+      console.error('QR verification error:', error);
+      res.status(500).json({ error: 'Failed to verify QR code' });
+    }
+  });
+
+  // Deep-link QR verification endpoint for /verify/:token URLs
+  app.get('/verify/:token', async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { c: checksum } = req.query;
+      
+      // Verify QR token
+      const result = await qrSecurityService.verifyQRToken(token, checksum as string);
+      
+      if (result.success && result.payload) {
+        // Redirect to frontend verification page with payload info
+        const verificationUrl = `/verify-qr?type=${result.payload.type}&issuer=${encodeURIComponent(result.payload.issuer.name)}&success=true`;
+        res.redirect(verificationUrl);
+      } else {
+        // Redirect to error page with error info
+        const errorUrl = `/verify-qr?success=false&error=${encodeURIComponent(result.error?.code || 'UNKNOWN')}`;
+        res.redirect(errorUrl);
+      }
+      
+    } catch (error) {
+      console.error('Deep-link verification error:', error);
+      res.redirect('/verify-qr?success=false&error=SERVER_ERROR');
     }
   });
 
