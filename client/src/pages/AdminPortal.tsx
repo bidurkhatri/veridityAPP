@@ -122,11 +122,11 @@ export default function AdminPortal() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" data-testid="refresh-data">
+          <Button variant="secondary" size="sm" data-testid="refresh-data">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button variant="outline" size="sm" data-testid="export-data">
+          <Button variant="secondary" size="sm" data-testid="export-data">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
