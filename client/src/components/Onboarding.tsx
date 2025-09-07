@@ -19,6 +19,7 @@ import {
   Zap,
   X
 } from "lucide-react";
+import { CoachMarks, useCoachMarks, useCustomerPortalCoachMarks } from "@/components/ui/coach-marks";
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -37,6 +38,10 @@ export function Onboarding({ onComplete, onSkip }: OnboardingProps) {
   const { t } = useTranslation('en');
   const [currentStep, setCurrentStep] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Coach marks integration
+  const coachMarks = useCustomerPortalCoachMarks();
+  const { isVisible: showCoachMarks, hideCoachMarks } = useCoachMarks('veridity-onboarding-coach-marks');
 
   const steps: OnboardingStep[] = [
     {
@@ -284,11 +289,20 @@ export function Onboarding({ onComplete, onSkip }: OnboardingProps) {
   const currentStepData = steps[currentStep];
 
   return (
-    <div className="fixed inset-0 bg-background/95 backdrop-blur-lg z-50 flex items-center justify-center p-4">
+    <>
+      {showCoachMarks && currentStep === steps.length - 1 && (
+        <CoachMarks
+          marks={coachMarks}
+          onComplete={hideCoachMarks}
+          onSkip={hideCoachMarks}
+          isVisible={showCoachMarks}
+        />
+      )}
+      <div className="fixed inset-0 bg-background/95 backdrop-blur-lg z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md apple-card apple-glass border-0 apple-shadow">
         <CardHeader className="relative">
           <Button
-            variant="ghost"
+            variant="quiet"
             size="sm"
             onClick={onSkip}
             className="absolute top-0 right-0 text-muted-foreground"
@@ -327,7 +341,7 @@ export function Onboarding({ onComplete, onSkip }: OnboardingProps) {
           
           <div className="flex justify-between items-center">
             <Button
-              variant="ghost"
+              variant="quiet"
               onClick={prevStep}
               disabled={currentStep === 0}
               className="apple-button"
@@ -353,5 +367,6 @@ export function Onboarding({ onComplete, onSkip }: OnboardingProps) {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }
