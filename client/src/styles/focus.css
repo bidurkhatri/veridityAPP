@@ -2,7 +2,7 @@
 
 /* Global focus ring system with proper keyboard detection */
 :root {
-  --focus-ring-color: theme('colors.brand.emerald.600');
+  --focus-ring-color: #10B981;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
   --focus-ring-opacity: 0.8;

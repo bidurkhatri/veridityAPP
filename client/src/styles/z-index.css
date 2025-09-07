@@ -1,0 +1,114 @@
+/* Z-Index Management System - Brief Requirements */
+
+:root {
+  /* Z-index scale following design system standards */
+  --z-base: 0;
+  --z-docked: 10;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-banner: 1030;
+  --z-overlay: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-skip-link: 1070;
+  --z-toast: 1080;
+  --z-tooltip: 1090;
+  --z-debug: 2147483647;
+}
+
+/* Fix Radix Portal z-index conflicts */
+[data-radix-portal] {
+  z-index: var(--z-popover) !important;
+}
+
+/* Select dropdown z-index fixes */
+[data-radix-select-content] {
+  z-index: var(--z-dropdown) !important;
+}
+
+[data-radix-select-trigger] {
+  position: relative;
+  z-index: var(--z-base);
+}
+
+/* DatePicker popover z-index fixes */
+[data-radix-popover-content] {
+  z-index: var(--z-popover) !important;
+}
+
+[data-radix-popover-trigger] {
+  position: relative;
+  z-index: var(--z-base);
+}
+
+/* Toast notifications highest priority */
+[data-radix-toast-viewport] {
+  z-index: var(--z-toast) !important;
+}
+
+/* Dialog/Modal z-index management */
+[data-radix-dialog-overlay] {
+  z-index: var(--z-overlay) !important;
+}
+
+[data-radix-dialog-content] {
+  z-index: var(--z-modal) !important;
+}
+
+/* Sheet z-index management */
+[data-radix-sheet-overlay] {
+  z-index: var(--z-overlay) !important;
+}
+
+[data-radix-sheet-content] {
+  z-index: var(--z-modal) !important;
+}
+
+/* Tooltip z-index */
+[data-radix-tooltip-content] {
+  z-index: var(--z-tooltip) !important;
+}
+
+/* Custom component z-index fixes */
+.navbar {
+  z-index: var(--z-sticky);
+}
+
+.dropdown-menu {
+  z-index: var(--z-dropdown);
+}
+
+.sidebar {
+  z-index: var(--z-docked);
+}
+
+.modal-backdrop {
+  z-index: var(--z-overlay);
+}
+
+.modal-content {
+  z-index: var(--z-modal);
+}
+
+/* Ensure stacking context isolation */
+.isolation-stack {
+  isolation: isolate;
+}
+
+/* Debug z-index (development only) */
+[data-debug-z="true"] * {
+  position: relative;
+}
+
+[data-debug-z="true"] *::before {
+  content: attr(style);
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: red;
+  color: white;
+  font-size: 10px;
+  padding: 2px;
+  z-index: var(--z-debug);
+  pointer-events: none;
+}
