@@ -1,7 +1,10 @@
 // i18n Fixes - Brief Requirements
 // Remove leaked i18n keys, achieve 100% EN/NE coverage with persistent switching
 
-export const i18nFixes = {
+export const i18nFixes: {
+  leakedKeys: string[];
+  translations: Record<string, { en: string; np: string }>;
+} = {
   // Common leaked keys that should be replaced
   leakedKeys: [
     'common.loading',
