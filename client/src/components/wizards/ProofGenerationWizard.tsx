@@ -26,6 +26,12 @@ import {
   Smartphone,
   Zap
 } from 'lucide-react';
+import { 
+  AgeVerificationIcon, 
+  CitizenshipIcon, 
+  IncomeIcon, 
+  EducationIcon 
+} from '@/components/ui/veridity-icons';
 import { useTranslation } from '@/lib/i18n';
 
 interface WizardStep {
@@ -356,7 +362,7 @@ function ProofTypeStep({ formData, updateFormData, language }: any) {
       titleNepali: 'उमेर प्रमाणीकरण',
       description: 'Prove you meet age requirements without revealing exact age',
       descriptionNepali: 'सही उमेर प्रकट नगरी उमेर आवश्यकता पूरा गरेको प्रमाणित गर्नुहोस्',
-      icon: '🎂',
+      icon: <AgeVerificationIcon className="text-primary" size={24} />,
       useCase: 'Banking, Government services, Online platforms'
     },
     {
@@ -365,7 +371,7 @@ function ProofTypeStep({ formData, updateFormData, language }: any) {
       titleNepali: 'नागरिकता प्रमाणीकरण',
       description: 'Verify Nepali citizenship for government services',
       descriptionNepali: 'सरकारी सेवाहरूको लागि नेपाली नागरिकता प्रमाणित गर्नुहोस्',
-      icon: '🏛️',
+      icon: <CitizenshipIcon className="text-primary" size={24} />,
       useCase: 'Government services, Voting, Official documents'
     },
     {
@@ -374,7 +380,7 @@ function ProofTypeStep({ formData, updateFormData, language }: any) {
       titleNepali: 'आम्दानी प्रमाणीकरण',
       description: 'Prove income eligibility for loans and services',
       descriptionNepali: 'ऋण र सेवाहरूको लागि आम्दानी योग्यता प्रमाणित गर्नुहोस्',
-      icon: '💰',
+      icon: <IncomeIcon className="text-primary" size={24} />,
       useCase: 'Bank loans, Credit cards, Housing'
     },
     {
@@ -383,7 +389,7 @@ function ProofTypeStep({ formData, updateFormData, language }: any) {
       titleNepali: 'शिक्षा प्रमाणीकरण',
       description: 'Verify academic qualifications privately',
       descriptionNepali: 'शैक्षिक योग्यताहरू निजी रूपमा प्रमाणित गर्नुहोस्',
-      icon: '🎓',
+      icon: <EducationIcon className="text-primary" size={24} />,
       useCase: 'Job applications, University admissions, Scholarships'
     }
   ];
