@@ -89,7 +89,7 @@ export function CitizenshipInput({
     }
     
     if (cleaned.length < 13) {
-      return { isValid: false, message: "Citizenship number must be 13 digits" };
+      return { isValid: false, message: "Enter all 13 digits" };
     }
 
     const districtCode = cleaned.slice(0, 2);
@@ -100,7 +100,7 @@ export function CitizenshipInput({
     // Validate district code
     const districtName = DISTRICT_CODES[districtCode as keyof typeof DISTRICT_CODES];
     if (!districtName) {
-      return { isValid: false, message: "Invalid district code" };
+      return { isValid: false, message: "Invalid district" };
     }
 
     // Basic validation for other parts
