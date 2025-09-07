@@ -50,7 +50,7 @@ export function StickyFooter({
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
             {secondaryAction && (
               <Button
-                variant="ghost"
+                variant="quiet"
                 onClick={secondaryAction.onClick}
                 disabled={secondaryAction.disabled}
                 className="order-2 sm:order-1"

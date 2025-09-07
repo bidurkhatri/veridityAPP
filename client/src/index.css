@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
 @import './styles/focus.css';
 @import './styles/z-index.css';
+@import './styles/high-contrast.css';
 
 @tailwind base;
 @tailwind components;

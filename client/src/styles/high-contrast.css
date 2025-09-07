@@ -1,0 +1,99 @@
+/* High Contrast Mode - Brief Requirements */
+
+.high-contrast {
+  /* Enhanced contrast colors for accessibility */
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-tertiary: #333333;
+  --text-inverse: #FFFFFF;
+  
+  --bg-canvas: #FFFFFF;
+  --bg-surface: #FFFFFF;
+  --bg-surface-secondary: #F5F5F5;
+  
+  /* High contrast borders */
+  --border-default: #000000;
+  --border-strong: #000000;
+  
+  /* High contrast interactive elements */
+  --brand-emerald-600: #000000;
+  --brand-emerald-hover: #333333;
+  --brand-teal-500: #000000;
+  
+  /* Status colors with high contrast */
+  --success-text: #000000;
+  --success-bg: #FFFFFF;
+  --success-border: #000000;
+  
+  --error-text: #000000;
+  --error-bg: #FFFFFF; 
+  --error-border: #000000;
+  
+  --warning-text: #000000;
+  --warning-bg: #FFFFFF;
+  --warning-border: #000000;
+}
+
+.high-contrast * {
+  /* Force high contrast text */
+  color: var(--text-primary) !important;
+  border-color: var(--border-default) !important;
+}
+
+.high-contrast .bg-surface,
+.high-contrast .bg-surface-secondary {
+  background-color: var(--bg-surface) !important;
+}
+
+.high-contrast button {
+  border: 2px solid var(--border-default) !important;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.high-contrast button:hover {
+  background-color: var(--bg-surface-secondary) !important;
+}
+
+.high-contrast button:focus {
+  outline: 3px solid var(--text-primary) !important;
+  outline-offset: 2px;
+}
+
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select {
+  border: 2px solid var(--border-default) !important;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+.high-contrast input:focus,
+.high-contrast textarea:focus,
+.high-contrast select:focus {
+  outline: 3px solid var(--text-primary) !important;
+  outline-offset: 1px;
+}
+
+/* Remove gradients and shadows in high contrast */
+.high-contrast .brand-gradient,
+.high-contrast .bg-gradient-to-r,
+.high-contrast .bg-gradient-to-br {
+  background: var(--bg-surface) !important;
+}
+
+.high-contrast .shadow-lg,
+.high-contrast .shadow-md,
+.high-contrast .shadow-sm {
+  box-shadow: none !important;
+}
+
+/* High contrast icons and graphics */
+.high-contrast svg {
+  stroke: var(--text-primary) !important;
+  fill: var(--text-primary) !important;
+}
+
+.high-contrast img {
+  filter: contrast(200%) !important;
+}
