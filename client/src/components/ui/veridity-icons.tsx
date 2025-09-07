@@ -174,6 +174,110 @@ export function DocumentIcon({ className, size = 24 }: IconProps) {
   );
 }
 
+// Additional Brief-Specified Icons
+export function ZkShieldIcon({ className, size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={cn("text-primary", className)}>
+      <path d="M12 2L4 6V11C4 16.55 7.84 21.74 12 22C16.16 21.74 20 16.55 20 11V6L12 2Z"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="8" r="1.5" fill="currentColor" opacity="0.6" />
+    </svg>
+  );
+}
+
+export function QrVerifyIcon({ className, size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={cn("text-primary", className)}>
+      <rect x="3" y="3" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="2" fill="none" />
+      <rect x="13" y="3" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="2" fill="none" />
+      <rect x="3" y="13" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="2" fill="none" />
+      <rect x="5" y="5" width="4" height="4" fill="currentColor" />
+      <rect x="15" y="5" width="4" height="4" fill="currentColor" />
+      <rect x="5" y="15" width="4" height="4" fill="currentColor" />
+      <path d="M13 13H15V15H13V13Z" fill="currentColor" />
+      <path d="M17 13H19V15H17V13Z" fill="currentColor" />
+      <path d="M19 17H21V19H19V17Z" fill="currentColor" />
+      <path d="M15 17H17V19H15V17Z" fill="currentColor" />
+      <circle cx="17" cy="19" r="2" stroke="currentColor" strokeWidth="2" fill="none" />
+      <path d="M16 19L17 20L18 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function WalletBackupIcon({ className, size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={cn("text-primary", className)}>
+      <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+      <circle cx="17" cy="12" r="2" stroke="currentColor" strokeWidth="2" fill="none" />
+      <path d="M7 6V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 20V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M8 22H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="9" cy="12" r="1" fill="currentColor" />
+      <circle cx="13" cy="12" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function AuditTrailIcon({ className, size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={cn("text-primary", className)}>
+      <path d="M8 6H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 12H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 6H3.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 12H3.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 18H3.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="17" cy="6" r="2" stroke="currentColor" strokeWidth="2" fill="none" />
+      <path d="M16 6L16.5 6.5L17.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function AiFraudIcon({ className, size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={cn("text-primary", className)}>
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+      <path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" />
+      <path d="M8 2L9 4L11 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 2L15 4L13 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2 8L4 9L3 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22 8L20 9L21 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function ChainIcon({ className, size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={cn("text-primary", className)}>
+      <rect x="9" y="8" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+      <rect x="3" y="2" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+      <rect x="15" y="14" width="6" height="6" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+      <path d="M9 11L6 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 14L18 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="6" cy="5" r="1" fill="currentColor" />
+      <circle cx="12" cy="11" r="1" fill="currentColor" />
+      <circle cx="18" cy="17" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function GovernmentIcon({ className, size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={cn("text-primary", className)}>
+      <path d="M3 21H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 21V7L12 4L19 7V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 9V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15 9V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 9V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="6" r="1" fill="currentColor" />
+      <path d="M6 9V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18 9V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 // Icon mapping for dynamic usage
 export const VeridityIcons = {
   logo: VeridityLogo,
@@ -189,6 +293,14 @@ export const VeridityIcons = {
   scan: ScanIcon,
   share: ShareIcon,
   document: DocumentIcon,
+  // Brief-specified additional icons
+  zkShield: ZkShieldIcon,
+  qrVerify: QrVerifyIcon,
+  walletBackup: WalletBackupIcon,
+  auditTrail: AuditTrailIcon,
+  aiFraud: AiFraudIcon,
+  chain: ChainIcon,
+  government: GovernmentIcon,
 } as const;
 
 export type VeridityIconName = keyof typeof VeridityIcons;
