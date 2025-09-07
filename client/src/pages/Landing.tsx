@@ -1,12 +1,20 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, CheckCircle, Globe, Smartphone, Lock, Users } from "lucide-react";
 import { VeridityLogo } from "@/components/ui/veridity-icons";
+import { LoginForm } from "@/components/auth/LoginForm";
 
 export default function Landing() {
-  const handleLogin = () => {
-    window.location.href = "/api/login";
+  const [showLoginForm, setShowLoginForm] = useState(false);
+
+  const handleGetStarted = () => {
+    setShowLoginForm(true);
   };
+
+  if (showLoginForm) {
+    return <LoginForm onSuccess={() => setShowLoginForm(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-canvas bg-gradient-subtle relative overflow-hidden">
@@ -62,7 +70,7 @@ export default function Landing() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
-              onClick={handleLogin}
+              onClick={handleGetStarted}
               size="lg"
               variant="primary"
               className="px-12 py-4 text-lg font-semibold"

@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { healthMonitor } from "./lib/health-monitor";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import authRoutes from "./authRoutes";
+import "./authStrategies"; // Initialize passport strategies
 import { ZKPService } from "./services/zkpService";
 import { insertProofSchema, insertVerificationSchema, insertOrganizationSchema } from "@shared/schema";
 import { QRCodeService } from "./services/qrService";
@@ -28,6 +30,9 @@ const verificationRequests = new Map<string, any>();
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Multi-provider authentication routes
+  app.use('/api/auth', authRoutes);
 
   // Apply rate limiting to all API routes
   app.use('/api', apiRateLimit);

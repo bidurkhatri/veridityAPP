@@ -30,6 +30,9 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  passwordHash: varchar("password_hash"), // For email/password auth
+  provider: varchar("provider").default("replit"), // 'email', 'google', 'github', 'microsoft', 'replit'
+  providerId: varchar("provider_id"), // External provider user ID
   preferredLanguage: varchar("preferred_language").default("en"),
   role: varchar("role").default("customer"), // customer, client, admin
   organizationId: varchar("organization_id").references(() => organizations.id),
