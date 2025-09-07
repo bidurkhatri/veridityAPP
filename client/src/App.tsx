@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import MobileNav from "@/components/MobileNav";
 import { useState, useEffect } from "react";
 import { Onboarding } from "@/components/Onboarding";
-import { ContextualThemeProvider, useAutoThemeDetection } from "@/components/ContextualTheme";
+import { useTheme } from "@/hooks/useTheme";
 import { VoiceNavigationNew as VoiceNavigation } from "@/components/VoiceNavigationNew";
 import { PWACapabilities } from "@/components/PWACapabilities";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -150,7 +150,7 @@ function Router() {
 }
 
 function AppWithTheme() {
-  useAutoThemeDetection();
+  const { theme } = useTheme(); // Use unified theme system
   const [currentLanguage, setCurrentLanguage] = useState<'en' | 'ne'>('en');
 
   // Load language from localStorage
@@ -188,11 +188,7 @@ function AppWithTheme() {
 }
 
 function App() {
-  return (
-    <ContextualThemeProvider>
-      <AppWithTheme />
-    </ContextualThemeProvider>
-  );
+  return <AppWithTheme />;
 }
 
 export default App;
