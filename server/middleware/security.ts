@@ -12,14 +12,24 @@ export interface SecurityConfig {
   allowedOrigins: string[];
 }
 
+// Validate CORS origins environment variable in production
+const getAllowedOrigins = () => {
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.ALLOWED_ORIGINS) {
+      console.error('❌ ALLOWED_ORIGINS environment variable is required in production');
+      throw new Error('ALLOWED_ORIGINS environment variable is required in production for CORS security');
+    }
+    return process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
+  }
+  return ['http://localhost:5000', 'https://localhost:5000'];
+};
+
 const DEFAULT_CONFIG: SecurityConfig = {
   enableCSRF: true,
   rateLimitWindow: 15 * 60 * 1000, // 15 minutes
   rateLimitMax: 100, // requests per window
   enableCORS: true,
-  allowedOrigins: process.env.NODE_ENV === 'production' 
-    ? ['https://your-domain.replit.app'] 
-    : ['http://localhost:5000', 'https://localhost:5000']
+  allowedOrigins: getAllowedOrigins()
 };
 
 export function setupSecurityHeaders(app: Express, config: SecurityConfig = DEFAULT_CONFIG) {

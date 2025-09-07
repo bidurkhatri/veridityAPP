@@ -23,6 +23,17 @@ const getOidcConfig = memoize(
 );
 
 export function getSession() {
+  // Validate required environment variables
+  if (!process.env.SESSION_SECRET) {
+    console.error('❌ SESSION_SECRET environment variable is required');
+    throw new Error('SESSION_SECRET environment variable is required for secure session management');
+  }
+  
+  if (process.env.SESSION_SECRET.length < 32) {
+    console.error('❌ SESSION_SECRET must be at least 32 characters long');
+    throw new Error('SESSION_SECRET must be at least 32 characters long for adequate security');
+  }
+
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
@@ -32,15 +43,15 @@ export function getSession() {
     tableName: "sessions",
   });
   return session({
-    secret: process.env.SESSION_SECRET || 'fallback-dev-secret-key-change-in-production',
+    secret: process.env.SESSION_SECRET,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Only secure in production HTTPS
+      secure: process.env.NODE_ENV === 'production',
       maxAge: sessionTtl,
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Allow cross-site in production
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     },
   });
 }

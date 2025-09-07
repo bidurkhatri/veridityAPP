@@ -11,9 +11,24 @@ import {
   QRTokenSchema
 } from '@shared/qr-schema';
 
-// Secret key for QR signing (should be environment variable in production)
-const QR_SIGNING_SECRET = process.env.QR_SIGNING_SECRET || 'veridity-qr-secret-key-change-in-production';
-const QR_ENCRYPTION_KEY = process.env.QR_ENCRYPTION_KEY || 'veridity-qr-encrypt-change-in-production-32';
+// Validate required QR security environment variables
+if (!process.env.QR_SIGNING_SECRET) {
+  console.error('❌ QR_SIGNING_SECRET environment variable is required');
+  throw new Error('QR_SIGNING_SECRET environment variable is required for secure QR generation');
+}
+
+if (!process.env.QR_ENCRYPTION_KEY) {
+  console.error('❌ QR_ENCRYPTION_KEY environment variable is required');
+  throw new Error('QR_ENCRYPTION_KEY environment variable is required for secure QR encryption');
+}
+
+if (process.env.QR_ENCRYPTION_KEY.length !== 32) {
+  console.error('❌ QR_ENCRYPTION_KEY must be exactly 32 characters for AES-256');
+  throw new Error('QR_ENCRYPTION_KEY must be exactly 32 characters for AES-256 encryption');
+}
+
+const QR_SIGNING_SECRET = process.env.QR_SIGNING_SECRET;
+const QR_ENCRYPTION_KEY = process.env.QR_ENCRYPTION_KEY;
 
 // Nonce storage for replay attack prevention (use Redis in production)
 const usedNonces = new Set<string>();
