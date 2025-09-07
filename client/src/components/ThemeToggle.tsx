@@ -1,69 +1,88 @@
-import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { Moon, Sun, Monitor } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useTheme } from '@/hooks/useTheme';
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
+  const { theme, setTheme } = useTheme();
 
-  // Check system preference and localStorage on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      setIsDark(false);
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
+  const getThemeIcon = () => {
+    if (theme === 'dark') return <Moon className="h-4 w-4" />;
+    if (theme === 'light') return <Sun className="h-4 w-4" />;
+    return <Monitor className="h-4 w-4" />;
+  };
 
-  // Listen for system theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem('theme')) {
-        setIsDark(e.matches);
-        if (e.matches) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    
-    if (newTheme) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+  const getThemeLabel = () => {
+    if (theme === 'dark') return 'Dark mode';
+    if (theme === 'light') return 'Light mode';
+    return 'System mode';
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={toggleTheme}
-      className="h-9 w-9 p-0"
-      aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-      data-testid="button-theme-toggle"
-    >
-      {isDark ? (
-        <Sun className="h-4 w-4" />
-      ) : (
-        <Moon className="h-4 w-4" />
-      )}
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="h-9 w-9 p-0 border-0 hover:bg-muted/50 transition-colors"
+          data-testid="theme-toggle"
+          aria-label={`Current theme: ${getThemeLabel()}. Click to change theme`}
+        >
+          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme menu</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent 
+        align="end" 
+        className="min-w-[140px] bg-background border shadow-md"
+        sideOffset={8}
+      >
+        <DropdownMenuItem 
+          onClick={() => setTheme('light')}
+          className="cursor-pointer focus:bg-muted/50 rounded-sm"
+          data-testid="theme-light"
+        >
+          <Sun className="mr-2 h-4 w-4" />
+          <span>Light</span>
+          {theme === 'light' && (
+            <span className="ml-auto text-primary font-medium" aria-label="Currently selected">
+              ✓
+            </span>
+          )}
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setTheme('dark')}
+          className="cursor-pointer focus:bg-muted/50 rounded-sm"
+          data-testid="theme-dark"
+        >
+          <Moon className="mr-2 h-4 w-4" />
+          <span>Dark</span>
+          {theme === 'dark' && (
+            <span className="ml-auto text-primary font-medium" aria-label="Currently selected">
+              ✓
+            </span>
+          )}
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setTheme('system')}
+          className="cursor-pointer focus:bg-muted/50 rounded-sm"
+          data-testid="theme-system"
+        >
+          <Monitor className="mr-2 h-4 w-4" />
+          <span>System</span>
+          {theme === 'system' && (
+            <span className="ml-auto text-primary font-medium" aria-label="Currently selected">
+              ✓
+            </span>
+          )}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

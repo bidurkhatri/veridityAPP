@@ -147,6 +147,7 @@ function Router() {
 
 function AppWithTheme() {
   useAutoThemeDetection();
+  useTheme(); // Initialize theme system
   const [currentLanguage, setCurrentLanguage] = useState<'en' | 'ne'>('en');
 
   // Load language from localStorage
