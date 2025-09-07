@@ -1,0 +1,121 @@
+/* Enhanced Focus and Keyboard Navigation - Brief Requirements */
+
+/* Global focus ring system with proper keyboard detection */
+:root {
+  --focus-ring-color: theme('colors.brand.emerald.600');
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-opacity: 0.8;
+}
+
+/* Hide focus rings when using mouse */
+.no-focus-ring *:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Show enhanced focus rings only during keyboard navigation */
+.using-keyboard *:focus {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
+  outline-offset: var(--focus-ring-offset);
+  outline-style: solid;
+}
+
+.using-keyboard button:focus,
+.using-keyboard a:focus,
+.using-keyboard [role="button"]:focus {
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color) !important;
+  outline: none;
+}
+
+.using-keyboard input:focus,
+.using-keyboard textarea:focus,
+.using-keyboard select:focus {
+  border-color: var(--focus-ring-color) !important;
+  box-shadow: 0 0 0 var(--focus-ring-width) rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Tab order management for complex components */
+.tab-order-container {
+  isolation: isolate;
+}
+
+.tab-order-container [tabindex="-1"]:focus {
+  outline: 1px dotted var(--focus-ring-color);
+  outline-offset: 1px;
+}
+
+/* Skip links for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--focus-ring-color);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 9999;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Enhanced focus for custom components */
+.using-keyboard [data-radix-collection-item]:focus,
+.using-keyboard [data-radix-menu-item]:focus,
+.using-keyboard [data-radix-select-item]:focus {
+  background: rgba(16, 185, 129, 0.1) !important;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
+  outline-offset: -1px;
+}
+
+/* Focus trap for modals */
+.focus-trap {
+  outline: none;
+}
+
+.focus-trap:focus-within {
+  box-shadow: inset 0 0 0 2px var(--focus-ring-color);
+}
+
+/* High contrast focus indicators */
+@media (prefers-contrast: high) {
+  :root {
+    --focus-ring-color: #000;
+    --focus-ring-width: 3px;
+  }
+
+  .using-keyboard *:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
+    background: yellow !important;
+    color: black !important;
+  }
+}
+
+/* Reduced motion focus animations */
+@media (prefers-reduced-motion: reduce) {
+  .using-keyboard *:focus {
+    transition: none !important;
+  }
+}
+
+/* Focus order debugging (development only) */
+[data-debug-focus="true"] .using-keyboard *:focus {
+  position: relative;
+}
+
+[data-debug-focus="true"] .using-keyboard *:focus::after {
+  content: attr(tabindex);
+  position: absolute;
+  top: -20px;
+  left: 0;
+  background: red;
+  color: white;
+  padding: 2px 4px;
+  font-size: 10px;
+  z-index: 10000;
+}

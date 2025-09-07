@@ -221,11 +221,11 @@ export default function AdminPortal() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span>Active Users</span>
-                  <span className="font-bold">{formatNumber(systemHealth?.activeUsers)}</span>
+                  <span className="font-bold">{formatNumber(systemHealth?.activeUsers || 0)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Total Requests (24h)</span>
-                  <span className="font-bold">{formatNumber(systemHealth?.totalRequests)}</span>
+                  <span className="font-bold">{formatNumber(systemHealth?.totalRequests || 0)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Success Rate</span>
@@ -362,10 +362,10 @@ export default function AdminPortal() {
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" data-testid={`view-user-${user.id}`}>
+                      <Button variant="secondary" size="sm" data-testid={`view-user-${user.id}`}>
                         View
                       </Button>
-                      <Button variant="outline" size="sm" data-testid={`edit-user-${user.id}`}>
+                      <Button variant="secondary" size="sm" data-testid={`edit-user-${user.id}`}>
                         Edit
                       </Button>
                       {user.status === 'active' ? (
@@ -373,7 +373,7 @@ export default function AdminPortal() {
                           Suspend
                         </Button>
                       ) : (
-                        <Button variant="outline" size="sm" data-testid={`activate-user-${user.id}`}>
+                        <Button variant="secondary" size="sm" data-testid={`activate-user-${user.id}`}>
                           Activate
                         </Button>
                       )}
@@ -832,11 +832,11 @@ export default function AdminPortal() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start" data-testid="btn-manage-kb">
+                  <Button variant="secondary" className="w-full justify-start" data-testid="btn-manage-kb">
                     <Edit className="h-4 w-4 mr-2" />
                     Manage Articles
                   </Button>
-                  <Button variant="outline" className="w-full justify-start" data-testid="btn-view-analytics">
+                  <Button variant="secondary" className="w-full justify-start" data-testid="btn-view-analytics">
                     <BarChart3 className="h-4 w-4 mr-2" />
                     View Analytics
                   </Button>
