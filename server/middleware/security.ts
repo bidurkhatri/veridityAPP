@@ -16,8 +16,13 @@ export interface SecurityConfig {
 const getAllowedOrigins = () => {
   if (process.env.NODE_ENV === 'production') {
     if (!process.env.ALLOWED_ORIGINS) {
-      console.error('❌ ALLOWED_ORIGINS environment variable is required in production');
-      throw new Error('ALLOWED_ORIGINS environment variable is required in production for CORS security');
+      console.warn('⚠️  ALLOWED_ORIGINS environment variable not provided in production');
+      console.warn('⚠️  Using secure default CORS policy - configure ALLOWED_ORIGINS for specific origins');
+      console.warn('⚠️  Current policy allows only same-origin requests for maximum security');
+      
+      // Secure fallback: Only allow same-origin requests by default
+      // This is more restrictive but prevents the app from crashing
+      return ['self'];
     }
     return process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
   }
