@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { healthMonitor } from "./lib/health-monitor";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth } from "./replitAuth";
+import { isAuthenticated } from "./middleware/auth";
 import authRoutes from "./authRoutes";
 import "./authStrategies"; // Initialize passport strategies
 import { ZKPService } from "./services/zkpService";
@@ -50,7 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -62,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Role-specific dashboard endpoints
   app.get('/api/user/dashboard', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const user = await storage.getUser(userId);
       const stats = await storage.getUserStats(userId);
       
@@ -83,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/org-admin/dashboard', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const user = await storage.getUser(userId);
       
       if (user.role !== 'client' && user.role !== 'admin') {
@@ -133,7 +134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/admin/dashboard', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const user = await storage.getUser(userId);
       
       if (user.role !== 'admin') {
@@ -196,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Secure QR Code Generation and Verification API
   app.post('/api/qr/generate', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const user = await storage.getUser(userId);
       
       // Validate request using QR schema
@@ -316,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Proof generation routes
   app.post('/api/proofs/generate', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const { proofTypeId, privateInputs } = req.body;
 
       if (!proofTypeId || !privateInputs) {
@@ -374,7 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's proofs
   app.get('/api/proofs', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const proofs = await storage.getUserProofs(userId);
       res.json(proofs);
     } catch (error) {
@@ -386,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's latest proof for testing and verification
   app.get('/api/proofs/latest', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const proofs = await storage.getUserProofs(userId, 1); // Get only the latest proof
       
       if (proofs.length === 0) {
@@ -416,7 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's proof history with verification details
   app.get('/api/proofs/history', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const historyData = await storage.getProofHistory(userId);
       
       // Transform data to match frontend ProofHistoryItem interface
@@ -691,7 +692,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/stats/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const stats = await storage.getUserStats(userId);
       res.json(stats);
     } catch (error) {
@@ -990,7 +991,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Biometric authentication endpoints
   app.post('/api/biometric/register/challenge', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const challenge = await biometricService.generateRegistrationChallenge(userId);
       res.json(challenge);
     } catch (error) {
@@ -1000,7 +1001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/biometric/register', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const registration = {
         userId,
         ...req.body
@@ -1020,7 +1021,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/biometric/authenticate', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const auth = {
         userId,
         ...req.body
@@ -1040,7 +1041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get('/api/biometric/devices', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const devices = await biometricService.getUserBiometricDevices(userId);
       res.json(devices);
     } catch (error) {
@@ -1064,7 +1065,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify user owns this proof
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       if (proof.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -1094,7 +1095,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate shareable QR code for user's latest proof
   app.get('/api/qr/generate-share', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       
       // Get user's most recent proof
       const proofs = await storage.getUserProofs(userId, 1);
@@ -1180,7 +1181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/documents/upload', isAuthenticated, upload.array('documents', 3), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const files = req.files as Express.Multer.File[];
       const { documentType, metadata } = req.body;
 
@@ -1223,7 +1224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/documents/verify/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       
       const result = await documentService.verifyDocument(id);
       
@@ -1237,7 +1238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/documents/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       
       const success = await documentService.deleteDocument(id, userId);
       
@@ -1255,7 +1256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Proof sharing endpoints
   app.post('/api/proofs/share', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const { proofId, expiryDuration, usageLimit, requireAuth, allowedDomains, notifyOnAccess } = req.body;
 
       // Generate secure share link
@@ -1308,7 +1309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/proofs/share/:shareId', isAuthenticated, async (req: any, res) => {
     try {
       const { shareId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       
       // TODO: Revoke share link in database
       
@@ -1322,7 +1323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Organization management endpoints
   app.get('/api/organizations/my', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       
       // Get all organizations (for demo, show all since organizations are shared in the system)
       const allOrganizations = await storage.getOrganizations();
@@ -1353,7 +1354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/organizations/stats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       
       // Get comprehensive verification statistics from the database
       const stats = await storage.getComprehensiveStats(userId);
@@ -1497,7 +1498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Document upload and management endpoints
   app.get('/api/documents', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       
       // Get user's uploaded documents
       // For now, return empty array as document storage isn't fully implemented
@@ -1512,7 +1513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/documents/upload', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const { documentType, documentData, filename } = req.body;
       
       if (!documentType || !documentData) {
@@ -1579,7 +1580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Fraud detection endpoints
   app.post('/api/fraud/analyze', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub || req.user.id;
       const { proofTypeId, organizationId } = req.body;
       
       const riskScore = await fraudDetectionService.analyzeProofGeneration(userId, proofTypeId, organizationId);

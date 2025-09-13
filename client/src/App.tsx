@@ -33,6 +33,7 @@ import OrgAdminDashboard from "@/pages/OrgAdminDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import QRVerification from "@/pages/QRVerification";
 import NotFound from "@/pages/not-found";
+import Register from "@/pages/Register";
 
 interface RouterProps {
   user?: {
@@ -130,6 +131,7 @@ function Router() {
     return (
       <Switch>
         <Route path="/" component={Landing} />
+        <Route path="/register" component={Register} />
         <Route component={NotFound} />
       </Switch>
     );

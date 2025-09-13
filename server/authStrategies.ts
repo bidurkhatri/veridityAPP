@@ -22,7 +22,24 @@ passport.use(new LocalStrategy({
         return done(null, false, { message: 'Invalid email or password' });
       }
 
-      return done(null, user);
+      // Transform user to consistent format for the app
+      const transformedUser = {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        provider: user.provider,
+        claims: {
+          sub: user.id,
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName
+        },
+        // For email users, we don't need token refresh
+        expires_at: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 days from now
+      };
+      
+      return done(null, transformedUser);
     } catch (error) {
       return done(error);
     }

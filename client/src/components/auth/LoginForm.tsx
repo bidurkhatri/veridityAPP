@@ -286,9 +286,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           <div className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
             <Button
-              variant="tertiary"
-              size="sm"
+              type="button"
+              variant="link"
               className="p-0 h-auto font-medium text-primary hover:underline"
+              onClick={() => window.location.href = '/register'}
               data-testid="link-signup"
             >
               Create one now
