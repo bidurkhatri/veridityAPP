@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +36,19 @@ interface LoginFormProps {
 export function LoginForm({ onSuccess }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  // Check for OAuth configuration errors from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const provider = urlParams.get('provider');
+    
+    if (error === 'oauth_not_configured' && provider) {
+      setAuthError(`${provider} authentication is not currently configured. Please use email/password login or contact support.`);
+      // Clear the error from URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const {
     register,
@@ -82,7 +95,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   // WebAuthn/Passkey Login
   const handleWebAuthnLogin = async () => {
     try {
-      // Request passkey authentication
       const response = await fetch('/api/auth/webauthn/authenticate', {
         method: 'POST',
         headers: {
@@ -92,20 +104,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       });
       
       const data = await response.json();
-      if (data.options) {
-        // Browser WebAuthn API call would go here
-        // For now, show that it's available
-        setAuthError("WebAuthn authentication will be available soon!");
+      if (!data.available) {
+        setAuthError(data.message || 'WebAuthn authentication is not yet available');
       }
     } catch (error: any) {
       setAuthError(error.message || 'WebAuthn authentication failed');
     }
   };
 
-  // Replit Login (existing)
-  const handleReplitLogin = () => {
-    window.location.href = "/api/login";
-  };
 
   const onSubmit = (data: LoginFormData) => {
     setAuthError(null);
@@ -274,17 +280,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               Use Passkey / Biometric
             </Button>
 
-            <Button
-              variant="secondary"
-              onClick={handleReplitLogin}
-              className="w-full justify-start"
-              data-testid="button-replit-login"
-            >
-              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7.27 2.054C4.892 2.054 2.946 4 2.946 6.378v11.244c0 2.378 1.946 4.324 4.324 4.324h9.46c2.378 0 4.324-1.946 4.324-4.324V6.378c0-2.378-1.946-4.324-4.324-4.324H7.27z"/>
-              </svg>
-              Continue with Replit
-            </Button>
           </div>
 
           {/* Sign Up Link */}

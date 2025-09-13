@@ -115,43 +115,30 @@ router.post('/email/login', (req, res, next) => {
   })(req, res, next);
 });
 
-// Google OAuth Routes
-router.get('/google', 
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+// OAuth Routes - Currently not configured
+router.get('/google', (req, res) => {
+  res.redirect('/?error=oauth_not_configured&provider=Google');
+});
 
-router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: '/?error=google_auth_failed' }),
-  (req, res) => {
-    res.redirect('/');
-  }
-);
+router.get('/google/callback', (req, res) => {
+  res.redirect('/?error=oauth_not_configured&provider=Google');
+});
 
-// GitHub OAuth Routes
-router.get('/github',
-  passport.authenticate('github', { scope: ['user:email'] })
-);
+router.get('/github', (req, res) => {
+  res.redirect('/?error=oauth_not_configured&provider=GitHub');
+});
 
-router.get('/github/callback',
-  passport.authenticate('github', { failureRedirect: '/?error=github_auth_failed' }),
-  (req, res) => {
-    res.redirect('/');
-  }
-);
+router.get('/github/callback', (req, res) => {
+  res.redirect('/?error=oauth_not_configured&provider=GitHub');
+});
 
-// Microsoft OAuth Routes
-router.get('/microsoft',
-  passport.authenticate('microsoft', { 
-    prompt: 'select_account'
-  })
-);
+router.get('/microsoft', (req, res) => {
+  res.redirect('/?error=oauth_not_configured&provider=Microsoft');
+});
 
-router.get('/microsoft/callback',
-  passport.authenticate('microsoft', { failureRedirect: '/?error=microsoft_auth_failed' }),
-  (req, res) => {
-    res.redirect('/');
-  }
-);
+router.get('/microsoft/callback', (req, res) => {
+  res.redirect('/?error=oauth_not_configured&provider=Microsoft');
+});
 
 // WebAuthn Routes (Placeholder for future implementation)
 router.post('/webauthn/register', async (req, res) => {
@@ -161,8 +148,9 @@ router.post('/webauthn/register', async (req, res) => {
 });
 
 router.post('/webauthn/authenticate', async (req, res) => {
-  res.status(501).json({ 
-    message: 'WebAuthn authentication will be available soon' 
+  res.json({ 
+    available: false,
+    message: 'WebAuthn authentication will be available in a future update' 
   });
 });
 
