@@ -24,6 +24,11 @@ Follow these steps:
 
 ### Step 2: Configure Domain Values
 
+**For Veridity application:**
+```
+ALLOWED_ORIGINS=https://veridity.replit.app,https://app.veridity.net
+```
+
 **For single domain:**
 ```
 ALLOWED_ORIGINS=https://your-app-name.replit.app
