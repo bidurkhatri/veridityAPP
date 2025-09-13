@@ -14,19 +14,41 @@ export interface SecurityConfig {
 
 // Validate CORS origins environment variable in production
 const getAllowedOrigins = () => {
-  if (process.env.NODE_ENV === 'production') {
-    if (!process.env.ALLOWED_ORIGINS) {
-      console.warn('⚠️  ALLOWED_ORIGINS environment variable not provided in production');
-      console.warn('⚠️  Using secure default CORS policy - configure ALLOWED_ORIGINS for specific origins');
-      console.warn('⚠️  Current policy allows only same-origin requests for maximum security');
-      
-      // Secure fallback: Only allow same-origin requests by default
-      // This is more restrictive but prevents the app from crashing
-      return ['self'];
-    }
-    return process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isDeployment = process.env.REPLIT_DEPLOYMENT === '1';
+  const replDomains = process.env.REPLIT_DOMAINS;
+  
+  // Development environment
+  if (!isProduction && !isDeployment) {
+    console.log('🔧 Development mode: Using localhost CORS origins');
+    return ['http://localhost:5000', 'https://localhost:5000'];
   }
-  return ['http://localhost:5000', 'https://localhost:5000'];
+  
+  // Production or deployment environment
+  if (process.env.ALLOWED_ORIGINS) {
+    const origins = process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean);
+    console.log(`✅ Using configured ALLOWED_ORIGINS: ${origins.join(', ')}`);
+    return origins;
+  }
+  
+  // Deployment fallback: Use Replit domains if available
+  if (isDeployment && replDomains) {
+    const replitOrigins = replDomains.split(',').map(domain => {
+      const trimmed = domain.trim();
+      return trimmed.startsWith('http') ? trimmed : `https://${trimmed}`;
+    }).filter(Boolean);
+    console.log(`🚀 Deployment mode: Using REPLIT_DOMAINS as origins: ${replitOrigins.join(', ')}`);
+    return replitOrigins;
+  }
+  
+  // Final secure fallback
+  console.warn('⚠️  ALLOWED_ORIGINS environment variable not provided');
+  console.warn('⚠️  REPLIT_DOMAINS fallback not available or invalid');
+  console.warn('⚠️  Using restrictive CORS policy - same-origin requests only');
+  console.warn('⚠️  To fix: Set ALLOWED_ORIGINS in deployment configuration');
+  console.warn('⚠️  Example: ALLOWED_ORIGINS=https://your-domain.com,https://another-domain.com');
+  
+  return ['self'];
 };
 
 const DEFAULT_CONFIG: SecurityConfig = {
@@ -137,20 +159,65 @@ export function setupSecurityHeaders(app: Express, config: SecurityConfig = DEFA
     next();
   });
 
-  // CORS configuration
+  // CORS configuration with secure deployment support
   if (config.enableCORS) {
     app.use((req: Request, res: Response, next: NextFunction) => {
       const origin = req.headers.origin;
+      const isDeployment = process.env.REPLIT_DEPLOYMENT === '1';
       
-      if (!origin || config.allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin || '*');
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
+      // Calculate server origin for 'self' comparison
+      const serverOrigin = `${req.protocol}://${req.get('host')}`;
+      
+      // Log CORS requests in deployment for debugging
+      if (isDeployment && origin) {
+        console.log(`🌐 CORS request from origin: ${origin}, server origin: ${serverOrigin}, allowed origins: ${config.allowedOrigins.join(', ')}`);
+      }
+      
+      // Determine if origin is allowed
+      let isAllowed = false;
+      let allowedOrigin: string | undefined;
+      
+      // Handle requests without origin (same-origin requests)
+      if (!origin) {
+        isAllowed = true;
+        // Don't set CORS headers for same-origin requests
+      }
+      // Handle wildcard (never use with credentials)
+      else if (config.allowedOrigins.includes('*')) {
+        isAllowed = true;
+        allowedOrigin = '*';
+      }
+      // Handle explicit origin match
+      else if (config.allowedOrigins.includes(origin)) {
+        isAllowed = true;
+        allowedOrigin = origin;
+      }
+      // Handle 'self' - only allow true same-origin
+      else if (config.allowedOrigins.includes('self') && origin === serverOrigin) {
+        isAllowed = true;
+        allowedOrigin = origin;
+      }
+      
+      // Set CORS headers only for allowed cross-origin requests
+      if (isAllowed && allowedOrigin) {
+        res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+        
+        // Only set credentials header if not using wildcard
+        if (allowedOrigin !== '*') {
+          res.setHeader('Access-Control-Allow-Credentials', 'true');
+        }
+        
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token');
+      } else if (origin && !isAllowed && isDeployment) {
+        console.warn(`🚫 CORS: Blocked request from origin: ${origin}`);
+        console.warn(`🚫 CORS: Server origin: ${serverOrigin}`);
+        console.warn(`🚫 CORS: Allowed origins are: ${config.allowedOrigins.join(', ')}`);
       }
 
+      // Handle preflight requests
       if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
+        res.sendStatus(isAllowed ? 204 : 403);
         return;
       }
 
